@@ -125,6 +125,14 @@ class HomeScreen extends ConsumerWidget {
                   color: Colors.indigo,
                   onTap: () => context.push('/admin/users'),
                 ),
+                const SizedBox(height: 12),
+                _QuickActionCard(
+                  icon: Icons.meeting_room,
+                  title: '교실 관리',
+                  subtitle: '교실 등록, 수정 및 삭제',
+                  color: Colors.teal,
+                  onTap: () => context.push('/admin/classrooms'),
+                ),
                 const SizedBox(height: 24),
                 Text(
                   '일반 메뉴',
@@ -142,7 +150,7 @@ class HomeScreen extends ConsumerWidget {
                 subtitle: '컴퓨터실, 과학실 등',
                 color: TossColors.primary,
                 onTap: () {
-                  // TODO: 예약 화면
+                  context.push('/classrooms');
                 },
               ),
 
@@ -154,7 +162,7 @@ class HomeScreen extends ConsumerWidget {
                 subtitle: '예약 확인 및 관리',
                 color: TossColors.success,
                 onTap: () {
-                  // TODO: 예약 내역 화면
+                  context.push('/reservations/my');
                 },
               ),
 

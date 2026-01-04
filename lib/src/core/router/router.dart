@@ -13,6 +13,11 @@ import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/auth/domain/models/user.dart';
 import '../../features/reservation/presentation/home_screen.dart';
+import '../../features/classroom/presentation/classroom_list_screen.dart';
+import '../../features/classroom/presentation/classroom_detail_screen.dart';
+import '../../features/classroom/presentation/admin_classroom_screen.dart';
+import '../../features/classroom/presentation/classroom_form_screen.dart';
+import '../../features/reservation/presentation/my_reservations_screen.dart';
 import '../providers/auth_provider.dart';
 
 part 'router.g.dart';
@@ -111,6 +116,46 @@ GoRouter router(RouterRef ref) {
         path: '/admin/users',
         name: 'admin-users',
         builder: (context, state) => const AdminUsersScreen(),
+      ),
+      GoRoute(
+        path: '/admin/classrooms',
+        name: 'admin-classrooms',
+        builder: (context, state) => const AdminClassroomScreen(),
+      ),
+      GoRoute(
+        path: '/admin/classrooms/create',
+        name: 'admin-classrooms-create',
+        builder: (context, state) => const ClassroomFormScreen(),
+      ),
+      GoRoute(
+        path: '/admin/classrooms/:id/edit',
+        name: 'admin-classrooms-edit',
+        builder: (context, state) {
+          final classroom = state.extra as Classroom?;
+          return ClassroomFormScreen(classroom: classroom);
+        },
+      ),
+
+      // 교실
+      GoRoute(
+        path: '/classrooms',
+        name: 'classrooms',
+        builder: (context, state) => const ClassroomListScreen(),
+      ),
+      GoRoute(
+        path: '/classrooms/:id',
+        name: 'classroom-detail',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ClassroomDetailScreen(classroomId: id);
+        },
+      ),
+
+      // 예약
+      GoRoute(
+        path: '/reservations/my',
+        name: 'my-reservations',
+        builder: (context, state) => const MyReservationsScreen(),
       ),
     ],
   );
