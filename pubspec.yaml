@@ -36,6 +36,9 @@ dependencies:
   # 파일 선택
   file_picker: ^8.0.0
 
+  # 이미지 압축
+  image: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/image_compressor.dart';
 import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_button.dart';
 import '../../../shared/widgets/toss_card.dart';
@@ -30,6 +33,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   // 파일 업로드 관련
   PlatformFile? _selectedFile;
   bool _isUploading = false;
+  bool _isCompressing = false;
+  Uint8List? _compressedBytes;
+  int? _originalSize;
+  int? _compressedSize;
 
   @override
   void dispose() {
@@ -50,16 +57,55 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       );
 
       if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+
         setState(() {
-          _selectedFile = result.files.first;
+          _selectedFile = file;
           _errorMessage = null;
+          _originalSize = file.bytes?.length;
+          _compressedBytes = null;
+          _compressedSize = null;
         });
+
+        // 이미지인 경우 압축 진행
+        if (ImageCompressor.isImage(file.extension) && file.bytes != null) {
+          await _compressImage(file.bytes!);
+        }
       }
     } catch (e) {
       setState(() {
-        _errorMessage = '파일 선택 중 오류가 발생했습니다: $e';
+        _errorMessage = '파일 선택 중 오류가 발생했습니다';
       });
     }
+  }
+
+  Future<void> _compressImage(Uint8List bytes) async {
+    setState(() {
+      _isCompressing = true;
+    });
+
+    try {
+      final compressed = await ImageCompressor.compressToWebP(bytes);
+
+      if (compressed != null) {
+        setState(() {
+          _compressedBytes = compressed;
+          _compressedSize = compressed.length;
+        });
+      }
+    } catch (e) {
+      // 압축 실패해도 원본 사용
+    } finally {
+      setState(() {
+        _isCompressing = false;
+      });
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   Future<void> _handleSignup() async {
@@ -112,17 +158,33 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           _isUploading = true;
         });
 
-        final fileBytes = _selectedFile!.bytes;
-        final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.${_selectedFile!.extension}';
+        // 압축된 이미지 또는 원본 사용
+        final Uint8List? fileBytes;
+        final String fileExtension;
+
+        if (_compressedBytes != null) {
+          // 압축된 이미지 사용
+          fileBytes = _compressedBytes;
+          fileExtension = 'jpg';
+        } else {
+          // 원본 사용 (PDF 또는 압축 실패)
+          fileBytes = _selectedFile!.bytes;
+          fileExtension = _selectedFile!.extension ?? 'bin';
+        }
+
+        // 익명화된 파일명 생성 (개인정보 미포함)
+        // 폴더 구조: {userId}/{timestamp}.{ext}
+        final fileName = '$userId/${ImageCompressor.generateAnonymousFileName(fileExtension)}';
 
         if (fileBytes != null) {
           await supabase.storage
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
 
-          documentUrl = supabase.storage
+          // Private 버킷이므로 signed URL 사용 (1시간 유효)
+          documentUrl = await supabase.storage
               .from('verification-documents')
-              .getPublicUrl(fileName);
+              .createSignedUrl(fileName, 3600);
         }
       }
 
@@ -367,7 +429,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       const SizedBox(height: 12),
 
                       InkWell(
-                        onTap: _useReferralCode ? null : _pickFile,
+                        onTap: _useReferralCode || _isCompressing ? null : _pickFile,
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           width: double.infinity,
@@ -386,20 +448,29 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(
-                                _selectedFile != null
-                                    ? Icons.check_circle
-                                    : Icons.cloud_upload_outlined,
-                                size: 40,
-                                color: _useReferralCode
-                                    ? TossColors.disabled
-                                    : (_selectedFile != null ? TossColors.primary : TossColors.textSub),
-                              ),
+                              if (_isCompressing)
+                                const SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              else
+                                Icon(
+                                  _selectedFile != null
+                                      ? Icons.check_circle
+                                      : Icons.cloud_upload_outlined,
+                                  size: 40,
+                                  color: _useReferralCode
+                                      ? TossColors.disabled
+                                      : (_selectedFile != null ? TossColors.primary : TossColors.textSub),
+                                ),
                               const SizedBox(height: 8),
                               Text(
-                                _selectedFile != null
-                                    ? _selectedFile!.name
-                                    : '파일을 선택하세요',
+                                _isCompressing
+                                    ? '이미지 압축 중...'
+                                    : (_selectedFile != null
+                                        ? _selectedFile!.name
+                                        : '파일을 선택하세요'),
                                 style: TextStyle(
                                   color: _useReferralCode
                                       ? TossColors.disabled
@@ -408,9 +479,39 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 ),
                                 textAlign: TextAlign.center,
                               ),
+
+                              // 압축 결과 표시
+                              if (_selectedFile != null && _originalSize != null) ...[
+                                const SizedBox(height: 8),
+                                if (_compressedSize != null && _compressedSize! < _originalSize!)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '${_formatFileSize(_originalSize!)} → ${_formatFileSize(_compressedSize!)} (${((1 - _compressedSize! / _originalSize!) * 100).toStringAsFixed(0)}% 절약)',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Text(
+                                    _formatFileSize(_originalSize!),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: TossColors.textSub.withOpacity(_useReferralCode ? 0.5 : 1),
+                                    ),
+                                  ),
+                              ],
+
                               const SizedBox(height: 4),
                               Text(
-                                'PDF, JPG, PNG 파일 지원',
+                                'PDF, JPG, PNG (최대 5MB)',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: TossColors.textSub.withOpacity(_useReferralCode ? 0.5 : 1),
@@ -419,6 +520,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             ],
                           ),
                         ),
+                      ),
+
+                      // 개인정보 보호 안내
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(Icons.lock_outline, size: 14, color: TossColors.textSub),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '파일은 암호화되어 안전하게 저장되며, 인증 완료 후 삭제됩니다',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: TossColors.textSub,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -452,8 +571,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // 회원가입 버튼
                 TossButton(
-                  onPressed: _handleSignup,
+                  onPressed: _isCompressing ? null : _handleSignup,
                   isLoading: _isLoading,
+                  isDisabled: _isCompressing,
                   child: Text(_isUploading ? '업로드 중...' : '회원가입'),
                 ),
 
