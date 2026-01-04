@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';

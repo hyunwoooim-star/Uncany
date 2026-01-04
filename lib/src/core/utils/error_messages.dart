@@ -102,6 +102,7 @@ class ErrorMessages {
   static const String invalidPassword = '비밀번호는 6자 이상이어야 합니다';
   static const String passwordMismatch = '비밀번호가 일치하지 않습니다';
   static const String invalidPhone = '유효한 전화번호를 입력해주세요';
+  static const String authRequired = '로그인이 필요합니다';
 
   /// 성공 메시지
   static const String signupSuccess = '회원가입이 완료되었습니다';

@@ -114,7 +114,7 @@ class ReservationRepository {
     try {
       var query = _supabase
           .from('reservations')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id', count: CountOption.exact)
           .eq('classroom_id', classroomId)
           .isFilter('deleted_at', null);
 
@@ -292,7 +292,7 @@ class ReservationRepository {
 
       final response = await _supabase
           .from('reservations')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id', count: CountOption.exact)
           .eq('teacher_id', session.user.id)
           .isFilter('deleted_at', null)
           .gte('start_time', startOfDay.toIso8601String())

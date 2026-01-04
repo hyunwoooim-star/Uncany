@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
@@ -162,7 +162,7 @@ class UserRepository {
     try {
       final response = await _supabase
           .from('users')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id', count: CountOption.exact)
           .eq('verification_status', VerificationStatus.pending.name)
           .isFilter('deleted_at', null);
 
