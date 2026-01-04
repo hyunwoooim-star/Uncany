@@ -7,6 +7,7 @@ import '../domain/models/classroom.dart';
 import '../../reservation/data/providers/reservation_repository_provider.dart';
 import '../../reservation/domain/models/reservation.dart';
 import '../../reservation/presentation/widgets/create_reservation_sheet.dart';
+import '../../reservation/presentation/widgets/time_table_grid.dart';
 import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_card.dart';
 import '../../../core/utils/error_messages.dart';
@@ -36,6 +37,7 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
   bool _isLoadingReservations = false;
   String? _errorMessage;
   bool _isVerified = false; // 비밀번호 인증 여부
+  bool _isGridView = true; // 그리드 뷰 / 리스트 뷰 전환
 
   @override
   void initState() {
@@ -210,6 +212,17 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
         title: Text(_classroom!.name),
         backgroundColor: TossColors.surface,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.view_list : Icons.view_week),
+            onPressed: () {
+              setState(() {
+                _isGridView = !_isGridView;
+              });
+            },
+            tooltip: _isGridView ? '리스트 보기' : '그리드 보기',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -349,11 +362,11 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
             ),
           ),
 
-          // 예약 목록
+          // 예약 목록/그리드
           Expanded(
             child: _isLoadingReservations
                 ? const Center(child: CircularProgressIndicator())
-                : _reservations.isEmpty
+                : _reservations.isEmpty && !_isGridView
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -382,17 +395,25 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
                           ],
                         ),
                       )
-                    : RefreshIndicator(
-                        onRefresh: _loadReservations,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _reservations.length,
-                          itemBuilder: (context, index) {
-                            final reservation = _reservations[index];
-                            return _ReservationCard(reservation: reservation);
-                          },
-                        ),
-                      ),
+                    : _isGridView
+                        ? TimeTableGrid(
+                            reservations: _reservations,
+                            selectedDate: _selectedDate,
+                            onTimeSlotTap: _createReservation,
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadReservations,
+                            child: ListView.builder(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _reservations.length,
+                              itemBuilder: (context, index) {
+                                final reservation = _reservations[index];
+                                return _ReservationCard(
+                                    reservation: reservation);
+                              },
+                            ),
+                          ),
           ),
         ],
       ),
