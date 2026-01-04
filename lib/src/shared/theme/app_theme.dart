@@ -44,7 +44,7 @@ class AppTheme {
       ),
 
       // 카드
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: TossColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(

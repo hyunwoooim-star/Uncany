@@ -401,8 +401,9 @@ class _CreateReservationSheetState
             SizedBox(
               width: double.infinity,
               child: TossButton(
-                text: _isCreating ? '생성 중...' : '예약하기',
-                onPressed: _isCreating ? null : _createReservation,
+                onPressed: _createReservation,
+                isLoading: _isCreating,
+                child: Text(_isCreating ? '생성 중...' : '예약하기'),
               ),
             ),
           ],
