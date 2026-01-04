@@ -6,6 +6,7 @@ import '../../auth/domain/models/user.dart';
 import '../../auth/data/repositories/auth_repository.dart';
 import '../../auth/data/providers/auth_repository_provider.dart';
 import '../../auth/data/providers/user_repository_provider.dart';
+import '../data/providers/reservation_repository_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_button.dart';
@@ -88,6 +89,110 @@ class HomeScreen extends ConsumerWidget {
               Text(
                 '오늘은 어떤 교실을 예약하시겠어요?',
                 style: Theme.of(context).textTheme.bodyMedium,
+              ),
+
+              const SizedBox(height: 24),
+
+              // 오늘의 예약 통계
+              Consumer(
+                builder: (context, ref, child) {
+                  final todayCountAsync = ref.watch(_todayReservationCountProvider);
+
+                  return todayCountAsync.when(
+                    data: (count) => InkWell(
+                      onTap: () => context.push('/reservations/my'),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            TossColors.primary.withOpacity(0.1),
+                            TossColors.primary.withOpacity(0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: TossColors.primary.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: TossColors.primary.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.event_note,
+                              size: 32,
+                              color: TossColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '오늘의 예약',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: TossColors.textSub,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$count건',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: TossColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: TossColors.textSub,
+                          ),
+                        ],
+                      ),
+                      ),
+                    ),
+                    loading: () => Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: TossColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            '오늘의 예약 로딩 중...',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: TossColors.textSub,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    error: (_, __) => const SizedBox.shrink(),
+                  );
+                },
               ),
 
               const SizedBox(height: 24),
@@ -200,6 +305,12 @@ class HomeScreen extends ConsumerWidget {
 final _pendingCountProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(userRepositoryProvider);
   return await repository.getPendingCount();
+});
+
+// 오늘의 예약 수 Provider
+final _todayReservationCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(reservationRepositoryProvider);
+  return await repository.getTodayReservationCount();
 });
 
 class _QuickActionCard extends StatelessWidget {
