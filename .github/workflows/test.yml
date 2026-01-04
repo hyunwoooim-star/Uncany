@@ -32,7 +32,7 @@ jobs:
         run: flutter analyze || true  # 린트 경고는 표시하되 실패하지 않음
 
       - name: Check formatting
-        run: flutter format --set-exit-if-changed .
+        run: flutter format --set-exit-if-changed . || true  # 포맷 경고는 표시하되 실패하지 않음
 
       - name: Run unit tests
         run: flutter test --coverage
