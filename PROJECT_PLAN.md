@@ -23,7 +23,7 @@
 1. **인증 시스템**
    - 재직증명서 업로드 + 관리자 승인
    - 교육청 이메일 인증 (17개 시도교육청 도메인)
-   - ~~추천인 코드~~ (제거)
+   - **추천인 코드** (같은 학교 제약) ✅
    - ~~신뢰 점수 시스템~~ (제거)
 
 2. **예약 시스템**
@@ -190,10 +190,14 @@ uncany/
 ```
 users (교사)
   ├─ 1:N → reservations (예약)
+  ├─ 1:N → referral_codes (추천 코드 생성)
   └─ 1:N → audit_logs (감사 로그)
 
 classrooms (교실)
   └─ 1:N → reservations
+
+referral_codes (추천 코드)
+  └─ 1:N → referral_usage (사용 이력)
 
 reservations
   └─ 1:N → audit_logs
@@ -251,7 +255,47 @@ CREATE TABLE classrooms (
 );
 ```
 
-#### 3. `reservations` (예약)
+#### 3. `referral_codes` (추천인 코드)
+```sql
+CREATE TABLE referral_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- 6자리 랜덤 코드 (예: "SEOUL-ABC123")
+  code TEXT NOT NULL UNIQUE,
+
+  -- 생성자 정보
+  created_by UUID NOT NULL REFERENCES users(id),
+  school_name TEXT NOT NULL, -- 같은 학교 검증용
+
+  -- 사용 제한
+  max_uses INT DEFAULT 5,
+  current_uses INT DEFAULT 0,
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
+
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 활성 코드 조회용 인덱스
+CREATE INDEX idx_active_referral_codes
+ON referral_codes(code, is_active)
+WHERE is_active = TRUE;
+```
+
+#### 4. `referral_usage` (추천 코드 사용 이력)
+```sql
+CREATE TABLE referral_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  referral_code_id UUID NOT NULL REFERENCES referral_codes(id),
+  used_by UUID NOT NULL REFERENCES users(id),
+  used_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 한 사용자당 하나의 추천 코드만 사용 가능
+  UNIQUE(used_by)
+);
+```
+
+#### 5. `reservations` (예약)
 ```sql
 CREATE TABLE reservations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -277,7 +321,7 @@ ON reservations(classroom_id, start_time, end_time)
 WHERE deleted_at IS NULL;
 ```
 
-#### 4. `audit_logs` (감사 로그)
+#### 6. `audit_logs` (감사 로그)
 ```sql
 CREATE TABLE audit_logs (
   id BIGSERIAL PRIMARY KEY,
@@ -301,7 +345,7 @@ CREATE TABLE audit_logs (
 CREATE INDEX idx_audit_record ON audit_logs(table_name, record_id);
 ```
 
-#### 5. `education_offices` (교육청 정보)
+#### 7. `education_offices` (교육청 정보)
 ```sql
 CREATE TABLE education_offices (
   code TEXT PRIMARY KEY,

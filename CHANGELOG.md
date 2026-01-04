@@ -7,9 +7,19 @@
 
 ## [Unreleased]
 
+### Added
+- Supabase 설정 가이드 문서 (`docs/SUPABASE_SETUP.md`)
+- 추천인 코드 시스템 설계 문서 (`docs/REFERRAL_CODE_DESIGN.md`)
+- 추천인 코드 기능 재추가 (같은 학교 제약 조건)
+- `referral_codes`, `referral_usage` 테이블 스키마
+
+### Changed
+- 추천인 코드 정책 수정: 신뢰 점수 제거, 같은 학교 제약만 유지
+- PROJECT_PLAN.md 업데이트 (ERD 및 스키마 반영)
+
 ### Planned
+- Supabase 계정 생성 및 프로젝트 설정
 - Flutter 프로젝트 생성
-- Supabase 백엔드 연동
 - 인증 시스템 구현
 
 ---
