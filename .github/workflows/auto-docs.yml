@@ -1,0 +1,75 @@
+name: Auto Documentation
+
+on:
+  push:
+    branches: [ develop, main, "feature/**" ]
+    paths:
+      - 'lib/**'
+      - 'supabase/**'
+      - 'docs/**'
+
+jobs:
+  update-docs:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Generate code statistics
+        id: stats
+        run: |
+          echo "dart_files=$(find lib -name '*.dart' | wc -l)" >> $GITHUB_OUTPUT
+          echo "lines_of_code=$(find lib -name '*.dart' -exec cat {} \; | wc -l)" >> $GITHUB_OUTPUT
+          echo "test_files=$(find test -name '*_test.dart' 2>/dev/null | wc -l || echo 0)" >> $GITHUB_OUTPUT
+
+      - name: Update PROJECT_PLAN.md
+        run: |
+          # 마지막 업데이트 날짜 갱신
+          sed -i "s/\*\*마지막 업데이트\*\*: .*/\*\*마지막 업데이트\*\*: $(date +%Y-%m-%d)/" PROJECT_PLAN.md
+
+      - name: Generate daily log
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          LOG_FILE="docs/logs/daily_${DATE}.md"
+          mkdir -p docs/logs
+
+          cat > "$LOG_FILE" << EOF
+          # Daily Log - ${DATE}
+
+          ## 📊 통계
+          - Dart 파일 수: ${{ steps.stats.outputs.dart_files }}
+          - 코드 라인 수: ${{ steps.stats.outputs.lines_of_code }}
+          - 테스트 파일 수: ${{ steps.stats.outputs.test_files }}
+
+          ## 📝 변경 사항
+          $(git log --since="yesterday" --pretty=format:"- %s (%an)" --no-merges)
+
+          ## 🔜 다음 작업
+          <!-- Phase 계획 참조 -->
+          EOF
+
+      - name: Commit documentation changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add PROJECT_PLAN.md docs/
+
+          if git diff --staged --quiet; then
+            echo "No documentation changes to commit"
+          else
+            git commit -m "docs: 자동 문서 업데이트 [skip ci]"
+            git push
+          fi
