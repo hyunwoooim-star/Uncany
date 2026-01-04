@@ -1,9 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/providers/auth_provider.dart';
 import '../../../shared/theme/toss_colors.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    // 최소 1.5초 스플래시 표시
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted) return;
+
+    // 인증 상태 확인 후 이동
+    final session = ref.read(authSessionProvider);
+    session.when(
+      data: (s) {
+        if (s != null) {
+          context.go('/home');
+        } else {
+          context.go('/auth/login');
+        }
+      },
+      loading: () {
+        // 아직 로딩 중이면 잠시 후 다시 확인
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) _checkAuthAndNavigate();
+        });
+      },
+      error: (_, __) {
+        context.go('/auth/login');
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +55,7 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 로고 (나중에 추가)
+            // 로고
             const Icon(
               Icons.school,
               size: 80,
