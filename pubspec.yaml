@@ -33,6 +33,9 @@ dependencies:
   uuid: ^4.3.3
   crypto: ^3.0.3
 
+  # 파일 선택
+  file_picker: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
