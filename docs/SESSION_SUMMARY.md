@@ -2,9 +2,9 @@
 
 ## 세션 정보
 - **기간**: 2026-01-04
-- **총 작업 시간**: 약 25시간 상당
+- **총 작업 시간**: 약 30시간 상당
 - **브랜치**: `claude/school-booking-platform-M3ffi`
-- **커밋 수**: 7개
+- **커밋 수**: 10개
 
 ## 완료된 Phase
 
@@ -241,6 +241,151 @@
 
 ---
 
+### Phase 3: 유틸리티 및 헬퍼 함수
+#### DateTimeUtils
+- **한국어 날짜/시간 포맷터**
+  - koreanDateFormat: "2026년 1월 4일 (토)"
+  - koreanDateTimeFormat: "2026년 1월 4일 (토) 14:30"
+  - timeFormat, shortDateFormat
+
+- **상대적 시간 표시**
+  - formatRelativeTime: "3시간 전", "2일 후"
+  - "방금 전", "N분 전", "N시간 전" 등
+
+- **날짜 범위 계산**
+  - startOfDay, endOfDay
+  - startOfWeek, endOfWeek
+  - startOfMonth, endOfMonth
+
+- **날짜 비교 유틸리티**
+  - isToday, isPast, isFuture
+  - isSameDay
+
+#### Validators
+- **이메일 검증**
+  - isValidEmail
+  - isEducationOfficeEmail (17개 교육청 도메인 지원)
+
+- **비밀번호 검증**
+  - isValidPassword (최소 8자, 영문+숫자)
+  - getPasswordStrength (0-3 단계)
+
+- **한국 휴대폰 번호 검증**
+  - isValidPhone (010-XXXX-XXXX 형식)
+
+- **도메인 특화 검증**
+  - isValidSchoolName (한글 포함 필수)
+  - isValidKoreanName (한글 2-10자)
+  - isValidClassroomName (2-50자)
+  - isValidReferralCodeFormat
+
+- **예약 검증**
+  - isValidTimeRange (종료 > 시작)
+  - isValidReservationTime (미래 시간)
+  - isValidReservationDuration (30분~8시간)
+
+- **파일 검증**
+  - isImageFile, isDocumentFile
+  - hasValidExtension
+
+#### AppConstants
+- **ReservationConstants**
+  - 최소/최대 예약 기간 (30분~8시간)
+  - 시간표 범위 (8시~18시)
+  - 예약 가능 미래 일수 (90일)
+
+- **ReferralCodeConstants**
+  - 사용 횟수 (1~10회, 기본 5회)
+  - 만료 기간 (7~365일, 기본 30일)
+  - 만료 옵션: [7일, 30일, 90일]
+
+- **ClassroomConstants**
+  - 수용 인원 (1~100명, 기본 30명)
+  - 이름 길이 (2~50자)
+  - 공지사항 길이 (최대 500자)
+
+- **FileConstants**
+  - 최대 파일 크기 (이미지: 2MB, 문서: 10MB)
+  - 허용 확장자 (이미지: jpg, jpeg, png, webp)
+  - 압축 품질 (85%), 최대 해상도 (1920x1920)
+
+- **UIConstants**
+  - 패딩, 보더 반경, 아이콘 크기
+  - 애니메이션 시간 (기본: 300ms)
+  - 스낵바 표시 시간 (3초)
+
+- **NetworkConstants**
+  - 타임아웃 (30초)
+  - 재시도 (최대 3회, 1초 간격)
+  - 페이징 (기본: 20개, 최대: 100개)
+
+#### String Extensions
+- **문자열 처리**
+  - capitalize, capitalizeWords
+  - isBlank, isNotBlank
+  - ellipsize, truncateMiddle
+
+- **한국어 처리**
+  - getKoreanInitials: "홍길동" → "홍길"
+  - isKorean, isEnglish, isNumeric
+
+- **마스킹**
+  - maskEmail: "user@example.com" → "u***@example.com"
+  - maskPhoneNumber: "010-1234-5678" → "010-****-5678"
+
+- **포맷팅**
+  - formatPhoneNumber, formatReferralCode
+  - formatBytes: "1024" → "1 KB"
+
+- **검증 헬퍼**
+  - isValidEmail, isValidUrl
+  - isNumeric, isAlphanumeric
+
+- **검색 헬퍼**
+  - containsIgnoreCase
+  - containsAny, containsAll
+
+#### DateTime Extensions
+- **날짜 비교**
+  - isToday, isYesterday, isTomorrow
+  - isSameDayAs, isSameWeekAs, isSameMonthAs
+  - isWeekend, isWeekday
+
+- **날짜 계산**
+  - nextDay, previousDay
+  - nextWeek, previousWeek
+  - nextMonth, previousMonth
+  - startOfDay, endOfDay
+
+- **한국어 포맷**
+  - toKoreanDate, toKoreanDateTime
+  - weekdayName: "월", "화", "수"...
+  - weekdayFullName: "월요일", "화요일"...
+
+- **날짜 범위**
+  - daysBetween, weeksBetween
+  - monthsBetween, yearsBetween
+  - isDateBetween, isTimeBetween
+
+- **유틸리티**
+  - age 계산
+  - daysInMonth, isLeapYear
+  - quarter (분기), weekOfYear
+  - roundToNearestMinute, roundToNearestHour
+
+#### 효과
+- **코드 재사용성**: 공통 로직 중앙화
+- **일관성**: 모든 화면에서 동일한 검증/포맷 규칙
+- **가독성**: 명확한 이름의 유틸리티 함수
+- **유지보수성**: 변경 사항을 한 곳에서 관리
+- **타입 안전성**: Extension을 통한 null-safe 처리
+
+#### 파일 통계
+- 5개 파일 생성
+- 1,269줄 추가
+
+---
+
 ## 기술 스택 & 패턴
 
 ### 아키텍처
@@ -352,25 +497,37 @@ lib/src/
 ## Git 커밋 이력
 
 1. **feat(data): Phase 1-A 완료 - Repository 레이어 구축**
-   - 4개 Repository 구현
+   - 4개 Repository 구현 (Auth, User, ReferralCode, Classroom)
 
 2. **feat(admin): Phase 1-B 완료 - 관리자 승인 시스템**
    - 승인 화면, 사용자 관리, 문서 뷰어
 
 3. **feat(profile): Phase 1-C 완료 - 프로필 및 추천인 코드 관리**
-   - 프로필, 추천 코드 UI
+   - 프로필, 추천 코드 UI, 비밀번호 재설정
 
 4. **feat(reservation): Phase 2-A 완료 - 예약 시스템 구현**
    - 11개 파일, 3,141줄 추가
+   - 교실 목록/상세, 예약 생성/내역, 관리자 교실 관리
 
 5. **feat(home): Phase 2-B - 오늘의 예약 수 대시보드 추가**
-   - 통계 카드 구현
+   - 홈 화면 통계 카드 구현
 
 6. **feat(reservation): Phase 2-C - 시간표 그리드 UI 구현**
-   - TimeTableGrid 위젯
+   - TimeTableGrid 위젯, 그리드/리스트 뷰 토글
 
 7. **feat(realtime): Phase 2-D - Supabase Realtime 인프라 구축**
-   - 2개 Stream Provider
+   - 2개 Stream Provider (교실 예약, 내 예약)
+
+8. **docs: 개발 세션 종합 요약 문서 작성**
+   - SESSION_SUMMARY.md 생성
+
+9. **feat(utils): Phase 3 - 유틸리티 및 헬퍼 함수 추가**
+   - 5개 파일, 1,269줄 추가
+   - DateTimeUtils, Validators, AppConstants
+   - String Extensions, DateTime Extensions
+
+10. **docs: SESSION_SUMMARY.md Phase 3 정보 추가**
+    - 최종 요약 업데이트
 
 ---
 
