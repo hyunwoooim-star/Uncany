@@ -7,6 +7,10 @@ import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/admin_approvals_screen.dart';
 import '../../features/auth/presentation/admin_users_screen.dart';
+import '../../features/auth/presentation/profile_screen.dart';
+import '../../features/auth/presentation/edit_profile_screen.dart';
+import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/auth/domain/models/user.dart';
 import '../../features/reservation/presentation/home_screen.dart';
 import '../providers/auth_provider.dart';
@@ -73,6 +77,28 @@ GoRouter router(RouterRef ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+
+      // 프로필
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        name: 'profile-edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile/reset-password',
+        name: 'reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/profile/referral-codes',
+        name: 'referral-codes',
+        builder: (context, state) => const MyReferralCodesScreen(),
       ),
 
       // 관리자

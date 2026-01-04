@@ -238,17 +238,13 @@ class ProfileScreen extends ConsumerWidget {
               TossButton(
                 text: '프로필 수정',
                 icon: Icons.edit,
-                onPressed: () {
-                  // TODO: 프로필 수정 화면
-                },
+                onPressed: () => context.push('/profile/edit'),
               ),
 
               const SizedBox(height: 8),
 
               OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: 비밀번호 변경 화면
-                },
+                onPressed: () => context.push('/profile/reset-password'),
                 icon: const Icon(Icons.lock_outline),
                 label: const Text('비밀번호 변경'),
                 style: OutlinedButton.styleFrom(
@@ -260,9 +256,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 8),
 
               OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: 추천인 코드 화면
-                },
+                onPressed: () => context.push('/profile/referral-codes'),
                 icon: const Icon(Icons.card_giftcard),
                 label: const Text('내 추천인 코드'),
                 style: OutlinedButton.styleFrom(

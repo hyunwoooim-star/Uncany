@@ -60,9 +60,8 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
-            onPressed: () {
-              // TODO: 프로필 화면
-            },
+            onPressed: () => context.push('/profile'),
+            tooltip: '프로필',
           ),
           IconButton(
             icon: const Icon(Icons.logout),
