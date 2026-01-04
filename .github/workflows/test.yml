@@ -29,10 +29,10 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
       - name: Analyze code
-        run: flutter analyze || true  # 린트 경고는 표시하되 실패하지 않음
+        run: flutter analyze
 
       - name: Check formatting
-        run: flutter format --set-exit-if-changed . || true  # 포맷 경고는 표시하되 실패하지 않음
+        run: flutter format --set-exit-if-changed .
 
       - name: Run unit tests
         run: flutter test --coverage
