@@ -1,0 +1,44 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter (Development)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=ENVIRONMENT=development"
+      ]
+    },
+    {
+      "name": "Flutter (Staging)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=ENVIRONMENT=staging"
+      ]
+    },
+    {
+      "name": "Flutter (Production)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=ENVIRONMENT=production"
+      ]
+    },
+    {
+      "name": "Flutter Web (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit"
+      ]
+    }
+  ]
+}

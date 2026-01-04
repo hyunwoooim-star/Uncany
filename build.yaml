@@ -1,0 +1,26 @@
+# build_runner 설정
+targets:
+  $default:
+    builders:
+      freezed:
+        enabled: true
+        options:
+          # Freezed 옵션
+          copyWith: true
+          equal: true
+          map: true
+          unionKey: 'type'
+
+      riverpod_generator:
+        enabled: true
+
+      json_serializable:
+        enabled: true
+        options:
+          any_map: false
+          checked: false
+          create_to_json: true
+          disallow_unrecognized_keys: false
+          explicit_to_json: false
+          field_rename: none
+          include_if_null: true
