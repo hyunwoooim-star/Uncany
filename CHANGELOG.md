@@ -7,16 +7,10 @@
 
 ## [Unreleased]
 
-### Added
-- 프로젝트 초기 계획 수립
-- 자동 문서화 시스템 설계
-
-### Changed
-- N/A
-
-### Removed
-- 담당자 지정 기능 (사용자 요청)
-- 신뢰 점수 시스템 (사용자 요청)
+### Planned
+- Flutter 프로젝트 생성
+- Supabase 백엔드 연동
+- 인증 시스템 구현
 
 ---
 
