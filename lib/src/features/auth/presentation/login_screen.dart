@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/error_messages.dart';
 import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_button.dart';
 
@@ -50,11 +51,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } on AuthException catch (e) {
       setState(() {
-        _errorMessage = _getAuthErrorMessage(e.message);
+        _errorMessage = ErrorMessages.fromAuthError(e.message);
       });
     } catch (e) {
       setState(() {
-        _errorMessage = '로그인 중 오류가 발생했습니다';
+        _errorMessage = ErrorMessages.fromError(e);
       });
     } finally {
       if (mounted) {
@@ -63,16 +64,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       }
     }
-  }
-
-  String _getAuthErrorMessage(String message) {
-    if (message.contains('Invalid login credentials')) {
-      return '이메일 또는 비밀번호가 올바르지 않습니다';
-    }
-    if (message.contains('Email not confirmed')) {
-      return '이메일 인증이 필요합니다. 메일함을 확인해주세요';
-    }
-    return message;
   }
 
   @override

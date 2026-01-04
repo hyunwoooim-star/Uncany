@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/error_messages.dart';
 import '../../../core/utils/image_compressor.dart';
 import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_button.dart';
@@ -30,13 +31,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // 약관 동의
+  bool _agreeToTerms = false;
+  bool _agreeToPrivacy = false;
+  bool _agreeToAll = false;
+
   // 파일 업로드 관련
   PlatformFile? _selectedFile;
   bool _isUploading = false;
   bool _isCompressing = false;
   Uint8List? _compressedBytes;
-  int? _originalSize;
-  int? _compressedSize;
 
   @override
   void dispose() {
@@ -46,6 +50,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _passwordController.dispose();
     _referralCodeController.dispose();
     super.dispose();
+  }
+
+  void _toggleAgreeAll(bool? value) {
+    setState(() {
+      _agreeToAll = value ?? false;
+      _agreeToTerms = _agreeToAll;
+      _agreeToPrivacy = _agreeToAll;
+    });
+  }
+
+  void _updateAgreeAll() {
+    setState(() {
+      _agreeToAll = _agreeToTerms && _agreeToPrivacy;
+    });
   }
 
   Future<void> _pickFile() async {
@@ -62,9 +80,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         setState(() {
           _selectedFile = file;
           _errorMessage = null;
-          _originalSize = file.bytes?.length;
           _compressedBytes = null;
-          _compressedSize = null;
         });
 
         // 이미지인 경우 압축 진행
@@ -86,11 +102,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     try {
       final compressed = await ImageCompressor.compressToWebP(bytes);
-
       if (compressed != null) {
         setState(() {
           _compressedBytes = compressed;
-          _compressedSize = compressed.length;
         });
       }
     } catch (e) {
@@ -102,14 +116,100 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  void _showTermsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('이용약관'),
+        content: const SingleChildScrollView(
+          child: Text(
+            '''제1조 (목적)
+이 약관은 Uncany(이하 "서비스")의 이용조건 및 절차, 회원과 서비스 제공자의 권리와 의무에 관한 사항을 규정함을 목적으로 합니다.
+
+제2조 (정의)
+1. "회원"이란 서비스에 접속하여 본 약관에 따라 서비스를 이용하는 교사를 말합니다.
+2. "서비스"란 학교 내 공유 공간 예약 및 관리 기능을 의미합니다.
+
+제3조 (서비스 이용)
+1. 서비스는 교사 인증이 완료된 회원에게만 제공됩니다.
+2. 회원은 서비스를 교육 목적으로만 사용해야 합니다.
+
+제4조 (회원의 의무)
+1. 회원은 정확한 정보를 제공해야 합니다.
+2. 회원은 타인의 권리를 침해하는 행위를 해서는 안 됩니다.
+
+제5조 (서비스 제공자의 의무)
+1. 서비스 제공자는 안정적인 서비스 제공을 위해 노력합니다.
+2. 서비스 제공자는 회원의 개인정보를 보호합니다.''',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('개인정보처리방침'),
+        content: const SingleChildScrollView(
+          child: Text(
+            '''1. 개인정보의 수집 및 이용 목적
+- 회원 가입 및 관리
+- 서비스 제공 및 운영
+- 교사 인증
+
+2. 수집하는 개인정보 항목
+- 필수: 이름, 이메일, 학교명
+- 선택: 재직증명서 (인증 목적)
+
+3. 개인정보의 보유 및 이용 기간
+- 회원 탈퇴 시까지
+- 재직증명서: 인증 완료 후 30일 이내 삭제
+
+4. 개인정보의 제3자 제공
+- 원칙적으로 제3자에게 제공하지 않습니다.
+
+5. 개인정보의 파기
+- 보유 기간 경과 시 지체 없이 파기합니다.
+- 전자적 파일: 복구 불가능한 방법으로 삭제
+- 종이 문서: 분쇄 또는 소각
+
+6. 개인정보 보호책임자
+- 문의: privacy@uncany.app
+
+7. 정보주체의 권리
+- 개인정보 열람, 정정, 삭제, 처리정지 요구 가능
+
+※ 본 방침은 개인정보보호법에 따라 작성되었습니다.''',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // 약관 동의 확인
+    if (!_agreeToTerms || !_agreeToPrivacy) {
+      setState(() {
+        _errorMessage = '필수 약관에 동의해주세요';
+      });
+      return;
+    }
 
     // 추천인 코드가 없으면 증명서 필수
     if (!_useReferralCode && _selectedFile == null) {
@@ -158,22 +258,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           _isUploading = true;
         });
 
-        // 압축된 이미지 또는 원본 사용
         final Uint8List? fileBytes;
         final String fileExtension;
 
         if (_compressedBytes != null) {
-          // 압축된 이미지 사용
           fileBytes = _compressedBytes;
           fileExtension = 'jpg';
         } else {
-          // 원본 사용 (PDF 또는 압축 실패)
           fileBytes = _selectedFile!.bytes;
           fileExtension = _selectedFile!.extension ?? 'bin';
         }
 
-        // 익명화된 파일명 생성 (개인정보 미포함)
-        // 폴더 구조: {userId}/{timestamp}.{ext}
         final fileName = '$userId/${ImageCompressor.generateAnonymousFileName(fileExtension)}';
 
         if (fileBytes != null) {
@@ -181,7 +276,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
 
-          // Private 버킷이므로 signed URL 사용 (1시간 유효)
           documentUrl = await supabase.storage
               .from('verification-documents')
               .createSignedUrl(fileName, 3600);
@@ -202,7 +296,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       if (_useReferralCode) {
         final code = _referralCodeController.text.trim().toUpperCase();
 
-        // 추천인 코드 확인
         final referralResponse = await supabase
             .from('referral_codes')
             .select()
@@ -211,13 +304,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             .maybeSingle();
 
         if (referralResponse != null) {
-          // 사용 횟수 증가
           await supabase
               .from('referral_codes')
               .update({'current_uses': referralResponse['current_uses'] + 1})
               .eq('id', referralResponse['id']);
 
-          // 사용 이력 기록
           await supabase.from('referral_usage').insert({
             'referral_code_id': referralResponse['id'],
             'used_by': userId,
@@ -226,7 +317,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       }
 
       if (mounted) {
-        // 성공 메시지 표시 후 홈으로 이동
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -237,16 +327,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             backgroundColor: TossColors.primary,
           ),
         );
-
         context.go('/home');
       }
     } on AuthException catch (e) {
       setState(() {
-        _errorMessage = _getAuthErrorMessage(e.message);
+        _errorMessage = ErrorMessages.fromAuthError(e.message);
       });
     } catch (e) {
       setState(() {
-        _errorMessage = '회원가입 중 오류가 발생했습니다: $e';
+        _errorMessage = ErrorMessages.fromError(e);
       });
     } finally {
       if (mounted) {
@@ -258,21 +347,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  String _getAuthErrorMessage(String message) {
-    if (message.contains('already registered')) {
-      return '이미 가입된 이메일입니다';
-    }
-    if (message.contains('invalid email')) {
-      return '유효하지 않은 이메일 형식입니다';
-    }
-    if (message.contains('weak password')) {
-      return '비밀번호가 너무 약합니다 (6자 이상)';
-    }
-    return message;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final canSignup = _agreeToTerms && _agreeToPrivacy && !_isCompressing;
+
     return Scaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
@@ -377,7 +455,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 const SizedBox(height: 32),
 
-                // 가입 방법 선택
+                // 인증 방법 선택
                 TossCard(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -467,7 +545,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 _isCompressing
-                                    ? '이미지 압축 중...'
+                                    ? '파일 처리 중...'
                                     : (_selectedFile != null
                                         ? _selectedFile!.name
                                         : '파일을 선택하세요'),
@@ -479,36 +557,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-
-                              // 압축 결과 표시
-                              if (_selectedFile != null && _originalSize != null) ...[
-                                const SizedBox(height: 8),
-                                if (_compressedSize != null && _compressedSize! < _originalSize!)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '${_formatFileSize(_originalSize!)} → ${_formatFileSize(_compressedSize!)} (${((1 - _compressedSize! / _originalSize!) * 100).toStringAsFixed(0)}% 절약)',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  Text(
-                                    _formatFileSize(_originalSize!),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: TossColors.textSub.withOpacity(_useReferralCode ? 0.5 : 1),
-                                    ),
-                                  ),
-                              ],
-
                               const SizedBox(height: 4),
                               Text(
                                 'PDF, JPG, PNG (최대 5MB)',
@@ -543,6 +591,135 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 24),
+
+                // 약관 동의
+                TossCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 전체 동의
+                      InkWell(
+                        onTap: () => _toggleAgreeAll(!_agreeToAll),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _agreeToAll,
+                              onChanged: _toggleAgreeAll,
+                              activeColor: TossColors.primary,
+                            ),
+                            Expanded(
+                              child: Text(
+                                '전체 동의',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Divider(height: 16),
+
+                      // 이용약관 동의
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToTerms = value ?? false;
+                              });
+                              _updateAgreeAll();
+                            },
+                            activeColor: TossColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _agreeToTerms = !_agreeToTerms;
+                                });
+                                _updateAgreeAll();
+                              },
+                              child: Text(
+                                '[필수] 이용약관 동의',
+                                style: TextStyle(
+                                  color: TossColors.textMain,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _showTermsDialog,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(40, 30),
+                            ),
+                            child: Text(
+                              '보기',
+                              style: TextStyle(
+                                color: TossColors.textSub,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // 개인정보처리방침 동의
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToPrivacy,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToPrivacy = value ?? false;
+                              });
+                              _updateAgreeAll();
+                            },
+                            activeColor: TossColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _agreeToPrivacy = !_agreeToPrivacy;
+                                });
+                                _updateAgreeAll();
+                              },
+                              child: Text(
+                                '[필수] 개인정보처리방침 동의',
+                                style: TextStyle(
+                                  color: TossColors.textMain,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _showPrivacyDialog,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(40, 30),
+                            ),
+                            child: Text(
+                              '보기',
+                              style: TextStyle(
+                                color: TossColors.textSub,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 // 에러 메시지
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
@@ -567,25 +744,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 // 회원가입 버튼
                 TossButton(
-                  onPressed: _isCompressing ? null : _handleSignup,
+                  onPressed: canSignup ? _handleSignup : null,
                   isLoading: _isLoading,
-                  isDisabled: _isCompressing,
+                  isDisabled: !canSignup,
                   child: Text(_isUploading ? '업로드 중...' : '회원가입'),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 이용약관
-                Center(
-                  child: Text(
-                    '회원가입 시 이용약관 및 개인정보처리방침에 동의합니다',
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
                 ),
 
                 const SizedBox(height: 32),
