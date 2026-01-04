@@ -5,6 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
+import '../../features/auth/presentation/admin_approvals_screen.dart';
+import '../../features/auth/presentation/admin_users_screen.dart';
+import '../../features/auth/domain/models/user.dart';
 import '../../features/reservation/presentation/home_screen.dart';
 import '../providers/auth_provider.dart';
 
@@ -13,6 +16,7 @@ part 'router.g.dart';
 @riverpod
 GoRouter router(RouterRef ref) {
   final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  final currentUser = ref.watch(currentUserProvider).value;
 
   return GoRouter(
     debugLogDiagnostics: true,
@@ -25,12 +29,20 @@ GoRouter router(RouterRef ref) {
 
       // 인증 상태에 따른 리다이렉트
       final isAuthPage = state.matchedLocation.startsWith('/auth');
+      final isAdminPage = state.matchedLocation.startsWith('/admin');
 
+      // 미인증 사용자
       if (!isAuthenticated && !isAuthPage) {
         return '/auth/login';
       }
 
+      // 인증된 사용자가 인증 페이지 접근
       if (isAuthenticated && isAuthPage) {
+        return '/home';
+      }
+
+      // 관리자 페이지 권한 체크
+      if (isAdminPage && currentUser?.role != UserRole.admin) {
         return '/home';
       }
 
@@ -61,6 +73,18 @@ GoRouter router(RouterRef ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+
+      // 관리자
+      GoRoute(
+        path: '/admin/approvals',
+        name: 'admin-approvals',
+        builder: (context, state) => const AdminApprovalsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/users',
+        name: 'admin-users',
+        builder: (context, state) => const AdminUsersScreen(),
       ),
     ],
   );
