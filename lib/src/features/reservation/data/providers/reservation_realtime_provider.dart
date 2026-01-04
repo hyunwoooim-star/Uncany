@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/providers/supabase_provider.dart';
+import 'package:uncany/src/core/providers/supabase_provider.dart';
 import '../../domain/models/reservation.dart';
 import '../repositories/reservation_repository.dart';
 import 'reservation_repository_provider.dart';

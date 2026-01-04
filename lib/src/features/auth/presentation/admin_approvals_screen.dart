@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/providers/user_repository_provider.dart';
 import '../domain/models/user.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 import 'widgets/document_viewer.dart';
 
 /// 관리자 승인 대기 목록 화면
@@ -231,8 +231,8 @@ class _AdminApprovalsScreenState extends ConsumerState<AdminApprovalsScreen>
                           style: const TextStyle(color: Colors.grey)),
                       const SizedBox(height: 16),
                       TossButton(
-                        text: '다시 시도',
                         onPressed: _loadUsers,
+                        child: const Text('다시 시도'),
                       ),
                     ],
                   ),
@@ -397,9 +397,9 @@ class _UserCard extends StatelessWidget {
                   const SizedBox(width: 8),
                 Expanded(
                   child: TossButton(
-                    text: '승인',
                     onPressed: onApprove,
                     backgroundColor: Colors.green,
+                    child: const Text('승인'),
                   ),
                 ),
                 const SizedBox(width: 8),

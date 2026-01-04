@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/classroom.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 교실 관리 Repository
 ///

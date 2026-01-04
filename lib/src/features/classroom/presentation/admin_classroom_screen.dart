@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 관리자 교실 관리 화면
 ///
@@ -278,8 +278,8 @@ class _AdminClassroomScreenState extends ConsumerState<AdminClassroomScreen> {
                                 style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 16),
                             TossButton(
-                              text: '다시 시도',
                               onPressed: _loadClassrooms,
+                              child: const Text('다시 시도'),
                             ),
                           ],
                         ),

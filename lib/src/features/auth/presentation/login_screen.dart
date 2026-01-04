@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/utils/error_messages.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

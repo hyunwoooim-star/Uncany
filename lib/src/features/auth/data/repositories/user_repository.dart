@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/user.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 사용자 관리 Repository (관리자 전용)
 ///

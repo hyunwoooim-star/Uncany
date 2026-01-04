@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/theme/toss_colors.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});

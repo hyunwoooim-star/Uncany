@@ -222,13 +222,13 @@ class _CreateReferralDialogState extends State<CreateReferralDialog> {
                 Expanded(
                   flex: 2,
                   child: TossButton(
-                    text: '생성',
                     onPressed: () {
                       Navigator.pop(context, {
                         'maxUses': _maxUses,
                         'expiresInDays': _expiresInDays,
                       });
                     },
+                    child: const Text('생성'),
                   ),
                 ),
               ],

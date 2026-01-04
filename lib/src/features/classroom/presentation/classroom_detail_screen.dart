@@ -8,9 +8,9 @@ import '../../reservation/data/providers/reservation_repository_provider.dart';
 import '../../reservation/domain/models/reservation.dart';
 import '../../reservation/presentation/widgets/create_reservation_sheet.dart';
 import '../../reservation/presentation/widgets/time_table_grid.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 import 'widgets/access_code_dialog.dart';
 
 /// 교실 상세 화면

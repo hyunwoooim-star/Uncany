@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/reservation.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 예약 관리 Repository
 ///

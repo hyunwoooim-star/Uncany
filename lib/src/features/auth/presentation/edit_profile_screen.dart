@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../data/providers/auth_repository_provider.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 프로필 수정 화면
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -201,9 +201,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
             // 저장 버튼
             TossButton(
-              text: '저장',
               onPressed: _saveProfile,
               isLoading: _isLoading,
+              child: const Text('저장'),
             ),
 
             const SizedBox(height: 8),

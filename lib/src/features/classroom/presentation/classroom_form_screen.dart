@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 교실 등록/수정 폼 화면
 ///
@@ -341,12 +341,13 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
             SizedBox(
               width: double.infinity,
               child: TossButton(
-                text: _isSubmitting
+                onPressed: _submit,
+                isLoading: _isSubmitting,
+                child: Text(_isSubmitting
                     ? '저장 중...'
                     : isEditing
                         ? '수정하기'
-                        : '등록하기',
-                onPressed: _isSubmitting ? null : _submit,
+                        : '등록하기'),
               ),
             ),
           ],

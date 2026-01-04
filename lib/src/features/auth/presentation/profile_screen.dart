@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../domain/models/user.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/providers/auth_repository_provider.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 프로필 화면
 class ProfileScreen extends ConsumerWidget {
@@ -236,9 +236,15 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 12),
 
               TossButton(
-                text: '프로필 수정',
-                icon: Icons.edit,
                 onPressed: () => context.push('/profile/edit'),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.edit, size: 20),
+                    SizedBox(width: 8),
+                    Text('프로필 수정'),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 8),

@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../data/providers/auth_repository_provider.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 비밀번호 재설정 화면
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -177,9 +177,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
           // 발송 버튼
           TossButton(
-            text: '재설정 링크 보내기',
             onPressed: _sendResetEmail,
             isLoading: _isLoading,
+            child: const Text('재설정 링크 보내기'),
           ),
 
           const SizedBox(height: 8),
@@ -261,8 +261,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
             // 돌아가기 버튼
             TossButton(
-              text: '로그인 화면으로',
               onPressed: () => context.go('/auth/login'),
+              child: const Text('로그인 화면으로'),
             ),
 
             const SizedBox(height: 12),

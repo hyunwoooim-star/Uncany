@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/providers/user_repository_provider.dart';
 import '../domain/models/user.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 관리자 사용자 관리 화면
 ///
@@ -274,8 +274,8 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                                 style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 16),
                             TossButton(
-                              text: '다시 시도',
                               onPressed: _loadUsers,
+                              child: const Text('다시 시도'),
                             ),
                           ],
                         ),

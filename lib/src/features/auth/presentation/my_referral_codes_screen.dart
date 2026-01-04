@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/models/referral_code.dart';
 import '../data/repositories/referral_code_repository.dart';
 import '../data/providers/referral_code_repository_provider.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/theme/toss_colors.dart';
-import '../../../shared/widgets/toss_button.dart';
-import '../../../shared/widgets/toss_card.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_button.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 import 'widgets/create_referral_dialog.dart';
 
 /// 내 추천인 코드 화면
@@ -163,8 +163,8 @@ class _MyReferralCodesScreenState
                           style: const TextStyle(color: Colors.grey)),
                       const SizedBox(height: 16),
                       TossButton(
-                        text: '다시 시도',
                         onPressed: _loadCodes,
+                        child: const Text('다시 시도'),
                       ),
                     ],
                   ),

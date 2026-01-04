@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/theme/toss_colors.dart';
 
 /// 재직증명서 확인 다이얼로그
 ///

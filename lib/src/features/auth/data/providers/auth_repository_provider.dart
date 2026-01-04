@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/supabase_provider.dart';
+import 'package:uncany/src/core/providers/supabase_provider.dart';
 import '../repositories/auth_repository.dart';
 
 /// AuthRepository Provider

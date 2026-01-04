@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/referral_code.dart';
-import '../../../core/utils/error_messages.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 추천인 코드 Repository
 ///
