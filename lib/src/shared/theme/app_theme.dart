@@ -12,6 +12,9 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
 
+      // Shader 컴파일 오류 우회 (ink_sparkle 비활성화)
+      splashFactory: NoSplash.splashFactory,
+
       // 색상 스키마
       colorScheme: ColorScheme.light(
         primary: TossColors.primary,
@@ -104,6 +107,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      splashFactory: NoSplash.splashFactory,
       colorScheme: ColorScheme.dark(
         primary: TossColors.primary,
         surface: const Color(0xFF1E1E1E),
