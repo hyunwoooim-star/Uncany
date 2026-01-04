@@ -120,7 +120,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         value: _useReferralCode,
                         onChanged: (value) {
                           setState(() {
-                            _useReferralCode = value ?? false,
+                            _useReferralCode = value ?? false;
                           });
                         },
                         title: const Text('추천인 코드 있음'),
