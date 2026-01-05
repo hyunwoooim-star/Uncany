@@ -19,7 +19,7 @@ class ClassroomRepository {
   /// [activeOnly]가 true면 deleted_at이 null이고 is_active가 true인 교실만 조회
   Future<List<Classroom>> getClassrooms({bool activeOnly = true}) async {
     try {
-      var query = _supabase.from('classrooms').select();
+      dynamic query = _supabase.from('classrooms').select();
 
       if (activeOnly) {
         query = query

@@ -20,7 +20,7 @@ class UserRepository {
     bool activeOnly = true,
   }) async {
     try {
-      var query = _supabase.from('users').select();
+      dynamic query = _supabase.from('users').select();
 
       // Soft Delete 필터
       if (activeOnly) {
@@ -162,11 +162,11 @@ class UserRepository {
     try {
       final response = await _supabase
           .from('users')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('verification_status', VerificationStatus.pending.name)
           .isFilter('deleted_at', null);
 
-      return response.count ?? 0;
+      return (response as List).length;
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {

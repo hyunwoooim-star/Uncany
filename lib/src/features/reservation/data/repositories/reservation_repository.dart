@@ -24,7 +24,7 @@ class ReservationRepository {
         throw Exception(ErrorMessages.authRequired);
       }
 
-      var query = _supabase
+      dynamic query = _supabase
           .from('reservations')
           .select()
           .eq('teacher_id', session.user.id)
@@ -114,7 +114,7 @@ class ReservationRepository {
     try {
       var query = _supabase
           .from('reservations')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('classroom_id', classroomId)
           .isFilter('deleted_at', null);
 
@@ -130,7 +130,7 @@ class ReservationRepository {
 
       final response = await query;
 
-      return (response.count ?? 0) > 0;
+      return (response as List).isNotEmpty;
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {
@@ -292,13 +292,13 @@ class ReservationRepository {
 
       final response = await _supabase
           .from('reservations')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('teacher_id', session.user.id)
           .isFilter('deleted_at', null)
           .gte('start_time', startOfDay.toIso8601String())
           .lt('end_time', endOfDay.toIso8601String());
 
-      return response.count ?? 0;
+      return (response as List).length;
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {

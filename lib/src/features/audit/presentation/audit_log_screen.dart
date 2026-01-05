@@ -100,14 +100,14 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
       children: [
         Row(
           children: [
-            _buildActionIcon(log['action']),
+            _buildActionIcon(log['action'] as String),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    log['description'],
+                    log['description'] as String,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -134,7 +134,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
             ),
-            child: _buildChanges(log['changes']),
+            child: _buildChanges(log['changes'] as Map<String, dynamic>),
           ),
         ],
       ],
@@ -190,7 +190,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
               ),
               if (entry.value['old'] != null) ...[
                 Text(
-                  entry.value['old'],
+                  entry.value['old'] as String,
                   style: TextStyle(
                     fontSize: 13,
                     decoration: TextDecoration.lineThrough,
@@ -200,7 +200,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                 const Text(' → '),
               ],
               Text(
-                entry.value['new'],
+                entry.value['new'] as String,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.green[700],

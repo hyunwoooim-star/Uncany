@@ -307,7 +307,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           await supabase
               .from('referral_codes')
               .update({'current_uses': referralResponse['current_uses'] + 1})
-              .eq('id', referralResponse['id']);
+              .eq('id', referralResponse['id'] as Object);
 
           await supabase.from('referral_usage').insert({
             'referral_code_id': referralResponse['id'],
