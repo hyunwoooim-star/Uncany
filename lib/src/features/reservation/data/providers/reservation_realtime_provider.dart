@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/core/providers/supabase_provider.dart';
 import '../../domain/models/reservation.dart';
-import '../repositories/reservation_repository.dart';
 import 'reservation_repository_provider.dart';
 
 /// 특정 교실의 특정 날짜 예약 실시간 스트림 Provider

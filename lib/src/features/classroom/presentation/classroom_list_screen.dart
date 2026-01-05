@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/repositories/classroom_repository.dart';
 import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';

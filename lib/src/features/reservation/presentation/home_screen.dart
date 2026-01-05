@@ -3,13 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/domain/models/user.dart';
-import '../../auth/data/repositories/auth_repository.dart';
 import '../../auth/data/providers/auth_repository_provider.dart';
 import '../../auth/data/providers/user_repository_provider.dart';
 import '../data/providers/reservation_repository_provider.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
-import 'package:uncany/src/shared/widgets/toss_button.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});

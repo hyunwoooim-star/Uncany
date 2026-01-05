@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/repositories/user_repository.dart';
 import '../data/providers/user_repository_provider.dart';
 import '../domain/models/user.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';

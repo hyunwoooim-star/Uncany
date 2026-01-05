@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/models/user.dart';
-import '../data/repositories/auth_repository.dart';
 import '../data/providers/auth_repository_provider.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';

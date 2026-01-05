@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models/referral_code.dart';
-import '../data/repositories/referral_code_repository.dart';
 import '../data/providers/referral_code_repository_provider.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
