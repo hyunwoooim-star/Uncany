@@ -44,7 +44,7 @@ class SchoolApiService {
         final rows = schoolInfo[1]['row'] as List?;
         if (rows == null) return [];
 
-        return rows.map((row) => SchoolApiResult.fromNeisJson(row)).toList();
+        return rows.map((row) => SchoolApiResult.fromNeisJson(row as Map<String, dynamic>)).toList();
       }
 
       return [];
@@ -109,10 +109,10 @@ class SchoolApiResult {
   /// 나이스 API 응답에서 변환
   factory SchoolApiResult.fromNeisJson(Map<String, dynamic> json) {
     return SchoolApiResult(
-      name: json['SCHUL_NM'] ?? '',
-      address: json['ORG_RDNMA'] ?? json['ORG_FAXNO'],
-      neisCode: json['SD_SCHUL_CODE'],
-      educationOffice: _parseEducationOffice(json['ATPT_OFCDC_SC_CODE']),
+      name: (json['SCHUL_NM'] as String?) ?? '',
+      address: (json['ORG_RDNMA'] as String?) ?? (json['ORG_FAXNO'] as String?),
+      neisCode: json['SD_SCHUL_CODE'] as String?,
+      educationOffice: _parseEducationOffice(json['ATPT_OFCDC_SC_CODE'] as String?),
     );
   }
 

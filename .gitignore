@@ -57,9 +57,9 @@ coverage/
 test-results/
 
 # Generated files
-*.g.dart
-*.freezed.dart
-*.gr.dart
+# *.g.dart
+# *.freezed.dart
+# *.gr.dart
 
 # IDE
 .vscode/

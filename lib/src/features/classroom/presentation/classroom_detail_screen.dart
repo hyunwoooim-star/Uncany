@@ -6,7 +6,8 @@ import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
 import '../../reservation/data/providers/reservation_repository_provider.dart';
 import '../../reservation/domain/models/reservation.dart';
-import '../../reservation/presentation/widgets/create_reservation_sheet.dart';
+import 'package:go_router/go_router.dart';
+// v0.2: CreateReservationSheet 삭제됨
 import '../../reservation/presentation/widgets/time_table_grid.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
@@ -155,13 +156,9 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
   }
 
   Future<void> _createReservation() async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => CreateReservationSheet(
-        classroomId: widget.classroomId,
-        selectedDate: _selectedDate,
-      ),
+    final result = await context.push<bool>(
+      "/reservations/${widget.classroomId}",
+      extra: _classroom,
     );
 
     // 예약이 성공적으로 생성되면 목록 새로고침

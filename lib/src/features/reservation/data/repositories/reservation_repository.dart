@@ -82,8 +82,9 @@ class ReservationRepository {
           .lt('start_time', endOfDay.toIso8601String())
           .order('start_time', ascending: true);
 
-      return (response as List).map((json) {
+      return (response as List).map((item) {
         // users 관계에서 정보 추출
+        final json = item as Map<String, dynamic>;
         final userData = json['users'] as Map<String, dynamic>?;
         return Reservation.fromJson({
           ...json,
@@ -420,8 +421,9 @@ class ReservationRepository {
           .lt('start_time', endOfDay.toIso8601String())
           .order('start_time', ascending: true);
 
-      return (response as List).map((json) {
+      return (response as List).map((item) {
         // classrooms 관계에서 정보 추출
+        final json = item as Map<String, dynamic>;
         final classroomData = json['classrooms'] as Map<String, dynamic>?;
         return Reservation.fromJson({
           ...json,
