@@ -8,8 +8,10 @@ class ErrorMessages {
     final lowerMessage = message.toLowerCase();
 
     // 이메일 관련
-    if (lowerMessage.contains('email address is invalid') ||
-        lowerMessage.contains('invalid email')) {
+    if (lowerMessage.contains('is invalid') && lowerMessage.contains('email')) {
+      return '유효하지 않은 이메일 주소입니다';
+    }
+    if (lowerMessage.contains('invalid email')) {
       return '유효하지 않은 이메일 형식입니다';
     }
     if (lowerMessage.contains('email not confirmed')) {
