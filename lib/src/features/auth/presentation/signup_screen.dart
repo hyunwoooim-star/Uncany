@@ -251,6 +251,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         data: {
           'name': _nameController.text.trim(),
           'school_name': _schoolController.text.trim(),
+          'verification_status': _useReferralCode ? 'approved' : 'pending',
         },
       );
 
@@ -295,17 +296,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         }
       }
 
-      // 3. users 테이블에 사용자 정보 저장
-      await AppLogger.info('SignupScreen', '3단계: users 테이블 INSERT 시작');
-      await supabase.from('users').insert({
-        'id': userId,
-        'email': _emailController.text.trim(),
-        'name': _nameController.text.trim(),
-        'school_name': _schoolController.text.trim(),
-        'verification_status': _useReferralCode ? 'approved' : 'pending',
-        'verification_document_url': documentUrl,
-      });
-      await AppLogger.info('SignupScreen', '3단계 완료: users 테이블 INSERT 성공');
+      // 3. users 테이블은 Trigger가 자동 생성함 (handle_new_user)
+      await AppLogger.info('SignupScreen', '3단계: users 테이블 자동 생성됨 (Trigger)');
 
       // 4. 추천인 코드 사용 시 처리
       if (_useReferralCode) {
