@@ -9,14 +9,14 @@ class Classroom with _$Classroom {
   const factory Classroom({
     required String id,
     required String name,
-    String? accessCodeHash, // 비밀번호 보호 (Argon2 해시)
-    String? noticeMessage, // 공지사항
-    DateTime? noticeUpdatedAt,
-    int? capacity, // 수용 인원
-    String? location, // 위치 설명
-    @Default(true) bool isActive,
-    DateTime? createdAt,
-    DateTime? deletedAt,
+    @JsonKey(name: 'access_code_hash') String? accessCodeHash,
+    @JsonKey(name: 'notice_message') String? noticeMessage,
+    @JsonKey(name: 'notice_updated_at') DateTime? noticeUpdatedAt,
+    int? capacity,
+    String? location,
+    @JsonKey(name: 'is_active') @Default(true) bool isActive,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   }) = _Classroom;
 
   factory Classroom.fromJson(Map<String, dynamic> json) =>

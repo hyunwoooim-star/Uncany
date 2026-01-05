@@ -8,15 +8,15 @@ part 'reservation.g.dart';
 class Reservation with _$Reservation {
   const factory Reservation({
     required String id,
-    required String classroomId,
-    required String teacherId,
-    required DateTime startTime,
-    required DateTime endTime,
+    @JsonKey(name: 'classroom_id') required String classroomId,
+    @JsonKey(name: 'teacher_id') required String teacherId,
+    @JsonKey(name: 'start_time') required DateTime startTime,
+    @JsonKey(name: 'end_time') required DateTime endTime,
     String? title,
     String? description,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt, // Soft Delete
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   }) = _Reservation;
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>
