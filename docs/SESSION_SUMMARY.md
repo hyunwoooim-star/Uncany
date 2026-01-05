@@ -694,6 +694,18 @@ lib/src/
 - ⏳ **iOS 배포**: TestFlight 설정
 - ⏳ **Android 배포**: Play Store 설정
 
+### ⚠️ 프로덕션 배포 전 필수 작업
+- **users 테이블 RLS 설정 필요**
+  - 현재 상태: RLS 비활성화됨 (`ALTER TABLE users DISABLE ROW LEVEL SECURITY;`)
+  - 문제: `auth.uid() = id` 정책이 회원가입 시점에 작동하지 않음
+  - 해결 방안:
+    1. Supabase Trigger 함수로 auth.users → public.users 자동 복사
+    2. 또는 Service Role Key 사용 (서버사이드에서만)
+  - **보안 위험**: RLS 꺼져있으면 모든 인증된 사용자가 다른 사용자 데이터 수정/삭제 가능
+
+- **Storage RLS 설정 필요**
+  - `verification-documents` 버킷 정책 설정 필요
+
 ### Git 커밋 이력 (최신 추가)
 ```
 #11 (5228c42) feat: 이메일 인증, 감사 로그, 애니메이션, 반응형 레이아웃 구현
