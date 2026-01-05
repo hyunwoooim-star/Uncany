@@ -71,8 +71,18 @@ class ErrorMessages {
     }
 
     // 기타
-    if (lowerMessage.contains('signup disabled')) {
+    if (lowerMessage.contains('signup disabled') ||
+        lowerMessage.contains('email_provider_disabled')) {
       return '현재 회원가입이 불가능합니다';
+    }
+    if (lowerMessage.contains('email_address_invalid')) {
+      return '유효하지 않은 이메일 주소입니다';
+    }
+    if (lowerMessage.contains('over_email_send_rate_limit')) {
+      return '이메일 발송 한도를 초과했습니다. 잠시 후 다시 시도해주세요';
+    }
+    if (lowerMessage.contains('otp_expired')) {
+      return '인증 코드가 만료되었습니다. 다시 요청해주세요';
     }
 
     // 알 수 없는 에러는 일반 메시지로 반환
@@ -83,14 +93,47 @@ class ErrorMessages {
   static String fromError(dynamic error) {
     final message = error.toString().toLowerCase();
 
+    // 네트워크 관련
     if (message.contains('network') || message.contains('socket')) {
       return '네트워크 연결을 확인해주세요';
     }
     if (message.contains('timeout')) {
       return '요청 시간이 초과되었습니다';
     }
-    if (message.contains('permission')) {
+
+    // 권한 관련
+    if (message.contains('permission') || message.contains('row-level security')) {
       return '권한이 없습니다';
+    }
+
+    // 중복 관련 (PostgrestException)
+    if (message.contains('duplicate') || message.contains('unique constraint') ||
+        message.contains('already exists') || message.contains('23505')) {
+      if (message.contains('email')) {
+        return '이미 가입된 이메일입니다';
+      }
+      if (message.contains('code')) {
+        return '이미 사용 중인 코드입니다';
+      }
+      return '이미 존재하는 데이터입니다';
+    }
+
+    // 외래 키 관련
+    if (message.contains('foreign key') || message.contains('23503')) {
+      return '연결된 데이터를 찾을 수 없습니다';
+    }
+
+    // 필수 값 누락
+    if (message.contains('not null') || message.contains('23502')) {
+      return '필수 정보가 누락되었습니다';
+    }
+
+    // Storage 관련
+    if (message.contains('storage') && message.contains('bucket')) {
+      return '파일 저장소 오류가 발생했습니다';
+    }
+    if (message.contains('file too large') || message.contains('payload too large')) {
+      return '파일 크기가 너무 큽니다 (최대 5MB)';
     }
 
     return '오류가 발생했습니다. 다시 시도해주세요';
