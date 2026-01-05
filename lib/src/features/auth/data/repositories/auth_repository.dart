@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/core/services/app_logger.dart';
 
 /// 인증 관련 Repository
 ///
@@ -28,9 +29,11 @@ class AuthRepository {
       if (response == null) return null;
 
       return User.fromJson(response);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('AuthRepository.getCurrentUser', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.getCurrentUser', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -41,9 +44,11 @@ class AuthRepository {
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stack) {
+      AppLogger.error('AuthRepository.signOut', e, stack);
       throw Exception(ErrorMessages.fromAuthError(e.message));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.signOut', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -70,9 +75,11 @@ class AuthRepository {
           .from('users')
           .update(updates)
           .eq('id', session.user.id);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('AuthRepository.updateProfile', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.updateProfile', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -86,9 +93,11 @@ class AuthRepository {
         email,
         redirectTo: 'uncany://reset-password', // Deep Link
       );
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stack) {
+      AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});
       throw Exception(ErrorMessages.fromAuthError(e.message));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -106,9 +115,11 @@ class AuthRepository {
       await _supabase.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stack) {
+      AppLogger.error('AuthRepository.updatePassword', e, stack);
       throw Exception(ErrorMessages.fromAuthError(e.message));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.updatePassword', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -130,9 +141,11 @@ class AuthRepository {
 
       // Supabase Auth 세션 종료
       await _supabase.auth.signOut();
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('AuthRepository.deleteAccount', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.deleteAccount', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }

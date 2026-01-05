@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/utils/image_compressor.dart';
+import 'package:uncany/src/core/services/app_logger.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
@@ -329,11 +330,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         );
         context.go('/home');
       }
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stack) {
+      AppLogger.error('SignupScreen.handleSignup', e, stack, {
+        'email': _emailController.text.trim(),
+        'school': _schoolController.text.trim(),
+        'useReferralCode': _useReferralCode,
+      });
       setState(() {
         _errorMessage = ErrorMessages.fromAuthError(e.message);
       });
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('SignupScreen.handleSignup', e, stack, {
+        'email': _emailController.text.trim(),
+        'school': _schoolController.text.trim(),
+        'useReferralCode': _useReferralCode,
+      });
       setState(() {
         _errorMessage = ErrorMessages.fromError(e);
       });
