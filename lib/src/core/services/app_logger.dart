@@ -55,22 +55,22 @@ class AppLogger {
     final timestamp = DateTime.now().toIso8601String();
     final userId = _supabase.auth.currentUser?.id;
 
-    // 개발 환경: 콘솔 출력
-    if (kDebugMode) {
-      final emoji = switch (level) {
-        'error' => '❌',
-        'warning' => '⚠️',
-        'action' => '🎯',
-        _ => 'ℹ️',
-      };
-      debugPrint('$emoji [$level] $tag: $message');
-      if (data != null) {
-        debugPrint('   Data: ${jsonEncode(data)}');
-      }
-      return;
+    // 콘솔 출력 (개발/프로덕션 모두)
+    final emoji = switch (level) {
+      'error' => '❌',
+      'warning' => '⚠️',
+      'action' => '🎯',
+      _ => 'ℹ️',
+    };
+    debugPrint('$emoji [$level] $tag: $message');
+    if (data != null && kDebugMode) {
+      debugPrint('   Data: ${jsonEncode(data)}');
     }
 
-    // 프로덕션 환경: Supabase 저장
+    // Supabase 저장 (에러는 항상, 나머지는 프로덕션만)
+    final shouldSaveToDb = level == 'error' || !kDebugMode;
+    if (!shouldSaveToDb) return;
+
     try {
       await _supabase.from('app_logs').insert({
         'level': level,

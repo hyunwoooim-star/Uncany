@@ -233,10 +233,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       _errorMessage = null;
     });
 
+    // 디버깅용 시작 로그
+    await AppLogger.info('SignupScreen', '회원가입 시작', {
+      'email': _emailController.text.trim(),
+      'school': _schoolController.text.trim(),
+      'useReferralCode': _useReferralCode,
+    });
+
     try {
       final supabase = Supabase.instance.client;
 
       // 1. Supabase Auth로 회원가입
+      await AppLogger.info('SignupScreen', '1단계: Auth signUp 시작');
       final authResponse = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -247,10 +255,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       );
 
       if (authResponse.user == null) {
+        await AppLogger.error('SignupScreen', 'Auth signUp 실패: user가 null');
         throw Exception('회원가입에 실패했습니다');
       }
 
       final userId = authResponse.user!.id;
+      await AppLogger.info('SignupScreen', '1단계 완료: Auth signUp 성공', {'userId': userId});
       String? documentUrl;
 
       // 2. 증명서 업로드 (추천인 코드 미사용 시)
@@ -273,6 +283,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         final fileName = '$userId/${ImageCompressor.generateAnonymousFileName(fileExtension)}';
 
         if (fileBytes != null) {
+          await AppLogger.info('SignupScreen', '2단계: 증명서 업로드 시작');
           await supabase.storage
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
@@ -280,10 +291,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           documentUrl = await supabase.storage
               .from('verification-documents')
               .createSignedUrl(fileName, 3600);
+          await AppLogger.info('SignupScreen', '2단계 완료: 증명서 업로드 성공');
         }
       }
 
       // 3. users 테이블에 사용자 정보 저장
+      await AppLogger.info('SignupScreen', '3단계: users 테이블 INSERT 시작');
       await supabase.from('users').insert({
         'id': userId,
         'email': _emailController.text.trim(),
@@ -292,6 +305,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         'verification_status': _useReferralCode ? 'approved' : 'pending',
         'verification_document_url': documentUrl,
       });
+      await AppLogger.info('SignupScreen', '3단계 완료: users 테이블 INSERT 성공');
 
       // 4. 추천인 코드 사용 시 처리
       if (_useReferralCode) {
