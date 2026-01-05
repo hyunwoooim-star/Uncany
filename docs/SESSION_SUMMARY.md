@@ -854,3 +854,115 @@ lib/src/
 - [ ] 커스텀 SMTP 설정 (Resend.com)
 - [ ] Storage RLS 정책 추가 (폴더 기반)
 - [ ] 전체 기능 테스트
+
+---
+
+## 2026-01-06 세션 요약 (v0.2 대규모 리팩토링)
+
+### 완료된 작업
+
+#### Phase 1: 기반 시스템 (v0.2)
+1. **schools 테이블 기반 설계** - DB 스키마 설계 완료
+2. **회원가입 수정** - username, 학교검색, 학년/반 필드
+3. **멀티테넌시 설계** - school_id 기반 데이터 분리
+
+#### Phase 2: 예약 시스템 개선 (v0.2)
+1. **교시 기반 예약 UI**
+   - `PeriodGrid` 위젯 (1~6교시)
+   - `MonthCalendar` 위젯 (월간 캘린더)
+   - `ReservationScreen` 완전 재작성
+2. **Reservation 모델 업데이트**
+   - `periods` (List<int>) 필드 추가
+   - `classroomName`, `classroomRoomType` 필드 추가 (JOIN용)
+3. **ReservationRepository 개선**
+   - `createReservation()` - 교시 배열 지원
+   - `getReservedPeriodsMap()` - 날짜별 예약 교시 조회
+   - `getTodayMyReservations()` - 교실 정보 포함
+
+#### Phase 3: UI/UX 개선 (v0.2)
+
+##### Phase 3.2: 홈 화면 개선
+- 시간대별 인사말 카드
+- 오늘의 내 예약 목록 (교실 정보 포함)
+- 빠른 액션 카드 (교실 목록, 내 예약)
+- 관리자 메뉴 섹션
+
+##### Phase 3.3: 반응형 디자인
+- `responsive_layout.dart` 생성
+  - Breakpoints: mobile(480), tablet(768), desktop(1024), wideDesktop(1440)
+  - `ResponsiveContent` 위젯 (PC에서 중앙 정렬, 최대 너비 제한)
+  - `responsivePadding()`, `responsiveFontSize()` 등 헬퍼 함수
+- 적용 화면: home_screen, classroom_list_screen, reservation_screen
+
+##### Phase 3.4: 토스 스타일 애니메이션
+- `toss_animations.dart` 생성
+  - `TossCurves` (easeOutCubic 기반)
+  - `TossDurations` (fast: 150ms, standard: 250ms)
+  - `TossTapScale` - 탭 시 스케일 효과
+  - `TossFadeIn` - 페이드인 애니메이션
+  - `TossStaggeredItem` - 리스트 순차 애니메이션
+  - `TossSkeletonLoader` - 쉬머 로딩
+  - `TossSuccessCheck` - 성공 체크 애니메이션
+  - `TossPageTransition` - 페이지 전환
+  - `TossPulse` - 펄스 애니메이션
+- `TossCard` 업데이트 - 탭 스케일 + 그림자 변화
+- `TossButton` 업데이트 - 탭 스케일 + AnimatedSwitcher
+
+### 생성/수정된 파일
+
+```
+lib/src/
+├── features/reservation/
+│   ├── domain/models/reservation.dart (수정)
+│   ├── data/repositories/reservation_repository.dart (수정)
+│   └── presentation/
+│       ├── home_screen.dart (완전 재작성)
+│       └── reservation_screen.dart (수정)
+├── features/classroom/presentation/
+│   └── classroom_list_screen.dart (수정)
+└── shared/widgets/
+    ├── responsive_layout.dart (NEW)
+    ├── toss_animations.dart (NEW)
+    ├── toss_card.dart (수정)
+    ├── toss_button.dart (수정)
+    ├── month_calendar.dart (기존)
+    └── period_grid.dart (기존)
+
+docs/
+└── MANUAL_TASKS.md (NEW) - 수동 작업 체크리스트
+```
+
+### Git 커밋 이력
+```
+#13 (fa6d27f) feat: Phase 3 완료 - 홈 화면 개선, 반응형 디자인, 애니메이션
+```
+
+### 수동 작업 필요 (MANUAL_TASKS.md 참조)
+
+| 작업 | 상태 | 설명 |
+|------|------|------|
+| schools 테이블 생성 | ❌ 미완료 | Supabase SQL Editor에서 실행 |
+| users 컬럼 추가 | ❌ 미완료 | school_id, username, grade, class_num |
+| classrooms 컬럼 추가 | ❌ 미완료 | school_id, room_type, created_by |
+| reservations 컬럼 추가 | ❌ 미완료 | periods (INT[]) |
+| handle_new_user 트리거 | ❌ 미완료 | 새 필드 포함하도록 업데이트 |
+| NEIS API 키 | ❌ 미완료 | 학교 검색용 API 키 발급 |
+
+### 다음 작업 우선순위
+
+1. **Supabase DB 마이그레이션** (수동)
+   - `docs/MANUAL_TASKS.md` SQL 스크립트 실행
+2. **학교 검색 API 연동**
+   - `school_api_service.dart` 완성
+   - NEIS API 또는 로컬 캐시 구현
+3. **회원가입 화면 완성**
+   - 학교 검색 자동완성 UI
+   - username 입력 필드
+4. **로그인 화면 수정**
+   - username 기반 로그인
+
+---
+
+**마지막 업데이트**: 2026-01-06
+**총 파일 수**: 75+ Dart 파일
+**총 코드 라인**: 17,000+ 라인
