@@ -694,17 +694,55 @@ lib/src/
 - ⏳ **iOS 배포**: TestFlight 설정
 - ⏳ **Android 배포**: Play Store 설정
 
-### ⚠️ 프로덕션 배포 전 필수 작업
-- **users 테이블 RLS 설정 필요**
-  - 현재 상태: RLS 비활성화됨 (`ALTER TABLE users DISABLE ROW LEVEL SECURITY;`)
-  - 문제: `auth.uid() = id` 정책이 회원가입 시점에 작동하지 않음
-  - 해결 방안:
-    1. Supabase Trigger 함수로 auth.users → public.users 자동 복사
-    2. 또는 Service Role Key 사용 (서버사이드에서만)
-  - **보안 위험**: RLS 꺼져있으면 모든 인증된 사용자가 다른 사용자 데이터 수정/삭제 가능
+### ✅ 해결된 회원가입 이슈 (2026-01-05)
 
-- **Storage RLS 설정 필요**
-  - `verification-documents` 버킷 정책 설정 필요
+**문제**: 회원가입 시 RLS 정책 위반 에러 발생
+
+**해결책**:
+1. **Trigger 함수로 users 테이블 자동 생성**
+   ```sql
+   CREATE OR REPLACE FUNCTION public.handle_new_user()
+   RETURNS trigger LANGUAGE plpgsql
+   SECURITY DEFINER SET search_path = public
+   AS $$
+   BEGIN
+     INSERT INTO public.users (id, email, name, school_name, verification_status, created_at)
+     VALUES (
+       new.id, new.email,
+       new.raw_user_meta_data ->> 'name',
+       new.raw_user_meta_data ->> 'school_name',
+       COALESCE(new.raw_user_meta_data ->> 'verification_status', 'pending'),
+       now()
+     );
+     RETURN new;
+   END;
+   $$;
+
+   CREATE TRIGGER on_auth_user_created
+     AFTER INSERT ON auth.users
+     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+   ```
+
+2. **Confirm email OFF** (개발용)
+   - Authentication → Providers → Email → Confirm email → OFF
+   - signUp 즉시 세션 생성되어 auth.uid() 작동
+
+3. **Storage 정책** - 현재 모든 정책 삭제 상태 (개발용)
+
+### ⚠️ 프로덕션 배포 전 필수 작업
+
+1. **이메일 인증 활성화**
+   - Confirm email → ON
+   - 커스텀 SMTP 설정 필요 (Resend.com 추천)
+
+2. **Storage RLS 정책 추가**
+   ```sql
+   -- Storage 대시보드에서 설정
+   -- verification-documents 버킷에 폴더 기반 정책 추가
+   -- 경로: {user_id}/filename 형식으로 업로드
+   ```
+
+3. **users 테이블 RLS** - 현재 활성화됨 (Trigger가 SECURITY DEFINER로 우회)
 
 ### Git 커밋 이력 (최신 추가)
 ```
