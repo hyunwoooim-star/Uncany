@@ -3,9 +3,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'reservation.freezed.dart';
 part 'reservation.g.dart';
 
-/// 예약 모델
+/// 예약 모델 - v0.2
 @freezed
 class Reservation with _$Reservation {
+  const Reservation._();
+
   const factory Reservation({
     required String id,
     @JsonKey(name: 'classroom_id') required String classroomId,
@@ -17,14 +19,17 @@ class Reservation with _$Reservation {
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
     @JsonKey(name: 'deleted_at') DateTime? deletedAt,
+    // v0.2: 교시 기반 예약
+    List<int>? periods,  // [1, 2, 3] 형태로 교시 저장
+    // 예약자 정보 (JOIN용)
+    @JsonKey(name: 'teacher_name') String? teacherName,
+    @JsonKey(name: 'teacher_grade') int? teacherGrade,
+    @JsonKey(name: 'teacher_class_num') int? teacherClassNum,
   }) = _Reservation;
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>
       _$ReservationFromJson(json);
-}
 
-/// 예약 상태 계산용 확장
-extension ReservationX on Reservation {
   /// 예약이 활성 상태인지 (삭제되지 않음)
   bool get isActive => deletedAt == null;
 
@@ -49,5 +54,32 @@ extension ReservationX on Reservation {
   /// 예약 기간 (분)
   int get durationInMinutes {
     return endTime.difference(startTime).inMinutes;
+  }
+
+  /// 교시 표시 (1~3교시)
+  String? get periodsDisplay {
+    if (periods == null || periods!.isEmpty) return null;
+    final sorted = List<int>.from(periods!)..sort();
+    if (sorted.length == 1) {
+      return '${sorted.first}교시';
+    }
+    return '${sorted.first}~${sorted.last}교시';
+  }
+
+  /// 예약자 전체 표시: "임현우 선생님 (3학년 2반)"
+  String get teacherDisplayName {
+    if (teacherName == null) return '알 수 없음';
+    if (teacherGrade != null && teacherClassNum != null) {
+      return '$teacherName 선생님 ($teacherGrade학년 $teacherClassNum반)';
+    } else if (teacherGrade != null) {
+      return '$teacherName 선생님 ($teacherGrade학년)';
+    }
+    return '$teacherName 선생님';
+  }
+
+  /// 짧은 예약자 표시: "임현우 선생님"
+  String get teacherShortName {
+    if (teacherName == null) return '알 수 없음';
+    return '$teacherName 선생님';
   }
 }

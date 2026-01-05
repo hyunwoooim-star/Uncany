@@ -9,8 +9,12 @@ import 'src/core/providers/supabase_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 한국어 날짜 포맷 초기화
-  await initializeDateFormatting('ko_KR', null);
+  // 한국어 날짜 포맷 초기화 (실패해도 앱 실행)
+  try {
+    await initializeDateFormatting('ko_KR', null);
+  } catch (e) {
+    // locale 데이터 로드 실패 시 무시
+  }
 
   // 환경 변수 검증
   Env.validate();
