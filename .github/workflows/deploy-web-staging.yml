@@ -2,7 +2,7 @@ name: Deploy Web Staging
 
 on:
   push:
-    branches: [develop, 'claude/**']
+    branches: [main, develop, 'claude/**']
 
 jobs:
   deploy-staging:
