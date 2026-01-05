@@ -694,6 +694,56 @@ lib/src/
 - ⏳ **iOS 배포**: TestFlight 설정
 - ⏳ **Android 배포**: Play Store 설정
 
+### ✅ 해결된 회원가입 이슈 (2026-01-05)
+
+**문제**: 회원가입 시 RLS 정책 위반 에러 발생
+
+**해결책**:
+1. **Trigger 함수로 users 테이블 자동 생성**
+   ```sql
+   CREATE OR REPLACE FUNCTION public.handle_new_user()
+   RETURNS trigger LANGUAGE plpgsql
+   SECURITY DEFINER SET search_path = public
+   AS $$
+   BEGIN
+     INSERT INTO public.users (id, email, name, school_name, verification_status, created_at)
+     VALUES (
+       new.id, new.email,
+       new.raw_user_meta_data ->> 'name',
+       new.raw_user_meta_data ->> 'school_name',
+       COALESCE(new.raw_user_meta_data ->> 'verification_status', 'pending'),
+       now()
+     );
+     RETURN new;
+   END;
+   $$;
+
+   CREATE TRIGGER on_auth_user_created
+     AFTER INSERT ON auth.users
+     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+   ```
+
+2. **Confirm email OFF** (개발용)
+   - Authentication → Providers → Email → Confirm email → OFF
+   - signUp 즉시 세션 생성되어 auth.uid() 작동
+
+3. **Storage 정책** - 현재 모든 정책 삭제 상태 (개발용)
+
+### ⚠️ 프로덕션 배포 전 필수 작업
+
+1. **이메일 인증 활성화**
+   - Confirm email → ON
+   - 커스텀 SMTP 설정 필요 (Resend.com 추천)
+
+2. **Storage RLS 정책 추가**
+   ```sql
+   -- Storage 대시보드에서 설정
+   -- verification-documents 버킷에 폴더 기반 정책 추가
+   -- 경로: {user_id}/filename 형식으로 업로드
+   ```
+
+3. **users 테이블 RLS** - 현재 활성화됨 (Trigger가 SECURITY DEFINER로 우회)
+
 ### Git 커밋 이력 (최신 추가)
 ```
 #11 (5228c42) feat: 이메일 인증, 감사 로그, 애니메이션, 반응형 레이아웃 구현
@@ -724,6 +774,83 @@ lib/src/
 
 ---
 
-**마지막 업데이트**: 2026-01-04
+**마지막 업데이트**: 2026-01-05
 **총 파일 수**: 70+ Dart 파일
 **총 코드 라인**: 15,000+ 라인
+
+---
+
+## 2026-01-05 세션 요약
+
+### 완료된 작업
+
+1. **AppLogger 서비스 구현**
+   - `lib/src/core/services/app_logger.dart` 생성
+   - error/info/action/warning 레벨 로깅
+   - Supabase `app_logs` 테이블에 저장
+
+2. **회원가입 RLS 문제 해결**
+   - 문제: `auth.uid() = id` 정책이 signUp 직후 작동 안 함
+   - 원인: Confirm email ON 상태에서 세션이 바로 생성되지 않음
+   - 해결: Trigger 함수로 `auth.users` → `public.users` 자동 생성
+   ```sql
+   CREATE OR REPLACE FUNCTION public.handle_new_user()
+   RETURNS trigger LANGUAGE plpgsql
+   SECURITY DEFINER SET search_path = public
+   AS $$
+   BEGIN
+     INSERT INTO public.users (id, email, name, school_name, verification_status, created_at)
+     VALUES (
+       new.id, new.email,
+       new.raw_user_meta_data ->> 'name',
+       new.raw_user_meta_data ->> 'school_name',
+       COALESCE(new.raw_user_meta_data ->> 'verification_status', 'pending'),
+       now()
+     );
+     RETURN new;
+   END;
+   $$;
+
+   CREATE TRIGGER on_auth_user_created
+     AFTER INSERT ON auth.users
+     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+   ```
+
+3. **에러 메시지 한글화 개선**
+   - `ErrorMessages.fromAuthError()` 조건 추가
+   - 이메일 중복, 유효성, rate limit 등 구체적 메시지
+
+4. **Supabase 설정 변경**
+   - `Confirm email` → OFF (개발용)
+   - `users` 테이블 RLS → ON (Trigger가 SECURITY DEFINER로 우회)
+   - `storage.objects` → 정책 삭제 상태 (재설정 필요)
+
+### 현재 이슈 (다음 세션에서 해결 필요)
+
+1. **Storage 정책 설정 필요**
+   - `verification-documents` 버킷에 정책 추가 필요
+   - 대시보드: Storage → verification-documents → Policies → New Policy
+   - 설정: authenticated 유저에게 모든 권한 (SELECT, INSERT, UPDATE, DELETE)
+
+2. **회원가입 후 화면 이동 시 에러**
+   - `Null check operator used on a null value`
+   - Storage signedUrl 생성 관련 에러 처리 추가함
+   - 배포 후 테스트 필요
+
+### Supabase 현재 상태
+
+| 항목 | 상태 |
+|------|------|
+| Email Provider | ON |
+| Confirm email | OFF |
+| users RLS | ON |
+| storage.objects RLS | 정책 없음 |
+| handle_new_user Trigger | 설정됨 |
+| app_logs 테이블 | 생성됨 |
+
+### 프로덕션 배포 전 TODO
+
+- [ ] Confirm email → ON
+- [ ] 커스텀 SMTP 설정 (Resend.com)
+- [ ] Storage RLS 정책 추가 (폴더 기반)
+- [ ] 전체 기능 테스트

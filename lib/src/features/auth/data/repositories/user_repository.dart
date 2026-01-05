@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/core/services/app_logger.dart';
 
 /// 사용자 관리 Repository (관리자 전용)
 ///
@@ -40,9 +41,11 @@ class UserRepository {
       return (response as List)
           .map((json) => User.fromJson(json as Map<String, dynamic>))
           .toList();
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.getUsers', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.getUsers', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -59,9 +62,11 @@ class UserRepository {
       if (response == null) return null;
 
       return User.fromJson(response);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.getUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.getUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -78,9 +83,11 @@ class UserRepository {
       }).eq('id', userId);
 
       // TODO: 승인 알림 발송 (Phase 3)
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.approveUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.approveUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -101,9 +108,11 @@ class UserRepository {
       }).eq('id', userId);
 
       // TODO: 반려 알림 발송 (Phase 3)
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.rejectUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.rejectUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -117,9 +126,11 @@ class UserRepository {
         'role': role.name,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.updateUserRole', e, stack, {'userId': userId, 'role': role.name});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.updateUserRole', e, stack, {'userId': userId, 'role': role.name});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -132,9 +143,11 @@ class UserRepository {
       await _supabase.from('users').update({
         'deleted_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.deleteUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.deleteUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -148,9 +161,11 @@ class UserRepository {
         'deleted_at': null,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.restoreUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.restoreUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -167,9 +182,11 @@ class UserRepository {
           .isFilter('deleted_at', null);
 
       return (response as List).length;
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.getPendingCount', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.getPendingCount', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }

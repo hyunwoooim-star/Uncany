@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/utils/image_compressor.dart';
+import 'package:uncany/src/core/services/app_logger.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
@@ -232,24 +233,35 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       _errorMessage = null;
     });
 
+    // 디버깅용 시작 로그
+    await AppLogger.info('SignupScreen', '회원가입 시작', {
+      'email': _emailController.text.trim(),
+      'school': _schoolController.text.trim(),
+      'useReferralCode': _useReferralCode,
+    });
+
     try {
       final supabase = Supabase.instance.client;
 
       // 1. Supabase Auth로 회원가입
+      await AppLogger.info('SignupScreen', '1단계: Auth signUp 시작');
       final authResponse = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         data: {
           'name': _nameController.text.trim(),
           'school_name': _schoolController.text.trim(),
+          'verification_status': _useReferralCode ? 'approved' : 'pending',
         },
       );
 
       if (authResponse.user == null) {
+        await AppLogger.error('SignupScreen', 'Auth signUp 실패: user가 null');
         throw Exception('회원가입에 실패했습니다');
       }
 
       final userId = authResponse.user!.id;
+      await AppLogger.info('SignupScreen', '1단계 완료: Auth signUp 성공', {'userId': userId});
       String? documentUrl;
 
       // 2. 증명서 업로드 (추천인 코드 미사용 시)
@@ -272,25 +284,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         final fileName = '$userId/${ImageCompressor.generateAnonymousFileName(fileExtension)}';
 
         if (fileBytes != null) {
+          await AppLogger.info('SignupScreen', '2단계: 증명서 업로드 시작');
           await supabase.storage
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
 
-          documentUrl = await supabase.storage
-              .from('verification-documents')
-              .createSignedUrl(fileName, 3600);
+          try {
+            documentUrl = await supabase.storage
+                .from('verification-documents')
+                .createSignedUrl(fileName, 3600);
+          } catch (e) {
+            // Signed URL 생성 실패해도 계속 진행 (관리자가 직접 확인)
+            await AppLogger.warning('SignupScreen', 'Signed URL 생성 실패', {'error': e.toString()});
+          }
+          await AppLogger.info('SignupScreen', '2단계 완료: 증명서 업로드 성공');
         }
       }
 
-      // 3. users 테이블에 사용자 정보 저장
-      await supabase.from('users').insert({
-        'id': userId,
-        'email': _emailController.text.trim(),
-        'name': _nameController.text.trim(),
-        'school_name': _schoolController.text.trim(),
-        'verification_status': _useReferralCode ? 'approved' : 'pending',
-        'verification_document_url': documentUrl,
-      });
+      // 3. users 테이블은 Trigger가 자동 생성함 (handle_new_user)
+      await AppLogger.info('SignupScreen', '3단계: users 테이블 자동 생성됨 (Trigger)');
 
       // 4. 추천인 코드 사용 시 처리
       if (_useReferralCode) {
@@ -329,11 +341,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         );
         context.go('/home');
       }
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stack) {
+      AppLogger.error('SignupScreen.handleSignup', e, stack, {
+        'email': _emailController.text.trim(),
+        'school': _schoolController.text.trim(),
+        'useReferralCode': _useReferralCode,
+      });
       setState(() {
         _errorMessage = ErrorMessages.fromAuthError(e.message);
       });
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('SignupScreen.handleSignup', e, stack, {
+        'email': _emailController.text.trim(),
+        'school': _schoolController.text.trim(),
+        'useReferralCode': _useReferralCode,
+      });
       setState(() {
         _errorMessage = ErrorMessages.fromError(e);
       });
