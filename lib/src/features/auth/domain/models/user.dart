@@ -9,17 +9,18 @@ class User with _$User {
   const factory User({
     required String id,
     required String name,
-    required String schoolName,
+    @JsonKey(name: 'school_name') required String schoolName,
     String? email,
-    String? educationOffice, // 교육청 코드 (seoul, busan 등)
+    @JsonKey(name: 'education_office') String? educationOffice,
     @Default(UserRole.teacher) UserRole role,
+    @JsonKey(name: 'verification_status')
     @Default(VerificationStatus.pending)
     VerificationStatus verificationStatus,
-    String? verificationDocumentUrl,
-    String? rejectedReason,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
+    @JsonKey(name: 'verification_document_url') String? verificationDocumentUrl,
+    @JsonKey(name: 'rejected_reason') String? rejectedReason,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
