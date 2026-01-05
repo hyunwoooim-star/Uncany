@@ -289,9 +289,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
 
-          documentUrl = await supabase.storage
-              .from('verification-documents')
-              .createSignedUrl(fileName, 3600);
+          try {
+            documentUrl = await supabase.storage
+                .from('verification-documents')
+                .createSignedUrl(fileName, 3600);
+          } catch (e) {
+            // Signed URL 생성 실패해도 계속 진행 (관리자가 직접 확인)
+            await AppLogger.warning('SignupScreen', 'Signed URL 생성 실패', {'error': e.toString()});
+          }
           await AppLogger.info('SignupScreen', '2단계 완료: 증명서 업로드 성공');
         }
       }
