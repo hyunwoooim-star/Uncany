@@ -62,7 +62,7 @@ class ClassroomRepository {
     }
   }
 
-  /// 교실 생성 (관리자 전용)
+  /// 교실 생성 (모든 선생님 가능)
   ///
   /// [accessCode]를 제공하면 SHA-256 해시로 저장
   Future<Classroom> createClassroom({
@@ -71,6 +71,7 @@ class ClassroomRepository {
     String? noticeMessage,
     int? capacity,
     String? location,
+    String? roomType,
   }) async {
     try {
       final session = _supabase.auth.currentSession;
@@ -91,6 +92,8 @@ class ClassroomRepository {
         'capacity': capacity,
         'location': location,
         'is_active': true,
+        'room_type': roomType ?? 'other',
+        'created_by': session.user.id,
       };
 
       final response = await _supabase
@@ -118,6 +121,7 @@ class ClassroomRepository {
     int? capacity,
     String? location,
     bool? isActive,
+    String? roomType,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -141,6 +145,7 @@ class ClassroomRepository {
       if (capacity != null) updates['capacity'] = capacity;
       if (location != null) updates['location'] = location;
       if (isActive != null) updates['is_active'] = isActive;
+      if (roomType != null) updates['room_type'] = roomType;
 
       if (updates.isEmpty) return; // 변경 사항 없음
 

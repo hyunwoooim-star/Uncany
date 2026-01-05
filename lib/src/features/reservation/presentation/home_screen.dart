@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../auth/domain/models/user.dart';
 import '../../auth/data/providers/auth_repository_provider.dart';
 import '../../auth/data/providers/user_repository_provider.dart';
 import '../data/providers/reservation_repository_provider.dart';
+import '../domain/models/reservation.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 
+/// 홈 화면 (v0.2)
+///
+/// 오늘의 예약 요약, 빠른 메뉴
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -52,13 +59,17 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final pendingCountAsync = ref.watch(_pendingCountProvider);
+    final todayReservationsAsync = ref.watch(_todayReservationsProvider);
 
     return Scaffold(
+      backgroundColor: TossColors.background,
       appBar: AppBar(
         title: const Text('Uncany'),
+        backgroundColor: TossColors.surface,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
             tooltip: '프로필',
           ),
@@ -69,148 +80,109 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: currentUserAsync.when(
-        data: (user) {
-          if (user == null) return const Center(child: Text('사용자 정보 없음'));
+      body: ResponsiveContent(
+        child: currentUserAsync.when(
+          data: (user) {
+            if (user == null) {
+              return const Center(child: Text('사용자 정보 없음'));
+            }
+            return _buildMainContent(
+              context,
+              ref,
+              user,
+              pendingCountAsync,
+              todayReservationsAsync,
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text('오류: $error'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(currentUserProvider),
+                  child: const Text('다시 시도'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(
+    BuildContext context,
+    WidgetRef ref,
+    User user,
+    AsyncValue<int> pendingCountAsync,
+    AsyncValue<List<Reservation>> todayReservationsAsync,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(_todayReservationsProvider);
+        ref.invalidate(_pendingCountProvider);
+      },
+      child: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          final padding = responsivePadding(context);
+          final spacing = responsiveSpacing(context);
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: padding,
             children: [
-              // 인사
-              Text(
-                '안녕하세요, ${user.name} 선생님!',
-                style: Theme.of(context).textTheme.headlineMedium,
+              // 인사말 카드
+              _buildGreetingCard(context, user),
+
+              SizedBox(height: spacing * 1.25),
+
+              // 오늘의 예약 섹션
+              _buildTodayReservationsSection(
+                context,
+                todayReservationsAsync,
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(height: spacing * 1.5),
 
-              Text(
-                '오늘은 어떤 교실을 예약하시겠어요?',
-                style: Theme.of(context).textTheme.bodyMedium,
+              // 빠른 메뉴 섹션
+              _buildSectionTitle('빠른 메뉴'),
+              SizedBox(height: spacing * 0.75),
+
+              _QuickActionCard(
+                icon: Icons.calendar_today,
+                title: '교실 예약',
+                subtitle: '컴퓨터실, 음악실, 과학실 등',
+                color: TossColors.primary,
+                onTap: () => context.push('/classrooms'),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: spacing * 0.75),
 
-              // 오늘의 예약 통계
-              Consumer(
-                builder: (context, ref, child) {
-                  final todayCountAsync = ref.watch(_todayReservationCountProvider);
-
-                  return todayCountAsync.when(
-                    data: (count) => InkWell(
-                      onTap: () => context.push('/reservations/my'),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            TossColors.primary.withOpacity(0.1),
-                            TossColors.primary.withOpacity(0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: TossColors.primary.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: TossColors.primary.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.event_note,
-                              size: 32,
-                              color: TossColors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '오늘의 예약',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: TossColors.textSub,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$count건',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: TossColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: TossColors.textSub,
-                          ),
-                        ],
-                      ),
-                      ),
-                    ),
-                    loading: () => Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: TossColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(width: 16),
-                          Text(
-                            '오늘의 예약 로딩 중...',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: TossColors.textSub,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    error: (_, __) => const SizedBox.shrink(),
-                  );
-                },
+              _QuickActionCard(
+                icon: Icons.list_alt,
+                title: '내 예약 내역',
+                subtitle: '예약 확인 및 관리',
+                color: TossColors.success,
+                onTap: () => context.push('/reservations/my'),
               ),
 
-              const SizedBox(height: 24),
-
-              // 관리자 메뉴 (admin만 표시)
+              // 관리자 메뉴
               if (user.role == UserRole.admin) ...[
-                Text(
-                  '관리자 메뉴',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: TossColors.textSub,
-                      ),
-                ),
-                const SizedBox(height: 12),
+                SizedBox(height: spacing * 1.5),
+                _buildSectionTitle('관리자 메뉴'),
+                SizedBox(height: spacing * 0.75),
                 _QuickActionCard(
                   icon: Icons.how_to_reg,
                   title: '사용자 승인',
                   subtitle: pendingCountAsync.when(
-                    data: (count) => count > 0 ? '$count명 대기 중' : '대기 중인 사용자 없음',
+                    data: (count) =>
+                        count > 0 ? '$count명 대기 중' : '대기 중인 사용자 없음',
                     loading: () => '로딩 중...',
-                    error: (_, __) => '대기 중인 사용자 확인',
+                    error: (_, __) => '확인 필요',
                   ),
                   color: Colors.purple,
                   onTap: () => context.push('/admin/approvals'),
@@ -220,7 +192,7 @@ class HomeScreen extends ConsumerWidget {
                     error: (_, __) => null,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: spacing * 0.75),
                 _QuickActionCard(
                   icon: Icons.people,
                   title: '사용자 관리',
@@ -228,7 +200,7 @@ class HomeScreen extends ConsumerWidget {
                   color: Colors.indigo,
                   onTap: () => context.push('/admin/users'),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: spacing * 0.75),
                 _QuickActionCard(
                   icon: Icons.meeting_room,
                   title: '교실 관리',
@@ -236,66 +208,421 @@ class HomeScreen extends ConsumerWidget {
                   color: Colors.teal,
                   onTap: () => context.push('/admin/classrooms'),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  '일반 메뉴',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: TossColors.textSub,
-                      ),
-                ),
-                const SizedBox(height: 12),
               ],
 
-              // 빠른 예약
-              _QuickActionCard(
-                icon: Icons.calendar_today,
-                title: '교실 예약',
-                subtitle: '컴퓨터실, 과학실 등',
-                color: TossColors.primary,
-                onTap: () {
-                  context.push('/classrooms');
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _QuickActionCard(
-                icon: Icons.list_alt,
-                title: '내 예약 내역',
-                subtitle: '예약 확인 및 관리',
-                color: TossColors.success,
-                onTap: () {
-                  context.push('/reservations/my');
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _QuickActionCard(
-                icon: Icons.school,
-                title: '교실 관리',
-                subtitle: '교실 정보 및 공지',
-                color: TossColors.warning,
-                onTap: () {
-                  // TODO: 교실 관리 화면
-                },
-              ),
+              SizedBox(height: spacing * 2),
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
+
+  Widget _buildGreetingCard(BuildContext context, User user) {
+    final now = DateTime.now();
+    final greeting = _getGreeting(now.hour);
+
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
-              Text('오류: $error'),
+              Container(
+                width: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                height: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.waving_hand,
+                  color: TossColors.primary,
+                  size: responsiveIconSize(context),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      greeting,
+                      style: TextStyle(
+                        fontSize: responsiveFontSize(context, base: 14),
+                        color: TossColors.textSub,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${user.name} 선생님',
+                      style: TextStyle(
+                        fontSize: responsiveFontSize(context, base: 20),
+                        fontWeight: FontWeight.bold,
+                        color: TossColors.textMain,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
+          ),
+          if (user.gradeClassDisplay != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: TossColors.background,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                user.gradeClassDisplay!,
+                style: TextStyle(
+                  fontSize: responsiveFontSize(context, base: 13),
+                  color: TossColors.textSub,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _getGreeting(int hour) {
+    if (hour < 6) return '새벽이에요';
+    if (hour < 12) return '좋은 아침이에요';
+    if (hour < 18) return '좋은 오후예요';
+    return '좋은 저녁이에요';
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: responsiveFontSize(context, base: 15),
+            fontWeight: FontWeight.w600,
+            color: TossColors.textSub,
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTodayReservationsSection(
+    BuildContext context,
+    AsyncValue<List<Reservation>> todayReservationsAsync,
+  ) {
+    final dateFormat = DateFormat('M월 d일 EEEE', 'ko_KR');
+    final today = DateTime.now();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildSectionTitle('오늘의 예약'),
+            const Spacer(),
+            Text(
+              dateFormat.format(today),
+              style: TextStyle(
+                fontSize: responsiveFontSize(context, base: 13),
+                color: TossColors.textSub,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: responsiveSpacing(context, base: 12)),
+        todayReservationsAsync.when(
+          data: (reservations) {
+            if (reservations.isEmpty) {
+              return _buildEmptyReservations(context);
+            }
+            return _buildReservationsList(context, reservations);
+          },
+          loading: () => TossCard(
+            padding: responsiveCardPadding(context),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '예약 정보 로딩 중...',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 14),
+                      color: TossColors.textSub,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          error: (_, __) => TossCard(
+            padding: responsiveCardPadding(context),
+            child: Center(
+              child: Text(
+                '예약 정보를 불러올 수 없습니다',
+                style: TextStyle(
+                  fontSize: responsiveFontSize(context, base: 14),
+                  color: TossColors.textSub,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyReservations(BuildContext context) {
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        children: [
+          Icon(
+            Icons.event_available,
+            size: responsiveIconSize(context, base: 48),
+            color: TossColors.textSub.withOpacity(0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '오늘 예정된 예약이 없습니다',
+            style: TextStyle(
+              fontSize: responsiveFontSize(context, base: 15),
+              color: TossColors.textSub,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/classrooms'),
+            icon: const Icon(Icons.add),
+            label: const Text('교실 예약하기'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: TossColors.primary,
+              side: BorderSide(color: TossColors.primary),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReservationsList(
+    BuildContext context,
+    List<Reservation> reservations,
+  ) {
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        children: [
+          // 예약 개수 요약
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.event_note,
+                  color: TossColors.primary,
+                  size: responsiveIconSize(context),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '오늘 ${reservations.length}건의 예약이 있습니다',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 14),
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/reservations/my'),
+                  child: Text(
+                    '전체보기',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 13),
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 예약 목록
+          ...reservations.map((r) => _TodayReservationItem(reservation: r)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 오늘의 예약 아이템 위젯
+class _TodayReservationItem extends StatelessWidget {
+  final Reservation reservation;
+
+  const _TodayReservationItem({required this.reservation});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          // 교시 표시
+          Container(
+            width: responsiveValue(context, mobile: 64.0, desktop: 72.0),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: _getStatusColor().withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  reservation.periodsDisplay ?? '-',
+                  style: TextStyle(
+                    fontSize: responsiveFontSize(context, base: 13),
+                    fontWeight: FontWeight.bold,
+                    color: _getStatusColor(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // 교실 정보
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _getRoomTypeIcon(reservation.classroomRoomType),
+                      size: responsiveIconSize(context, base: 16),
+                      color: TossColors.textSub,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        reservation.classroomName ?? '교실',
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 14),
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.textMain,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (reservation.description != null &&
+                    reservation.description!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    reservation.description!,
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 12),
+                      color: TossColors.textSub,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // 상태 표시
+          _buildStatusBadge(context),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor() {
+    if (reservation.isOngoing) return Colors.green;
+    if (reservation.isUpcoming) return TossColors.primary;
+    return Colors.grey;
+  }
+
+  Widget _buildStatusBadge(BuildContext context) {
+    String text;
+    Color bgColor;
+    Color textColor;
+
+    if (reservation.isOngoing) {
+      text = '진행중';
+      bgColor = Colors.green.withOpacity(0.1);
+      textColor = Colors.green;
+    } else if (reservation.isUpcoming) {
+      text = '예정';
+      bgColor = TossColors.primary.withOpacity(0.1);
+      textColor = TossColors.primary;
+    } else {
+      text = '완료';
+      bgColor = Colors.grey.withOpacity(0.1);
+      textColor = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: responsiveFontSize(context, base: 11),
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  IconData _getRoomTypeIcon(String? roomType) {
+    switch (roomType) {
+      case 'computer':
+        return Icons.computer;
+      case 'music':
+        return Icons.music_note;
+      case 'science':
+        return Icons.science;
+      case 'art':
+        return Icons.palette;
+      case 'library':
+        return Icons.menu_book;
+      case 'gym':
+        return Icons.sports_basketball;
+      case 'auditorium':
+        return Icons.theater_comedy;
+      case 'special':
+        return Icons.star;
+      default:
+        return Icons.meeting_room;
+    }
   }
 }
 
@@ -305,10 +632,11 @@ final _pendingCountProvider = FutureProvider<int>((ref) async {
   return await repository.getPendingCount();
 });
 
-// 오늘의 예약 수 Provider
-final _todayReservationCountProvider = FutureProvider<int>((ref) async {
+// 오늘의 내 예약 목록 Provider
+final _todayReservationsProvider =
+    FutureProvider<List<Reservation>>((ref) async {
   final repository = ref.watch(reservationRepositoryProvider);
-  return await repository.getTodayReservationCount();
+  return await repository.getTodayMyReservations();
 });
 
 class _QuickActionCard extends StatelessWidget {
@@ -330,82 +658,84 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
+    return TossCard(
+      onTap: onTap,
+      padding: responsiveCardPadding(context),
+      child: Row(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 28,
-                    ),
-                  ),
-                  if (badge != null && badge! > 0)
-                    Positioned(
-                      top: -4,
-                      right: -4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Text(
-                          badge! > 99 ? '99+' : badge.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+              Container(
+                width: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                height: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: responsiveIconSize(context),
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: TossColors.textSub,
-              ),
+              if (badge != null && badge! > 0)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 20,
+                      minHeight: 20,
+                    ),
+                    child: Text(
+                      badge! > 99 ? '99+' : badge.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: responsiveFontSize(context, base: 15),
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.textMain,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: responsiveFontSize(context, base: 13),
+                    color: TossColors.textSub,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            size: responsiveIconSize(context, base: 20),
+            color: TossColors.textSub,
+          ),
+        ],
       ),
     );
   }

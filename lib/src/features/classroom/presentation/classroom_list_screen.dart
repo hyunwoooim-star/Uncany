@@ -9,6 +9,7 @@ import 'package:uncany/src/features/reservation/data/providers/reservation_repos
 import 'package:uncany/src/features/reservation/domain/models/reservation.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/month_calendar.dart';
+import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 교실 예약 메인 화면 (리디자인)
@@ -129,15 +130,20 @@ class _ClassroomListScreenState extends ConsumerState<ClassroomListScreen> {
         backgroundColor: TossColors.surface,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? _buildErrorView()
-              : _buildContent(),
+      body: ResponsiveContent(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+                ? _buildErrorView()
+                : _buildContent(),
+      ),
       floatingActionButton: _selectedClassroom != null
           ? FloatingActionButton.extended(
               onPressed: () {
-                context.push('/classrooms/${_selectedClassroom!.id}');
+                context.push(
+                  '/reservations/${_selectedClassroom!.id}',
+                  extra: _selectedClassroom,
+                );
               },
               backgroundColor: TossColors.primary,
               icon: const Icon(Icons.add, color: Colors.white),
@@ -394,8 +400,48 @@ class _ClassroomSelectorSheet extends StatelessWidget {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: classrooms.length,
+              itemCount: classrooms.length + 1, // +1 for add button
               itemBuilder: (context, index) {
+                // 마지막 아이템: 교실 추가 버튼
+                if (index == classrooms.length) {
+                  return ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: TossColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: TossColors.primary.withOpacity(0.3),
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.add,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                    title: Text(
+                      '교실 추가',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '새로운 교실을 등록합니다',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: TossColors.textSub,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/classrooms/create');
+                    },
+                  );
+                }
+
                 final classroom = classrooms[index];
                 final isSelected = classroom.id == selectedClassroom?.id;
                 return ListTile(

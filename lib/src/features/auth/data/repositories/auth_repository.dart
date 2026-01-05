@@ -55,10 +55,12 @@ class AuthRepository {
 
   /// 프로필 정보 업데이트
   ///
-  /// users 테이블의 name, school_name 필드 수정
+  /// users 테이블의 name, school_name, grade, class_num 필드 수정
   Future<void> updateProfile({
     String? name,
     String? schoolName,
+    int? grade,
+    int? classNum,
   }) async {
     try {
       final session = _supabase.auth.currentSession;
@@ -69,6 +71,8 @@ class AuthRepository {
       final updates = <String, dynamic>{};
       if (name != null) updates['name'] = name;
       if (schoolName != null) updates['school_name'] = schoolName;
+      if (grade != null) updates['grade'] = grade;
+      if (classNum != null) updates['class_num'] = classNum;
       updates['updated_at'] = DateTime.now().toIso8601String();
 
       await _supabase

@@ -8,7 +8,9 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 
-/// 프로필 수정 화면
+/// 프로필 수정 화면 (v0.2)
+///
+/// 이름, 학년, 반 수정 가능
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -19,7 +21,9 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _schoolController = TextEditingController();
+
+  int? _selectedGrade;
+  int? _selectedClassNum;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -33,7 +37,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _schoolController.dispose();
     super.dispose();
   }
 
@@ -41,12 +44,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final user = ref.read(currentUserProvider).value;
     if (user != null) {
       _nameController.text = user.name;
-      _schoolController.text = user.schoolName;
+      _selectedGrade = user.grade;
+      _selectedClassNum = user.classNum;
     }
   }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedGrade == null || _selectedClassNum == null) {
+      setState(() {
+        _errorMessage = '학년과 반을 선택해주세요';
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -57,7 +68,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final repository = ref.read(authRepositoryProvider);
       await repository.updateProfile(
         name: _nameController.text.trim(),
-        schoolName: _schoolController.text.trim(),
+        grade: _selectedGrade,
+        classNum: _selectedClassNum,
       );
 
       // Provider 갱신
@@ -87,6 +99,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider).value;
+
     return Scaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
@@ -116,7 +130,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '이름과 학교명을 수정할 수 있습니다.\n이메일은 변경할 수 없습니다.',
+                      '이름, 학년, 반을 수정할 수 있습니다.\n학교와 아이디는 변경할 수 없습니다.',
                       style: TextStyle(
                         fontSize: 13,
                         color: TossColors.primary,
@@ -129,14 +143,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
             const SizedBox(height: 24),
 
+            // 학교 (읽기 전용)
+            TextFormField(
+              initialValue: currentUser?.schoolName ?? '',
+              decoration: InputDecoration(
+                labelText: '학교',
+                prefixIcon: const Icon(Icons.school_outlined),
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: TossColors.disabled.withOpacity(0.1),
+              ),
+              readOnly: true,
+              enabled: false,
+            ),
+
+            const SizedBox(height: 16),
+
             // 이름
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: '이름',
                 hintText: '홍길동',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person_outline),
+                border: const OutlineInputBorder(),
+                suffixText: '선생님',
+                suffixStyle: TextStyle(
+                  color: TossColors.textSub,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -149,23 +183,102 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
             const SizedBox(height: 16),
 
-            // 학교명
-            TextFormField(
-              controller: _schoolController,
-              decoration: const InputDecoration(
-                labelText: '학교명',
-                hintText: '서울고등학교',
-                prefixIcon: Icon(Icons.school_outlined),
-                border: OutlineInputBorder(),
+            // 학년/반 선택
+            Row(
+              children: [
+                // 학년 선택
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedGrade,
+                    decoration: const InputDecoration(
+                      labelText: '학년',
+                      prefixIcon: Icon(Icons.format_list_numbered),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: List.generate(6, (index) {
+                      final grade = index + 1;
+                      return DropdownMenuItem(
+                        value: grade,
+                        child: Text('$grade학년'),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGrade = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return '선택';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // 반 선택
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedClassNum,
+                    decoration: const InputDecoration(
+                      labelText: '반',
+                      prefixIcon: Icon(Icons.groups_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: List.generate(15, (index) {
+                      final classNum = index + 1;
+                      return DropdownMenuItem(
+                        value: classNum,
+                        child: Text('$classNum반'),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedClassNum = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return '선택';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // 미리보기
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: TossColors.divider),
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return ErrorMessages.requiredField;
-                }
-                return null;
-              },
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _saveProfile(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '예약 시 표시되는 이름',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: TossColors.textSub,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _getPreviewDisplayName(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.textMain,
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -220,5 +333,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ),
       ),
     );
+  }
+
+  String _getPreviewDisplayName() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return '이름을 입력해주세요';
+
+    if (_selectedGrade != null && _selectedClassNum != null) {
+      return '$name 선생님 ($_selectedGrade학년 $_selectedClassNum반)';
+    } else if (_selectedGrade != null) {
+      return '$name 선생님 ($_selectedGrade학년)';
+    }
+    return '$name 선생님';
   }
 }

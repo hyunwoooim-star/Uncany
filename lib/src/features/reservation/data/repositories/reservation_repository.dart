@@ -4,8 +4,9 @@ import '../../domain/models/reservation.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/services/app_logger.dart';
 
-/// 예약 관리 Repository
+/// 예약 관리 Repository (v0.2)
 ///
+/// 교시(period) 기반 예약 시스템
 /// reservations 테이블 CRUD 및 충돌 검증
 class ReservationRepository {
   final SupabaseClient _supabase;
@@ -54,9 +55,9 @@ class ReservationRepository {
     }
   }
 
-  /// 교실별 예약 목록 조회
+  /// 교실별 예약 목록 조회 (특정 날짜)
   ///
-  /// 특정 날짜의 모든 예약 조회
+  /// 예약자 정보 (이름, 학년, 반)를 함께 조회
   Future<List<Reservation>> getReservationsByClassroom(
     String classroomId, {
     required DateTime date,
@@ -67,19 +68,35 @@ class ReservationRepository {
 
       final response = await _supabase
           .from('reservations')
-          .select()
+          .select('''
+            *,
+            users:teacher_id (
+              name,
+              grade,
+              class_num
+            )
+          ''')
           .eq('classroom_id', classroomId)
           .isFilter('deleted_at', null)
           .gte('start_time', startOfDay.toIso8601String())
-          .lt('end_time', endOfDay.toIso8601String())
+          .lt('start_time', endOfDay.toIso8601String())
           .order('start_time', ascending: true);
 
-      return (response as List)
-          .map((json) => Reservation.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on PostgrestException catch (e) {
+      return (response as List).map((json) {
+        // users 관계에서 정보 추출
+        final userData = json['users'] as Map<String, dynamic>?;
+        return Reservation.fromJson({
+          ...json,
+          'teacher_name': userData?['name'],
+          'teacher_grade': userData?['grade'],
+          'teacher_class_num': userData?['class_num'],
+        });
+      }).toList();
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('ReservationRepository.getReservationsByClassroom', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('ReservationRepository.getReservationsByClassroom', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
@@ -89,13 +106,26 @@ class ReservationRepository {
     try {
       final response = await _supabase
           .from('reservations')
-          .select()
+          .select('''
+            *,
+            users:teacher_id (
+              name,
+              grade,
+              class_num
+            )
+          ''')
           .eq('id', id)
           .maybeSingle();
 
       if (response == null) return null;
 
-      return Reservation.fromJson(response);
+      final userData = response['users'] as Map<String, dynamic>?;
+      return Reservation.fromJson({
+        ...response,
+        'teacher_name': userData?['name'],
+        'teacher_grade': userData?['grade'],
+        'teacher_class_num': userData?['class_num'],
+      });
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {
@@ -103,35 +133,45 @@ class ReservationRepository {
     }
   }
 
-  /// 예약 충돌 검증
+  /// 교시 기반 충돌 검증
   ///
-  /// 같은 교실, 같은 시간에 다른 예약이 있는지 확인
-  Future<bool> hasConflict(
+  /// 같은 교실, 같은 날짜, 같은 교시에 다른 예약이 있는지 확인
+  Future<List<int>> getConflictingPeriods(
     String classroomId,
-    DateTime startTime,
-    DateTime endTime, {
-    String? excludeReservationId, // 수정 시 자기 자신 제외
+    DateTime date,
+    List<int> periods, {
+    String? excludeReservationId,
   }) async {
     try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
       var query = _supabase
           .from('reservations')
-          .select('id')
+          .select('periods')
           .eq('classroom_id', classroomId)
-          .isFilter('deleted_at', null);
+          .isFilter('deleted_at', null)
+          .gte('start_time', startOfDay.toIso8601String())
+          .lt('start_time', endOfDay.toIso8601String());
 
       // 자기 자신 제외 (예약 수정 시)
       if (excludeReservationId != null) {
         query = query.neq('id', excludeReservationId);
       }
 
-      // 시간 중복 조건: (start_time < end_time_param AND end_time > start_time_param)
-      query = query
-          .lt('start_time', endTime.toIso8601String())
-          .gt('end_time', startTime.toIso8601String());
-
       final response = await query;
 
-      return (response as List).isNotEmpty;
+      // 기존 예약된 교시 목록 수집
+      final reservedPeriods = <int>{};
+      for (final row in response as List) {
+        final existingPeriods = row['periods'] as List<dynamic>?;
+        if (existingPeriods != null) {
+          reservedPeriods.addAll(existingPeriods.cast<int>());
+        }
+      }
+
+      // 충돌하는 교시 반환
+      return periods.where((p) => reservedPeriods.contains(p)).toList();
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {
@@ -139,14 +179,36 @@ class ReservationRepository {
     }
   }
 
-  /// 예약 생성
+  /// 특정 날짜의 예약된 교시 목록 조회
+  Future<Map<int, Reservation>> getReservedPeriodsMap(
+    String classroomId,
+    DateTime date,
+  ) async {
+    try {
+      final reservations = await getReservationsByClassroom(classroomId, date: date);
+
+      final periodMap = <int, Reservation>{};
+      for (final reservation in reservations) {
+        if (reservation.periods != null) {
+          for (final period in reservation.periods!) {
+            periodMap[period] = reservation;
+          }
+        }
+      }
+
+      return periodMap;
+    } catch (e) {
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
+  /// 교시 기반 예약 생성
   ///
   /// 충돌 검증 후 reservations 테이블에 INSERT
   Future<Reservation> createReservation({
     required String classroomId,
-    required DateTime startTime,
-    required DateTime endTime,
-    String? title,
+    required DateTime date,
+    required List<int> periods,
     String? description,
   }) async {
     try {
@@ -155,56 +217,88 @@ class ReservationRepository {
         throw Exception(ErrorMessages.authRequired);
       }
 
-      // 시간 유효성 검증
-      if (!endTime.isAfter(startTime)) {
-        throw Exception('종료 시간은 시작 시간보다 늦어야 합니다');
+      // 교시 유효성 검증
+      if (periods.isEmpty) {
+        throw Exception('최소 1교시 이상 선택해주세요');
       }
 
-      // 과거 시간 검증
-      if (startTime.isBefore(DateTime.now())) {
-        throw Exception('과거 시간으로 예약할 수 없습니다');
+      if (periods.any((p) => p < 1 || p > 10)) {
+        throw Exception('교시는 1~10 사이여야 합니다');
+      }
+
+      // 과거 날짜 검증
+      final today = DateTime.now();
+      final selectedDate = DateTime(date.year, date.month, date.day);
+      final todayDate = DateTime(today.year, today.month, today.day);
+
+      if (selectedDate.isBefore(todayDate)) {
+        throw Exception('과거 날짜로 예약할 수 없습니다');
       }
 
       // 충돌 검증
-      final hasConflict = await this.hasConflict(
+      final conflicts = await getConflictingPeriods(
         classroomId,
-        startTime,
-        endTime,
+        date,
+        periods,
       );
 
-      if (hasConflict) {
-        throw Exception('이미 예약된 시간입니다');
+      if (conflicts.isNotEmpty) {
+        throw Exception('${conflicts.join(", ")}교시는 이미 예약되어 있습니다');
       }
+
+      // start_time은 날짜만 저장 (00:00:00)
+      final startTime = DateTime(date.year, date.month, date.day);
+
+      // end_time은 마지막 교시 종료 시간
+      // (임시: 교시 수 * 50분으로 계산)
+      final sortedPeriods = List<int>.from(periods)..sort();
+      final endTime = startTime.add(Duration(
+        hours: (sortedPeriods.last * 50 / 60).floor(),
+        minutes: (sortedPeriods.last * 50 % 60).toInt(),
+      ));
 
       final data = {
         'classroom_id': classroomId,
         'teacher_id': session.user.id,
         'start_time': startTime.toIso8601String(),
         'end_time': endTime.toIso8601String(),
-        'title': title,
+        'periods': periods,
         'description': description,
       };
 
       final response = await _supabase
           .from('reservations')
           .insert(data)
-          .select()
+          .select('''
+            *,
+            users:teacher_id (
+              name,
+              grade,
+              class_num
+            )
+          ''')
           .single();
 
-      return Reservation.fromJson(response);
-    } on PostgrestException catch (e) {
+      final userData = response['users'] as Map<String, dynamic>?;
+      return Reservation.fromJson({
+        ...response,
+        'teacher_name': userData?['name'],
+        'teacher_grade': userData?['grade'],
+        'teacher_class_num': userData?['class_num'],
+      });
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('ReservationRepository.createReservation', e, stack);
       throw Exception(ErrorMessages.fromError(e));
-    } catch (e) {
+    } catch (e, stack) {
+      AppLogger.error('ReservationRepository.createReservation', e, stack);
       throw Exception(ErrorMessages.fromError(e));
     }
   }
 
-  /// 예약 수정
+  /// 예약 수정 (교시 변경)
   Future<void> updateReservation(
     String id, {
-    DateTime? startTime,
-    DateTime? endTime,
-    String? title,
+    List<int>? periods,
     String? description,
   }) async {
     try {
@@ -216,33 +310,27 @@ class ReservationRepository {
 
       final updates = <String, dynamic>{};
 
-      if (startTime != null) updates['start_time'] = startTime.toIso8601String();
-      if (endTime != null) updates['end_time'] = endTime.toIso8601String();
-      if (title != null) updates['title'] = title;
-      if (description != null) updates['description'] = description;
-
-      // 시간 변경 시 충돌 검증
-      if (startTime != null || endTime != null) {
-        final newStartTime = startTime ?? existing.startTime;
-        final newEndTime = endTime ?? existing.endTime;
-
-        if (!newEndTime.isAfter(newStartTime)) {
-          throw Exception('종료 시간은 시작 시간보다 늦어야 합니다');
-        }
-
-        final hasConflict = await this.hasConflict(
+      if (periods != null) {
+        // 충돌 검증
+        final conflicts = await getConflictingPeriods(
           existing.classroomId,
-          newStartTime,
-          newEndTime,
+          existing.startTime,
+          periods,
           excludeReservationId: id,
         );
 
-        if (hasConflict) {
-          throw Exception('이미 예약된 시간입니다');
+        if (conflicts.isNotEmpty) {
+          throw Exception('${conflicts.join(", ")}교시는 이미 예약되어 있습니다');
         }
+
+        updates['periods'] = periods;
       }
 
-      if (updates.isEmpty) return; // 변경 사항 없음
+      if (description != null) {
+        updates['description'] = description;
+      }
+
+      if (updates.isEmpty) return;
 
       updates['updated_at'] = DateTime.now().toIso8601String();
 
@@ -267,7 +355,7 @@ class ReservationRepository {
     }
   }
 
-  /// 예약 복원 (Soft Delete 취소)
+  /// 예약 복원
   Future<void> restoreReservation(String id) async {
     try {
       await _supabase.from('reservations').update({
@@ -297,9 +385,50 @@ class ReservationRepository {
           .eq('teacher_id', session.user.id)
           .isFilter('deleted_at', null)
           .gte('start_time', startOfDay.toIso8601String())
-          .lt('end_time', endOfDay.toIso8601String());
+          .lt('start_time', endOfDay.toIso8601String());
 
       return (response as List).length;
+    } on PostgrestException catch (e) {
+      throw Exception(ErrorMessages.fromError(e));
+    } catch (e) {
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
+  /// 오늘의 내 예약 목록 조회
+  Future<List<Reservation>> getTodayMyReservations() async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) return [];
+
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _supabase
+          .from('reservations')
+          .select('''
+            *,
+            classrooms:classroom_id (
+              name,
+              room_type
+            )
+          ''')
+          .eq('teacher_id', session.user.id)
+          .isFilter('deleted_at', null)
+          .gte('start_time', startOfDay.toIso8601String())
+          .lt('start_time', endOfDay.toIso8601String())
+          .order('start_time', ascending: true);
+
+      return (response as List).map((json) {
+        // classrooms 관계에서 정보 추출
+        final classroomData = json['classrooms'] as Map<String, dynamic>?;
+        return Reservation.fromJson({
+          ...json,
+          'classroom_name': classroomData?['name'],
+          'classroom_room_type': classroomData?['room_type'],
+        });
+      }).toList();
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {

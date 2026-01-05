@@ -10,7 +10,9 @@ import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 
-/// 프로필 화면
+/// 프로필 화면 (v0.2)
+///
+/// 학년/반 정보 표시, "OOO 선생님 (N학년 N반)" 형식
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -143,9 +145,9 @@ class ProfileScreen extends ConsumerWidget {
 
                     const SizedBox(height: 16),
 
-                    // 이름
+                    // 이름 + 선생님
                     Text(
-                      user.name,
+                      user.displayName,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -155,16 +157,27 @@ class ProfileScreen extends ConsumerWidget {
 
                     const SizedBox(height: 8),
 
-                    // 학교명
+                    // 학교명 + 학년/반
                     Text(
                       user.schoolName,
                       style: const TextStyle(
                         fontSize: 16,
-                        color: TossColors.textSub,
+                        color: TossColors.textMain,
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    if (user.gradeClassDisplay != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        user.gradeClassDisplay!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
 
                     // 인증 배지
                     Row(
@@ -196,21 +209,34 @@ class ProfileScreen extends ConsumerWidget {
               TossCard(
                 child: Column(
                   children: [
-                    if (user.email != null)
+                    // 아이디
+                    if (user.username != null) ...[
+                      _InfoRow(
+                        icon: Icons.alternate_email,
+                        label: '아이디',
+                        value: user.username!,
+                      ),
+                      const Divider(height: 24),
+                    ],
+                    // 이메일
+                    if (user.email != null) ...[
                       _InfoRow(
                         icon: Icons.email_outlined,
                         label: '이메일',
                         value: user.email!,
                       ),
-                    if (user.email != null) const Divider(height: 24),
-                    if (user.educationOffice != null)
-                      _InfoRow(
-                        icon: Icons.account_balance,
-                        label: '교육청',
-                        value: user.educationOffice!,
-                      ),
-                    if (user.educationOffice != null)
                       const Divider(height: 24),
+                    ],
+                    // 학년/반
+                    if (user.grade != null && user.classNum != null) ...[
+                      _InfoRow(
+                        icon: Icons.groups_outlined,
+                        label: '담당',
+                        value: '${user.grade}학년 ${user.classNum}반',
+                      ),
+                      const Divider(height: 24),
+                    ],
+                    // 가입일
                     _InfoRow(
                       icon: Icons.calendar_today,
                       label: '가입일',

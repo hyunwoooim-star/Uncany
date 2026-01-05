@@ -7,6 +7,10 @@ import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 
+/// 로그인 화면 (v0.2)
+///
+/// 아이디 + 비밀번호 로그인 방식
+/// (내부적으로 아이디 → 이메일 변환 후 Supabase Auth 사용)
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,7 +20,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
@@ -25,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -40,9 +44,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final supabase = Supabase.instance.client;
+      final username = _usernameController.text.trim();
 
+      // 입력값이 이메일 형식인지 확인
+      String? email;
+
+      if (username.contains('@')) {
+        // 이메일로 직접 입력된 경우
+        email = username;
+      } else {
+        // 아이디로 입력된 경우 → 이메일 조회
+        final userResponse = await supabase
+            .from('users')
+            .select('email')
+            .eq('username', username)
+            .maybeSingle();
+
+        if (userResponse == null) {
+          setState(() {
+            _errorMessage = '존재하지 않는 아이디입니다';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        email = userResponse['email'] as String?;
+      }
+
+      if (email == null || email.isEmpty) {
+        setState(() {
+          _errorMessage = '계정 정보를 찾을 수 없습니다';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Supabase Auth로 로그인
       await supabase.auth.signInWithPassword(
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text,
       );
 
@@ -110,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const SizedBox(height: 12),
 
         Text(
-          '학교 리소스 예약을 쉽고 편하게',
+          '학교 교실 예약을 쉽고 편하게',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
 
@@ -123,7 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               _showLoginForm = true;
             });
           },
-          child: const Text('이메일로 로그인'),
+          child: const Text('로그인'),
         ),
 
         const SizedBox(height: 16),
@@ -185,27 +224,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: 8),
 
           Text(
-            '가입하신 이메일과 비밀번호를 입력해주세요',
+            '아이디와 비밀번호를 입력해주세요',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
 
           const SizedBox(height: 32),
 
-          // 이메일
+          // 아이디 (또는 이메일)
           TextFormField(
-            controller: _emailController,
+            controller: _usernameController,
             decoration: const InputDecoration(
-              labelText: '이메일',
-              hintText: 'example@email.com',
-              prefixIcon: Icon(Icons.email_outlined),
+              labelText: '아이디',
+              hintText: '아이디 또는 이메일',
+              prefixIcon: Icon(Icons.person_outline),
             ),
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.text,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return '이메일을 입력해주세요';
-              }
-              if (!value.contains('@')) {
-                return '유효한 이메일을 입력해주세요';
+                return '아이디를 입력해주세요';
               }
               return null;
             },
@@ -264,6 +300,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
 
           const SizedBox(height: 16),
+
+          // 비밀번호 찾기
+          Center(
+            child: TextButton(
+              onPressed: () => context.push('/auth/reset-password'),
+              child: Text(
+                '비밀번호를 잊으셨나요?',
+                style: TextStyle(color: TossColors.textSub),
+              ),
+            ),
+          ),
 
           // 회원가입 링크
           Center(

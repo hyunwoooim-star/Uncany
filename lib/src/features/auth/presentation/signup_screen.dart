@@ -12,7 +12,12 @@ import 'package:uncany/src/core/services/app_logger.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/features/school/presentation/widgets/school_search_field.dart';
+import 'package:uncany/src/features/school/data/services/school_api_service.dart';
 
+/// 회원가입 화면 (v0.2)
+///
+/// 학교 자동완성, 학년/반, 아이디+비밀번호 방식
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
@@ -23,10 +28,18 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _schoolController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordConfirmController = TextEditingController();
   final _referralCodeController = TextEditingController();
+
+  // 학교 선택
+  SchoolApiResult? _selectedSchool;
+
+  // 학년/반 선택
+  int? _selectedGrade;
+  int? _selectedClassNum;
 
   bool _useReferralCode = false;
   bool _isLoading = false;
@@ -43,12 +56,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _isCompressing = false;
   Uint8List? _compressedBytes;
 
+  // 아이디 중복 체크
+  bool _isCheckingUsername = false;
+  bool? _isUsernameAvailable;
+
   @override
   void dispose() {
     _nameController.dispose();
-    _schoolController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     _referralCodeController.dispose();
     super.dispose();
   }
@@ -65,6 +83,43 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     setState(() {
       _agreeToAll = _agreeToTerms && _agreeToPrivacy;
     });
+  }
+
+  /// 아이디 중복 체크
+  Future<void> _checkUsernameAvailability() async {
+    final username = _usernameController.text.trim();
+    if (username.isEmpty || username.length < 4) {
+      setState(() {
+        _isUsernameAvailable = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isCheckingUsername = true;
+      _isUsernameAvailable = null;
+    });
+
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase
+          .from('users')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+      setState(() {
+        _isUsernameAvailable = response == null;
+      });
+    } catch (e) {
+      setState(() {
+        _isUsernameAvailable = null;
+      });
+    } finally {
+      setState(() {
+        _isCheckingUsername = false;
+      });
+    }
   }
 
   Future<void> _pickFile() async {
@@ -167,7 +222,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 - 교사 인증
 
 2. 수집하는 개인정보 항목
-- 필수: 이름, 이메일, 학교명
+- 필수: 이름, 이메일, 학교명, 학년, 반
 - 선택: 재직증명서 (인증 목적)
 
 3. 개인정보의 보유 및 이용 기간
@@ -204,6 +259,30 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // 학교 선택 확인
+    if (_selectedSchool == null) {
+      setState(() {
+        _errorMessage = '학교를 선택해주세요';
+      });
+      return;
+    }
+
+    // 학년/반 선택 확인
+    if (_selectedGrade == null || _selectedClassNum == null) {
+      setState(() {
+        _errorMessage = '학년과 반을 선택해주세요';
+      });
+      return;
+    }
+
+    // 비밀번호 확인
+    if (_passwordController.text != _passwordConfirmController.text) {
+      setState(() {
+        _errorMessage = '비밀번호가 일치하지 않습니다';
+      });
+      return;
+    }
+
     // 약관 동의 확인
     if (!_agreeToTerms || !_agreeToPrivacy) {
       setState(() {
@@ -228,6 +307,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
 
+    // 아이디 중복 체크
+    if (_isUsernameAvailable != true) {
+      setState(() {
+        _errorMessage = '아이디 중복을 확인해주세요';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -236,7 +323,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     // 디버깅용 시작 로그
     await AppLogger.info('SignupScreen', '회원가입 시작', {
       'email': _emailController.text.trim(),
-      'school': _schoolController.text.trim(),
+      'school': _selectedSchool?.name,
+      'grade': _selectedGrade,
+      'classNum': _selectedClassNum,
       'useReferralCode': _useReferralCode,
     });
 
@@ -250,7 +339,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         password: _passwordController.text,
         data: {
           'name': _nameController.text.trim(),
-          'school_name': _schoolController.text.trim(),
+          'username': _usernameController.text.trim(),
+          'school_id': null, // 나중에 학교 ID로 대체
+          'school_name': _selectedSchool!.name,
+          'grade': _selectedGrade,
+          'class_num': _selectedClassNum,
           'verification_status': _useReferralCode ? 'approved' : 'pending',
         },
       );
@@ -262,9 +355,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
       final userId = authResponse.user!.id;
       await AppLogger.info('SignupScreen', '1단계 완료: Auth signUp 성공', {'userId': userId});
-      String? documentUrl;
 
-      // 2. 증명서 업로드 (추천인 코드 미사용 시)
+      // 2. users 테이블 업데이트 (username, grade, class_num 추가)
+      await supabase.from('users').update({
+        'username': _usernameController.text.trim(),
+        'grade': _selectedGrade,
+        'class_num': _selectedClassNum,
+        // TODO: school_id 추가 (학교가 DB에 있으면)
+      }).eq('id', userId);
+
+      await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트');
+
+      // 3. 증명서 업로드 (추천인 코드 미사용 시)
       if (!_useReferralCode && _selectedFile != null) {
         setState(() {
           _isUploading = true;
@@ -284,25 +386,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         final fileName = '$userId/${ImageCompressor.generateAnonymousFileName(fileExtension)}';
 
         if (fileBytes != null) {
-          await AppLogger.info('SignupScreen', '2단계: 증명서 업로드 시작');
+          await AppLogger.info('SignupScreen', '3단계: 증명서 업로드 시작');
           await supabase.storage
               .from('verification-documents')
               .uploadBinary(fileName, fileBytes);
 
-          try {
-            documentUrl = await supabase.storage
-                .from('verification-documents')
-                .createSignedUrl(fileName, 3600);
-          } catch (e) {
-            // Signed URL 생성 실패해도 계속 진행 (관리자가 직접 확인)
-            await AppLogger.warning('SignupScreen', 'Signed URL 생성 실패', {'error': e.toString()});
-          }
-          await AppLogger.info('SignupScreen', '2단계 완료: 증명서 업로드 성공');
+          await AppLogger.info('SignupScreen', '3단계 완료: 증명서 업로드 성공');
         }
       }
-
-      // 3. users 테이블은 Trigger가 자동 생성함 (handle_new_user)
-      await AppLogger.info('SignupScreen', '3단계: users 테이블 자동 생성됨 (Trigger)');
 
       // 4. 추천인 코드 사용 시 처리
       if (_useReferralCode) {
@@ -344,7 +435,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     } on AuthException catch (e, stack) {
       AppLogger.error('SignupScreen.handleSignup', e, stack, {
         'email': _emailController.text.trim(),
-        'school': _schoolController.text.trim(),
+        'school': _selectedSchool?.name,
         'useReferralCode': _useReferralCode,
       });
       setState(() {
@@ -353,7 +444,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     } catch (e, stack) {
       AppLogger.error('SignupScreen.handleSignup', e, stack, {
         'email': _emailController.text.trim(),
-        'school': _schoolController.text.trim(),
+        'school': _selectedSchool?.name,
         'useReferralCode': _useReferralCode,
       });
       setState(() {
@@ -391,19 +482,100 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '기본 정보를 입력해주세요',
+                  '선생님 정보를 입력해주세요',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
 
                 const SizedBox(height: 32),
 
-                // 이름
+                // === 학교 검색 ===
+                SchoolSearchField(
+                  onSchoolSelected: (school) {
+                    setState(() {
+                      _selectedSchool = school;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // === 학년/반 선택 ===
+                Row(
+                  children: [
+                    // 학년 선택
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: _selectedGrade,
+                        decoration: const InputDecoration(
+                          labelText: '학년',
+                          prefixIcon: Icon(Icons.format_list_numbered),
+                        ),
+                        items: List.generate(6, (index) {
+                          final grade = index + 1;
+                          return DropdownMenuItem(
+                            value: grade,
+                            child: Text('$grade학년'),
+                          );
+                        }),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedGrade = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return '학년을 선택해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // 반 선택
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: _selectedClassNum,
+                        decoration: const InputDecoration(
+                          labelText: '반',
+                          prefixIcon: Icon(Icons.groups_outlined),
+                        ),
+                        items: List.generate(15, (index) {
+                          final classNum = index + 1;
+                          return DropdownMenuItem(
+                            value: classNum,
+                            child: Text('$classNum반'),
+                          );
+                        }),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedClassNum = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return '반을 선택해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // === 이름 입력 ===
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: '이름',
-                    hintText: '김철수',
-                    prefixIcon: Icon(Icons.person_outline),
+                    hintText: '홍길동',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    suffixText: '선생님',
+                    suffixStyle: TextStyle(
+                      color: TossColors.textSub,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -413,19 +585,67 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   },
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // 학교명
-                TextFormField(
-                  controller: _schoolController,
-                  decoration: const InputDecoration(
-                    labelText: '학교명',
-                    hintText: '서울초등학교',
-                    prefixIcon: Icon(Icons.school_outlined),
+                // === 계정 정보 섹션 ===
+                Text(
+                  '계정 정보',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
+                ),
+                const SizedBox(height: 12),
+
+                // === 아이디 입력 ===
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: '아이디',
+                    hintText: '4자 이상 영문/숫자',
+                    prefixIcon: const Icon(Icons.alternate_email),
+                    suffixIcon: _isCheckingUsername
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : _isUsernameAvailable == true
+                            ? Icon(Icons.check_circle, color: TossColors.primary)
+                            : _isUsernameAvailable == false
+                                ? const Icon(Icons.error, color: TossColors.error)
+                                : IconButton(
+                                    icon: const Icon(Icons.search),
+                                    onPressed: _checkUsernameAvailability,
+                                  ),
+                    helperText: _isUsernameAvailable == true
+                        ? '사용 가능한 아이디입니다'
+                        : _isUsernameAvailable == false
+                            ? '이미 사용 중인 아이디입니다'
+                            : null,
+                    helperStyle: TextStyle(
+                      color: _isUsernameAvailable == true
+                          ? TossColors.primary
+                          : TossColors.error,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    // 입력값 변경 시 중복 체크 결과 초기화
+                    setState(() {
+                      _isUsernameAvailable = null;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '학교명을 입력해주세요';
+                      return '아이디를 입력해주세요';
+                    }
+                    if (value.length < 4) {
+                      return '아이디는 4자 이상이어야 합니다';
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                      return '영문, 숫자, 밑줄(_)만 사용 가능합니다';
                     }
                     return null;
                   },
@@ -433,29 +653,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 const SizedBox(height: 16),
 
-                // 이메일
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: '이메일',
-                    hintText: 'example@email.com',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '이메일을 입력해주세요';
-                    }
-                    if (!value.contains('@')) {
-                      return '유효한 이메일을 입력해주세요';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // 비밀번호
+                // === 비밀번호 입력 ===
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
@@ -470,6 +668,55 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     }
                     if (value.length < 6) {
                       return '비밀번호는 6자 이상이어야 합니다';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // === 비밀번호 확인 ===
+                TextFormField(
+                  controller: _passwordConfirmController,
+                  decoration: const InputDecoration(
+                    labelText: '비밀번호 확인',
+                    hintText: '비밀번호를 다시 입력해주세요',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '비밀번호를 다시 입력해주세요';
+                    }
+                    if (value != _passwordController.text) {
+                      return '비밀번호가 일치하지 않습니다';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // === 이메일 입력 (인증용) ===
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: '이메일',
+                    hintText: 'example@email.com',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    helperText: '비밀번호 찾기에 사용됩니다',
+                    helperStyle: TextStyle(
+                      color: TossColors.textSub,
+                      fontSize: 12,
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '이메일을 입력해주세요';
+                    }
+                    if (!value.contains('@')) {
+                      return '유효한 이메일을 입력해주세요';
                     }
                     return null;
                   },

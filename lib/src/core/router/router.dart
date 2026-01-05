@@ -18,6 +18,7 @@ import '../../features/classroom/presentation/admin_classroom_screen.dart';
 import '../../features/classroom/presentation/classroom_form_screen.dart';
 import '../../features/classroom/domain/models/classroom.dart';
 import '../../features/reservation/presentation/my_reservations_screen.dart';
+import '../../features/reservation/presentation/reservation_screen.dart';
 import '../providers/auth_provider.dart';
 
 part 'router.g.dart';
@@ -143,11 +144,24 @@ GoRouter router(RouterRef ref) {
         builder: (context, state) => const ClassroomListScreen(),
       ),
       GoRoute(
+        path: '/classrooms/create',
+        name: 'classroom-create',
+        builder: (context, state) => const ClassroomFormScreen(),
+      ),
+      GoRoute(
         path: '/classrooms/:id',
         name: 'classroom-detail',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return ClassroomDetailScreen(classroomId: id);
+        },
+      ),
+      GoRoute(
+        path: '/classrooms/:id/edit',
+        name: 'classroom-edit',
+        builder: (context, state) {
+          final classroom = state.extra as Classroom?;
+          return ClassroomFormScreen(classroom: classroom);
         },
       ),
 
@@ -156,6 +170,18 @@ GoRouter router(RouterRef ref) {
         path: '/reservations/my',
         name: 'my-reservations',
         builder: (context, state) => const MyReservationsScreen(),
+      ),
+      GoRoute(
+        path: '/reservations/:classroomId',
+        name: 'reservation',
+        builder: (context, state) {
+          final classroomId = state.pathParameters['classroomId']!;
+          final classroom = state.extra as Classroom?;
+          return ReservationScreen(
+            classroomId: classroomId,
+            classroom: classroom,
+          );
+        },
       ),
     ],
   );

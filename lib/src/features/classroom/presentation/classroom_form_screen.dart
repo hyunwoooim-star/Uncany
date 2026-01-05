@@ -6,10 +6,11 @@ import '../domain/models/classroom.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/core/constants/period_times.dart';
 
-/// 교실 등록/수정 폼 화면
+/// 교실 등록/수정 폼 화면 (v0.2)
 ///
-/// 교실 생성 또는 기존 교실 수정
+/// 모든 선생님이 교실을 추가/수정할 수 있음
 class ClassroomFormScreen extends ConsumerStatefulWidget {
   final Classroom? classroom; // null이면 생성, 있으면 수정
 
@@ -31,10 +32,11 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
   final _capacityController = TextEditingController();
   final _locationController = TextEditingController();
 
+  RoomType _selectedRoomType = RoomType.other;
   bool _isSubmitting = false;
   String? _errorMessage;
-  bool _clearAccessCode = false; // 비밀번호 제거 플래그
-  bool _clearNotice = false; // 공지사항 제거 플래그
+  bool _clearAccessCode = false;
+  bool _clearNotice = false;
 
   @override
   void initState() {
@@ -49,7 +51,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
       _noticeController.text = classroom.noticeMessage ?? '';
       _capacityController.text = classroom.capacity?.toString() ?? '';
       _locationController.text = classroom.location ?? '';
-      // 비밀번호는 보안상 표시하지 않음
+      _selectedRoomType = RoomType.fromCode(classroom.roomType);
     }
   }
 
@@ -87,6 +89,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
           noticeMessage: notice.isEmpty ? null : notice,
           capacity: capacity,
           location: location.isEmpty ? null : location,
+          roomType: _selectedRoomType.code,
         );
       } else {
         // 수정
@@ -99,19 +102,20 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
           clearNotice: _clearNotice,
           capacity: capacity,
           location: location.isEmpty ? null : location,
+          roomType: _selectedRoomType.code,
         );
       }
 
       if (mounted) {
-        Navigator.pop(context, true); // 성공 시 true 반환
+        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               widget.classroom == null
-                  ? '교실이 생성되었습니다'
+                  ? '교실이 추가되었습니다'
                   : '교실이 수정되었습니다',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.primary,
           ),
         );
       }
@@ -133,7 +137,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
     return Scaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
-        title: Text(isEditing ? '교실 수정' : '교실 등록'),
+        title: Text(isEditing ? '교실 수정' : '교실 추가'),
         backgroundColor: TossColors.surface,
         elevation: 0,
       ),
@@ -142,14 +146,23 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // 교실 유형 선택
+            _buildSectionTitle('교실 유형'),
+            const SizedBox(height: 8),
+            _buildRoomTypeSelector(),
+
+            const SizedBox(height: 24),
+
             // 교실 이름 (필수)
+            _buildSectionTitle('교실 정보'),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: '교실 이름 *',
-                hintText: '예: 컴퓨터실 1',
+                labelText: '교실 이름',
+                hintText: '예: ${_selectedRoomType.label} 1',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
                 fillColor: TossColors.surface,
@@ -165,24 +178,80 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
 
             const SizedBox(height: 16),
 
-            // 비밀번호 (선택)
+            // 위치 (선택)
+            TextFormField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                labelText: '위치',
+                hintText: '예: 3층',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: TossColors.surface,
+                helperText: '선택사항',
+              ),
+              enabled: !_isSubmitting,
+            ),
+
+            const SizedBox(height: 16),
+
+            // 수용 인원 (선택)
+            TextFormField(
+              controller: _capacityController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: '수용 인원',
+                hintText: '예: 30',
+                suffixText: '명',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: TossColors.surface,
+                helperText: '선택사항',
+              ),
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  final number = int.tryParse(value.trim());
+                  if (number == null || number <= 0) {
+                    return '올바른 숫자를 입력해주세요';
+                  }
+                }
+                return null;
+              },
+              enabled: !_isSubmitting,
+            ),
+
+            const SizedBox(height: 24),
+
+            // 출입 비밀번호 (선택)
+            _buildSectionTitle('출입 비밀번호'),
+            const SizedBox(height: 4),
+            Text(
+              '교실 자물쇠 비밀번호 등을 메모해두세요',
+              style: TextStyle(
+                fontSize: 13,
+                color: TossColors.textSub,
+              ),
+            ),
+            const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
                   controller: _accessCodeController,
-                  obscureText: true,
                   decoration: InputDecoration(
-                    labelText: '비밀번호 (선택)',
+                    labelText: '비밀번호',
                     hintText: hasExistingPassword
                         ? '변경하려면 새 비밀번호 입력'
-                        : '비밀번호로 보호하려면 입력',
+                        : '예: 1234',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
                     fillColor: TossColors.surface,
-                    helperText: '설정하면 예약 시 비밀번호가 필요합니다',
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   enabled: !_isSubmitting && !_clearAccessCode,
                 ),
@@ -206,14 +275,25 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
+                    dense: true,
                   ),
                 ],
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // 공지사항 (선택)
+            _buildSectionTitle('공지사항'),
+            const SizedBox(height: 4),
+            Text(
+              '이용 안내, 주의사항, 고장 등을 알려주세요',
+              style: TextStyle(
+                fontSize: 13,
+                color: TossColors.textSub,
+              ),
+            ),
+            const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -221,10 +301,10 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
                   controller: _noticeController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: '공지사항 (선택)',
-                    hintText: '예: 사용 후 정리 부탁드립니다',
+                    labelText: '공지사항',
+                    hintText: '예: 에어컨 고장, 수리 중',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
                     fillColor: TossColors.surface,
@@ -251,54 +331,10 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
+                    dense: true,
                   ),
                 ],
               ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // 수용 인원 (선택)
-            TextFormField(
-              controller: _capacityController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: '수용 인원 (선택)',
-                hintText: '예: 30',
-                suffixText: '명',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: TossColors.surface,
-              ),
-              validator: (value) {
-                if (value != null && value.trim().isNotEmpty) {
-                  final number = int.tryParse(value.trim());
-                  if (number == null || number <= 0) {
-                    return '올바른 숫자를 입력해주세요';
-                  }
-                }
-                return null;
-              },
-              enabled: !_isSubmitting,
-            ),
-
-            const SizedBox(height: 16),
-
-            // 위치 (선택)
-            TextFormField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                labelText: '위치 (선택)',
-                hintText: '예: 3층',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: TossColors.surface,
-              ),
-              enabled: !_isSubmitting,
             ),
 
             // 에러 메시지
@@ -307,26 +343,19 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: TossColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.red.withOpacity(0.3),
-                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 20,
-                      color: Colors.red,
-                    ),
+                    const Icon(Icons.error_outline, size: 20, color: TossColors.error),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _errorMessage!,
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.red,
+                          color: TossColors.error,
                         ),
                       ),
                     ),
@@ -335,24 +364,111 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // 제출 버튼
-            SizedBox(
-              width: double.infinity,
-              child: TossButton(
-                onPressed: _submit,
-                isLoading: _isSubmitting,
-                child: Text(_isSubmitting
-                    ? '저장 중...'
-                    : isEditing
-                        ? '수정하기'
-                        : '등록하기'),
-              ),
+            TossButton(
+              onPressed: _submit,
+              isLoading: _isSubmitting,
+              child: Text(_isSubmitting
+                  ? '저장 중...'
+                  : isEditing
+                      ? '수정하기'
+                      : '교실 추가'),
             ),
+
+            const SizedBox(height: 16),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: TossColors.textMain,
+      ),
+    );
+  }
+
+  Widget _buildRoomTypeSelector() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: RoomType.values.map((type) {
+        final isSelected = _selectedRoomType == type;
+        return GestureDetector(
+          onTap: _isSubmitting
+              ? null
+              : () {
+                  setState(() {
+                    _selectedRoomType = type;
+                  });
+                },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? TossColors.primary
+                  : TossColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
+                    ? TossColors.primary
+                    : TossColors.divider,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _getRoomTypeIcon(type),
+                  size: 18,
+                  color: isSelected ? Colors.white : TossColors.textSub,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  type.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? Colors.white : TossColors.textMain,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  IconData _getRoomTypeIcon(RoomType type) {
+    switch (type) {
+      case RoomType.computer:
+        return Icons.computer;
+      case RoomType.music:
+        return Icons.music_note;
+      case RoomType.science:
+        return Icons.science;
+      case RoomType.art:
+        return Icons.palette;
+      case RoomType.library:
+        return Icons.menu_book;
+      case RoomType.gym:
+        return Icons.sports_basketball;
+      case RoomType.auditorium:
+        return Icons.theater_comedy;
+      case RoomType.special:
+        return Icons.star;
+      case RoomType.other:
+        return Icons.room;
+    }
   }
 }
