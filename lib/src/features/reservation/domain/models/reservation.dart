@@ -59,14 +59,28 @@ class Reservation with _$Reservation {
     return endTime.difference(startTime).inMinutes;
   }
 
-  /// 교시 표시 (1~3교시)
+  /// 교시 표시 (연속: 1~3교시, 비연속: 1, 3, 5교시)
   String? get periodsDisplay {
     if (periods == null || periods!.isEmpty) return null;
     final sorted = List<int>.from(periods!)..sort();
     if (sorted.length == 1) {
       return '${sorted.first}교시';
     }
-    return '${sorted.first}~${sorted.last}교시';
+
+    // 연속된 교시인지 확인
+    bool isConsecutive = true;
+    for (int i = 1; i < sorted.length; i++) {
+      if (sorted[i] != sorted[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+
+    if (isConsecutive) {
+      return '${sorted.first}~${sorted.last}교시';
+    } else {
+      return '${sorted.join(", ")}교시';
+    }
   }
 
   /// 예약자 전체 표시: "임현우 선생님 (3학년 2반)"
