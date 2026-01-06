@@ -86,7 +86,7 @@ class _SchoolSearchFieldState extends ConsumerState<SchoolSearchField> {
             elevation: 8,
             borderRadius: BorderRadius.circular(12),
             color: TossColors.surface,
-            child: _buildSearchResults(),
+            child: Consumer(builder: (context, ref, _) => _buildSearchResultsWithRef(ref)),
           ),
         ),
       ),
@@ -95,7 +95,7 @@ class _SchoolSearchFieldState extends ConsumerState<SchoolSearchField> {
     overlay.insert(_overlayEntry!);
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResultsWithRef(WidgetRef ref) {
     final query = _controller.text.trim();
 
     if (query.length < 2) {
