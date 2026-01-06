@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/reservation.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/services/app_logger.dart';
+import 'package:uncany/src/core/constants/period_times.dart';
 
 /// 예약 관리 Repository (v0.2)
 ///
@@ -247,16 +248,17 @@ class ReservationRepository {
         throw Exception('${conflicts.join(", ")}교시는 이미 예약되어 있습니다');
       }
 
-      // start_time은 날짜만 저장 (00:00:00)
-      final startTime = DateTime(date.year, date.month, date.day);
-
-      // end_time은 마지막 교시 종료 시간
-      // (임시: 교시 수 * 50분으로 계산)
+      // 교시에서 실제 시간 계산
       final sortedPeriods = List<int>.from(periods)..sort();
-      final endTime = startTime.add(Duration(
-        hours: (sortedPeriods.last * 50 / 60).floor(),
-        minutes: (sortedPeriods.last * 50 % 60).toInt(),
-      ));
+      final firstPeriod = PeriodTimes.getPeriod(sortedPeriods.first);
+      final lastPeriod = PeriodTimes.getPeriod(sortedPeriods.last);
+      
+      if (firstPeriod == null || lastPeriod == null) {
+        throw Exception('유효하지 않은 교시입니다');
+      }
+      
+      final startTime = firstPeriod.toStartDateTime(date);
+      final endTime = lastPeriod.toEndDateTime(date);
 
       final data = {
         'classroom_id': classroomId,

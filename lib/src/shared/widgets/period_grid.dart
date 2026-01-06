@@ -97,7 +97,7 @@ class PeriodGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            childAspectRatio: 2.2,
+            childAspectRatio: 1.8,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
           ),
@@ -214,14 +214,18 @@ class _PeriodCell extends StatelessWidget {
             // 예약자 표시 (예약된 경우)
             if (isReserved && reservation != null) ...[
               const SizedBox(height: 2),
-              Text(
-                reservation!.teacherShortName,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: textColor.withOpacity(0.8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  reservation!.teacherShortName,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: textColor.withOpacity(0.8),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ],

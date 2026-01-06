@@ -53,6 +53,36 @@ class _MonthCalendarState extends State<MonthCalendar> {
     widget.onDateSelected(today);
     widget.onMonthChanged?.call(_focusedMonth);
   }
+  /// 날짜 데코레이션 - 오늘과 선택 날짜 구분
+  BoxDecoration? _getDateDecoration(bool isToday, bool isSelected) {
+    if (isSelected) {
+      // 선택된 날짜: 파란색 채움
+      return BoxDecoration(
+        color: TossColors.primary,
+        shape: BoxShape.circle,
+      );
+    } else if (isToday) {
+      // 오늘 날짜 (선택 안됨): 파란색 테두리만
+      return BoxDecoration(
+        color: Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(color: TossColors.primary, width: 2),
+      );
+    }
+    return null;
+  }
+
+  /// 날짜 텍스트 색상 - 오늘과 선택 날짜 구분
+  Color _getDateTextColor(bool isToday, bool isSelected, Color defaultColor) {
+    if (isSelected) {
+      return Colors.white; // 선택: 흰색
+    } else if (isToday) {
+      return TossColors.primary; // 오늘 (선택 안됨): 파란색
+    }
+    return defaultColor;
+  }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -223,12 +253,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                 width: 36,
                 height: 36,
                 alignment: Alignment.center,
-                decoration: isToday(date) || isSelected(date)
-                    ? BoxDecoration(
-                        color: TossColors.primary,
-                        shape: BoxShape.circle,
-                      )
-                    : null,
+                decoration: _getDateDecoration(isToday(date), isSelected(date)),
                 child: Text(
                   '$day',
                   style: TextStyle(
@@ -236,9 +261,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                     fontWeight: isToday(date) || isSelected(date)
                         ? FontWeight.bold
                         : FontWeight.normal,
-                    color: isToday(date) || isSelected(date)
-                        ? Colors.white
-                        : textColor,
+                    color: _getDateTextColor(isToday(date), isSelected(date), textColor),
                   ),
                 ),
               ),
