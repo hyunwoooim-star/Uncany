@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uncany/src/features/auth/data/providers/auth_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,15 +57,38 @@ class EmailVerificationScreen extends ConsumerWidget {
   }
 
   Future<void> _resendEmail(BuildContext context, WidgetRef ref) async {
-    // TODO: 인증 이메일 재발송 로직
-    if (!context.mounted) return;
+    final email = Supabase.instance.client.auth.currentUser?.email;
+    if (email == null) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 정보를 찾을 수 없습니다.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('인증 이메일을 재발송했습니다.'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.resendVerificationEmail(email);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('인증 이메일을 재발송했습니다.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 
@@ -80,7 +105,7 @@ class EmailVerificationSuccessScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.check_circle_outline,
                 size: 100,
                 color: Colors.green,

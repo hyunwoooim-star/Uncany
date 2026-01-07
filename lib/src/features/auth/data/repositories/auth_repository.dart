@@ -153,4 +153,23 @@ class AuthRepository {
       throw Exception(ErrorMessages.fromError(e));
     }
   }
+
+
+  /// 인증 이메일 재발송
+  ///
+  /// 회원가입 후 이메일 인증을 완료하지 않은 사용자에게 재발송
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      await _supabase.auth.resend(
+        type: OtpType.signup,
+        email: email,
+      );
+    } on AuthException catch (e, stack) {
+      AppLogger.error('AuthRepository.resendVerificationEmail', e, stack, {'email': email});
+      throw Exception(ErrorMessages.fromAuthError(e.message));
+    } catch (e, stack) {
+      AppLogger.error('AuthRepository.resendVerificationEmail', e, stack, {'email': email});
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
 }
