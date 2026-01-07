@@ -1,139 +1,68 @@
-# Uncany v0.2 세션 요약
+# Uncany 세션 요약
 
-## 최종 업데이트: 2026-01-06
-
----
-
-## 완료된 작업
-
-### 1. 학교 검색 드롭다운 클릭 이슈 수정
-
-**문제:**
-- 회원가입 시 학교 검색 후 드롭다운에서 항목 클릭해도 선택 안됨
-- 로딩 스피너가 계속 돌아감
-
-**원인:**
-1. 웹에서 Overlay 클릭 시 TextField 포커스가 먼저 이동
-2. `_onFocusChange`가 즉시 overlay를 제거해서 클릭 이벤트 처리 전 사라짐
-3. `InkWell`이 웹에서 클릭 이벤트를 제대로 받지 못함
-4. Overlay 내부에서 `ref.watch()` 사용해도 재빌드 안됨
-
-**해결:**
-1. `_onFocusChange`에 200ms 딜레이 추가
-2. `InkWell` → `MouseRegion + GestureDetector`로 변경
-3. `_selectSchool`에서 `_isSearching = false` 설정
-4. Overlay 내부에 `Consumer` 위젯 추가하여 Provider 변경 감지
-
-**수정 파일:**
-- `lib/src/features/school/presentation/widgets/school_search_field.dart`
+## 최종 업데이트: 2026-01-07
 
 ---
 
-### 2. 데이터베이스 마이그레이션 (v0.2)
+## 최근 완료된 작업 (2026-01-07)
 
-**문제:**
-- 로그인 후 "사용자 정보 없음" 표시
-- `school_id` 컬럼이 존재하지 않음
+### 1. UI 버그 수정
+- **달력 날짜 색상**: 오늘 vs 선택일 구분 (오늘=테두리만, 선택=채움)
+- **예약 시간 계산**: PeriodTimes 사용하여 실제 교시 시간 적용
+- **교시 그리드 텍스트 오버플로우**: aspectRatio 조정 및 Padding 추가
+- **비연속 교시 표시**: "1~6교시" → "1, 6교시" (연속 아닐 때)
 
-**원인:**
-- v0.2 DB 스키마 변경이 적용되지 않음
-- `users` 테이블에 새 컬럼 없음
-- `schools` 테이블 미생성
+### 2. 이메일 재발송 기능 구현
+- `AuthRepository.resendVerificationEmail()` 메서드 추가
+- `EmailVerificationScreen`에서 실제 Supabase API 호출 연동
 
-**해결 - SQL 실행:**
-
-```sql
--- 1. schools 테이블 생성
-CREATE TABLE IF NOT EXISTS schools (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(10) UNIQUE,
-  name TEXT NOT NULL,
-  address TEXT,
-  school_type VARCHAR(20) DEFAULT 'elementary',
-  office_code VARCHAR(10),
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- 2. users 테이블에 새 컬럼 추가
-ALTER TABLE users
-ADD COLUMN IF NOT EXISTS school_id UUID REFERENCES schools(id),
-ADD COLUMN IF NOT EXISTS grade INTEGER,
-ADD COLUMN IF NOT EXISTS class_num INTEGER,
-ADD COLUMN IF NOT EXISTS username TEXT;
-
--- 3. 기존 사용자 school_name 업데이트 (null인 경우)
-UPDATE users SET school_name = '테스트학교' WHERE school_name IS NULL;
-```
+### 3. 알림 시스템 (보류)
+- 나중에 필요할 때 구현 예정
 
 ---
 
 ## 알려진 이슈
 
 ### Windows Flutter 빌드 셰이더 오류
-
-**증상:**
 ```
-Target web_release_bundle failed: ShaderCompilerException:
-Shader compilation of "ink_sparkle.frag" failed with exit code -1073741819
+ShaderCompilerException: ink_sparkle.frag failed with exit code -1073741819
 ```
-
-**해결:**
-- GitHub Actions (Ubuntu)에서 빌드 → 자동 배포
-- 또는 WSL Ubuntu에서 빌드
+**해결:** GitHub Actions에서 자동 빌드됨 (push 시)
 
 ---
 
-## 프로젝트 구조
+## 남은 TODO (코드 내 주석)
 
-```
-lib/
-├── src/
-│   ├── core/
-│   │   ├── providers/
-│   │   │   └── auth_provider.dart      # currentUserProvider
-│   │   └── router/
-│   ├── features/
-│   │   ├── auth/
-│   │   │   └── domain/models/user.dart # User 모델 (v0.2)
-│   │   ├── school/
-│   │   │   ├── data/
-│   │   │   │   ├── providers/school_search_provider.dart
-│   │   │   │   └── services/school_api_service.dart
-│   │   │   └── presentation/widgets/
-│   │   │       └── school_search_field.dart  # 수정됨
-│   │   └── reservation/
-│   │       └── presentation/home_screen.dart
-│   └── shared/
-```
+| 파일 | 내용 | 우선순위 |
+|------|------|----------|
+| audit_log_screen.dart | 실제 데이터 연결, 필터 | 낮음 |
+| user_repository.dart | 승인/반려 알림 발송 | 중간 |
+| signup_screen.dart | school_id 연동 | 중간 |
+| school_api_service.dart | API 키 환경변수화 | 낮음 |
 
 ---
 
 ## 배포 정보
 
-- **Staging URL:** https://uncany-staging.web.app
-- **GitHub Actions:** main 브랜치 푸시 시 자동 빌드/배포
-- **워크플로우:** `.github/workflows/deploy-web-staging.yml`
+- **Staging:** https://uncany-staging.web.app
+- **GitHub Actions:** push 시 자동 빌드/배포
 
 ---
 
-## 다음 작업 (TODO)
-
-- [ ] 회원가입 전체 플로우 테스트
-- [ ] 예약 시스템 테스트
-- [ ] 관리자 승인 기능 테스트
-- [ ] Production 배포
-
----
-
-## 참고 명령어
+## 재시작 명령어
 
 ```bash
-# Flutter 분석
-flutter analyze lib/
-
-# 웹 빌드 (Windows에서 오류 시 GitHub Actions 사용)
-flutter build web --release
-
-# 로컬 실행
+cd C:\Users\임현우\Uncany
+flutter pub get
+flutter analyze lib --no-fatal-infos
 flutter run -d chrome
 ```
+
+---
+
+## 다음 작업 우선순위
+
+1. 모바일 앱 준비 (android/ios 폴더 생성)
+2. 테스트 코드 추가
+3. 알림 시스템 구현
+4. Production 배포
