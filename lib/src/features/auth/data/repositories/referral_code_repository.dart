@@ -193,22 +193,18 @@ class ReferralCodeRepository {
     }
   }
 
-  /// 6자리 랜덤 코드 생성 (예: "SEOUL-ABC123")
+  /// 8자리 랜덤 코드 생성 (예: "ABC12DEF")
   String _generateCode(String schoolName) {
     final random = Random();
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    // 학교명 앞 2글자 추출 (한글 → 로마자 변환 필요시 추가)
-    final prefix = schoolName.length >= 2
-        ? schoolName.substring(0, 2).toUpperCase()
-        : 'XX';
-
-    // 6자리 랜덤 문자열
-    final suffix = List.generate(
-      6,
+    // 8자리 랜덤 문자열 (한글 학교명 문제 해결)
+    final code = List.generate(
+      8,
       (index) => chars[random.nextInt(chars.length)],
     ).join();
 
-    return '$prefix-$suffix';
+    // 가독성을 위해 4-4 형식으로 구분
+    return '${code.substring(0, 4)}-${code.substring(4, 8)}';
   }
 }
