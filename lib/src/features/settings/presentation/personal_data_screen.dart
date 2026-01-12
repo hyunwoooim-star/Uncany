@@ -172,7 +172,7 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
                     decoration: BoxDecoration(
                       color: TossColors.background,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: TossColors.border),
+                      border: Border.all(color: TossColors.divider),
                     ),
                     child: SelectableText(
                       jsonString,
