@@ -15,6 +15,7 @@ import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/approval_pending_screen.dart';
 import '../../features/auth/presentation/approval_complete_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
+import '../../features/auth/presentation/school_teachers_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../features/settings/presentation/business_info_screen.dart';
@@ -157,6 +158,11 @@ GoRouter router(RouterRef ref) {
         path: '/profile/referral-codes',
         name: 'referral-codes',
         builder: (context, state) => const MyReferralCodesScreen(),
+      ),
+      GoRoute(
+        path: '/profile/school-teachers',
+        name: 'school-teachers',
+        builder: (context, state) => const SchoolTeachersScreen(),
       ),
 
       // 관리자

@@ -299,6 +299,18 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 8),
 
               OutlinedButton.icon(
+                onPressed: () => context.push('/profile/school-teachers'),
+                icon: const Icon(Icons.people),
+                label: const Text('우리 학교 선생님'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: TossColors.textMain,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              OutlinedButton.icon(
                 onPressed: () => _logout(context, ref),
                 icon: const Icon(Icons.logout),
                 label: const Text('로그아웃'),

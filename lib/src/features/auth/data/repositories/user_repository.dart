@@ -16,9 +16,11 @@ class UserRepository {
   ///
   /// [status]로 인증 상태 필터링 가능
   /// [activeOnly]가 true면 deleted_at이 null인 사용자만 조회
+  /// [schoolId]를 제공하면 해당 학교 사용자만 조회
   Future<List<User>> getUsers({
     VerificationStatus? status,
     bool activeOnly = true,
+    String? schoolId,
   }) async {
     try {
       dynamic query = _supabase.from('users').select();
@@ -31,6 +33,11 @@ class UserRepository {
       // 인증 상태 필터
       if (status != null) {
         query = query.eq('verification_status', status.name);
+      }
+
+      // 학교별 필터링 (같은 학교 선생님들만 조회)
+      if (schoolId != null) {
+        query = query.eq('school_id', schoolId);
       }
 
       // 최신순 정렬
