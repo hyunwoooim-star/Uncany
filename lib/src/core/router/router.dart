@@ -15,6 +15,7 @@ import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../features/settings/presentation/business_info_screen.dart';
+import '../../features/settings/presentation/personal_data_screen.dart';
 import '../../features/auth/domain/models/user.dart';
 import '../../features/reservation/presentation/home_screen.dart';
 import '../../features/classroom/presentation/classroom_list_screen.dart';
@@ -219,6 +220,11 @@ GoRouter router(RouterRef ref) {
         path: '/settings/business-info',
         name: 'business-info',
         builder: (context, state) => const BusinessInfoScreen(),
+      ),
+      GoRoute(
+        path: '/settings/personal-data',
+        name: 'personal-data',
+        builder: (context, state) => const PersonalDataScreen(),
       ),
     ],
   );

@@ -356,6 +356,18 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
 
+              const SizedBox(height: 8),
+
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings/personal-data'),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: const Text('개인정보 관리'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: TossColors.textMain,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+
               const SizedBox(height: 32),
 
               // 위험 구역
