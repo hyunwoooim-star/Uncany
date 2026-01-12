@@ -1,10 +1,38 @@
 # Uncany 세션 요약
 
-## 최종 업데이트: 2026-01-07
+## 최종 업데이트: 2026-01-12
 
 ---
 
-## 최근 완료된 작업 (2026-01-07)
+## 최근 완료된 작업 (2026-01-12)
+
+### 1. TODO 항목 4개 완료
+
+#### signup_screen.dart: school_id 연동
+- 선택한 학교를 DB에 자동 추가/조회 (neis_code 기준)
+- users 테이블에 school_id 저장
+- 파일: `lib/src/features/auth/presentation/signup_screen.dart:360-394`
+
+#### user_repository.dart: 승인/반려 알림 발송
+- `_sendApprovalNotification`, `_sendRejectionNotification` 함수 추가
+- Phase 3에서 실제 이메일 발송 구현 예정 (현재는 로그만)
+- 파일: `lib/src/features/auth/data/repositories/user_repository.dart:239-288`
+
+#### audit_log_screen.dart: 실제 데이터 연결
+- Supabase `audit_logs` 테이블 조회
+- FutureBuilder로 실시간 데이터 표시
+- 필터 기능 추가 (operation, 날짜)
+- Mock 데이터 제거
+- 파일: `lib/src/features/audit/presentation/audit_log_screen.dart`
+
+#### school_api_service.dart: API 키 환경변수화
+- `String.fromEnvironment('NEIS_API_KEY')` 사용
+- 빌드 시 `--dart-define=NEIS_API_KEY=your_key`로 주입
+- 파일: `lib/src/features/school/data/services/school_api_service.dart:10-17`
+
+---
+
+## 이전 작업 (2026-01-07)
 
 ### 1. UI 버그 수정
 - **달력 날짜 색상**: 오늘 vs 선택일 구분 (오늘=테두리만, 선택=채움)
@@ -35,10 +63,9 @@ ShaderCompilerException: ink_sparkle.frag failed with exit code -1073741819
 
 | 파일 | 내용 | 우선순위 |
 |------|------|----------|
-| audit_log_screen.dart | 실제 데이터 연결, 필터 | 낮음 |
-| user_repository.dart | 승인/반려 알림 발송 | 중간 |
-| signup_screen.dart | school_id 연동 | 중간 |
-| school_api_service.dart | API 키 환경변수화 | 낮음 |
+| audit_log_screen.dart | 날짜 범위 선택기 추가 | 낮음 |
+| user_repository.dart | 실제 이메일 발송 구현 (Phase 3) | 중간 |
+| business_info_screen.dart | 실제 사업자 정보로 변경 | 낮음 |
 
 ---
 
