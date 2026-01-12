@@ -14,6 +14,7 @@ import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/features/school/presentation/widgets/school_search_field.dart';
 import 'package:uncany/src/features/school/data/services/school_api_service.dart';
+import 'package:uncany/src/features/school/data/repositories/school_repository.dart';
 
 /// 회원가입 화면 (v0.2)
 ///
@@ -356,12 +357,40 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       final userId = authResponse.user!.id;
       await AppLogger.info('SignupScreen', '1단계 완료: Auth signUp 성공', {'userId': userId});
 
-      // 2. users 테이블 업데이트 (username, grade, class_num 추가)
+      // 2. 학교 정보 처리 (선택한 학교를 DB에 추가/조회)
+      String? schoolId;
+      if (_selectedSchool != null) {
+        final schoolRepo = SchoolRepository(supabase);
+
+        // neis_code로 기존 학교 조회
+        final existingSchools = await supabase
+            .from('schools')
+            .select()
+            .eq('neis_code', _selectedSchool!.neisCode ?? '')
+            .maybeSingle();
+
+        if (existingSchools != null) {
+          schoolId = existingSchools['id'] as String;
+          await AppLogger.info('SignupScreen', '기존 학교 사용', {'schoolId': schoolId});
+        } else {
+          // 학교가 없으면 새로 생성
+          final newSchool = await schoolRepo.createSchool(
+            name: _selectedSchool!.name,
+            address: _selectedSchool!.address,
+            educationOffice: _selectedSchool!.educationOffice,
+            neisCode: _selectedSchool!.neisCode,
+          );
+          schoolId = newSchool.id;
+          await AppLogger.info('SignupScreen', '새 학교 생성', {'schoolId': schoolId});
+        }
+      }
+
+      // 3. users 테이블 업데이트 (username, grade, class_num, school_id 추가)
       await supabase.from('users').update({
         'username': _usernameController.text.trim(),
         'grade': _selectedGrade,
         'class_num': _selectedClassNum,
-        // TODO: school_id 추가 (학교가 DB에 있으면)
+        'school_id': schoolId,
       }).eq('id', userId);
 
       await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트');

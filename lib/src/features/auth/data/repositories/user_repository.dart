@@ -76,13 +76,18 @@ class UserRepository {
   /// verification_status를 'approved'로 변경
   Future<void> approveUser(String userId) async {
     try {
-      await _supabase.from('users').update({
+      final response = await _supabase.from('users').update({
         'verification_status': VerificationStatus.approved.name,
         'updated_at': DateTime.now().toIso8601String(),
         'rejected_reason': null, // 반려 사유 초기화
-      }).eq('id', userId);
+      }).eq('id', userId).select().single();
 
-      // TODO: 승인 알림 발송 (Phase 3)
+      // 승인 알림 발송
+      await _sendApprovalNotification(
+        userId,
+        response['email'] as String?,
+        response['name'] as String?,
+      );
     } on PostgrestException catch (e, stack) {
       AppLogger.error('UserRepository.approveUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
@@ -101,13 +106,19 @@ class UserRepository {
         throw Exception('반려 사유를 입력해주세요');
       }
 
-      await _supabase.from('users').update({
+      final response = await _supabase.from('users').update({
         'verification_status': VerificationStatus.rejected.name,
         'rejected_reason': reason,
         'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', userId);
+      }).eq('id', userId).select().single();
 
-      // TODO: 반려 알림 발송 (Phase 3)
+      // 반려 알림 발송
+      await _sendRejectionNotification(
+        userId,
+        response['email'] as String?,
+        response['name'] as String?,
+        reason,
+      );
     } on PostgrestException catch (e, stack) {
       AppLogger.error('UserRepository.rejectUser', e, stack, {'userId': userId});
       throw Exception(ErrorMessages.fromError(e));
@@ -218,6 +229,60 @@ class UserRepository {
     } catch (e, stack) {
       AppLogger.error('UserRepository.getPendingCount', e, stack);
       throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
+  // =========================================
+  // 알림 발송 (Phase 3 - 추후 구현)
+  // =========================================
+
+  /// 승인 알림 발송
+  ///
+  /// TODO: Supabase Edge Function 또는 외부 이메일 서비스 연동
+  Future<void> _sendApprovalNotification(
+    String userId,
+    String? email,
+    String? name,
+  ) async {
+    if (email == null) return;
+
+    try {
+      await AppLogger.info('UserRepository', '승인 알림 발송 (미구현)', {
+        'userId': userId,
+        'email': email,
+        'name': name,
+      });
+      // TODO: 실제 이메일 발송 구현
+      // 예: SendGrid, AWS SES, Supabase Edge Function 등
+    } catch (e, stack) {
+      // 알림 발송 실패는 로그만 남기고 에러를 던지지 않음
+      AppLogger.error('UserRepository._sendApprovalNotification', e, stack);
+    }
+  }
+
+  /// 반려 알림 발송
+  ///
+  /// TODO: Supabase Edge Function 또는 외부 이메일 서비스 연동
+  Future<void> _sendRejectionNotification(
+    String userId,
+    String? email,
+    String? name,
+    String reason,
+  ) async {
+    if (email == null) return;
+
+    try {
+      await AppLogger.info('UserRepository', '반려 알림 발송 (미구현)', {
+        'userId': userId,
+        'email': email,
+        'name': name,
+        'reason': reason,
+      });
+      // TODO: 실제 이메일 발송 구현
+      // 예: SendGrid, AWS SES, Supabase Edge Function 등
+    } catch (e, stack) {
+      // 알림 발송 실패는 로그만 남기고 에러를 던지지 않음
+      AppLogger.error('UserRepository._sendRejectionNotification', e, stack);
     }
   }
 }
