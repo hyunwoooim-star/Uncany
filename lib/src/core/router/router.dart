@@ -12,6 +12,8 @@ import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/auth/presentation/update_password_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
+import '../../features/auth/presentation/approval_pending_screen.dart';
+import '../../features/auth/presentation/approval_complete_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
@@ -109,6 +111,22 @@ GoRouter router(RouterRef ref) {
             userName: userName,
             needsApproval: needsApproval,
           );
+        },
+      ),
+      GoRoute(
+        path: '/auth/approval-pending',
+        name: 'approval-pending',
+        builder: (context, state) {
+          final userName = state.uri.queryParameters['userName'] ?? '사용자';
+          return ApprovalPendingScreen(userName: userName);
+        },
+      ),
+      GoRoute(
+        path: '/auth/approval-complete',
+        name: 'approval-complete',
+        builder: (context, state) {
+          final userName = state.uri.queryParameters['userName'] ?? '사용자';
+          return ApprovalCompleteScreen(userName: userName);
         },
       ),
 
