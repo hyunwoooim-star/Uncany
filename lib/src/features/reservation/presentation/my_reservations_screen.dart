@@ -328,7 +328,7 @@ class _ReservationCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // 날짜 및 시간
+          // 날짜 및 교시/시간
           Row(
             children: [
               Icon(
@@ -345,27 +345,45 @@ class _ReservationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: TossColors.textSub,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${timeFormat.format(reservation.startTime)} - ${timeFormat.format(reservation.endTime)}',
-                style: TextStyle(
-                  fontSize: 14,
+              // 교시 정보가 있으면 교시로 표시, 없으면 시간으로 표시
+              if (reservation.periodsDisplay != null) ...[
+                Icon(
+                  Icons.grid_view,
+                  size: 16,
                   color: TossColors.textSub,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '(${reservation.durationInMinutes}분)',
-                style: TextStyle(
-                  fontSize: 12,
+                const SizedBox(width: 4),
+                Text(
+                  reservation.periodsDisplay!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: TossColors.textMain,
+                  ),
+                ),
+              ] else ...[
+                Icon(
+                  Icons.access_time,
+                  size: 16,
                   color: TossColors.textSub,
                 ),
-              ),
+                const SizedBox(width: 4),
+                Text(
+                  '${timeFormat.format(reservation.startTime)} - ${timeFormat.format(reservation.endTime)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: TossColors.textSub,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(${reservation.durationInMinutes}분)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: TossColors.textSub,
+                  ),
+                ),
+              ],
             ],
           ),
 
