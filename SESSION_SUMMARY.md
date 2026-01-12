@@ -1,10 +1,34 @@
 # Uncany 세션 요약
 
-## 최종 업데이트: 2026-01-12
+## 최종 업데이트: 2026-01-12 (17:00)
 
 ---
 
-## 최근 완료된 작업 (2026-01-12)
+## 🎉 오늘 완료된 작업 (2026-01-12 오후)
+
+### 1. 회원가입 및 비밀번호 재설정 오류 수정
+- **비밀번호 재설정**: redirectTo를 웹 URL로 변경 (`uncany://...` → `https://...`)
+- **Environment.appUrl** 추가 (환경별 URL 자동 선택)
+- **UpdatePasswordScreen** 신규 추가 (이메일 링크 → 비밀번호 설정)
+- **회원가입 오류**: neisCode null 체크 강화
+- 커밋: `e7fe557`
+
+### 2. 사업자 정보, 날짜 필터, 나이스 API 연동
+- **사업자 정보**: Mock 데이터 → 개발 단계 표시
+- **감사 로그**: 날짜 범위 필터 추가 (시작일/종료일 DatePicker)
+- **나이스 API**: GitHub Actions workflow에 `NEIS_API_KEY` 추가
+- **README**: API 키 발급 가이드 추가
+- 커밋: `14a221d`
+
+### 3. 나이스 교육청 API 키 발급 완료 ✅
+- **공공데이터포털** 활용신청 완료
+- **인증키 발급**: `8625dd0f...` (숨김)
+- **GitHub Secrets 등록**: `NEIS_API_KEY` 완료
+- **효과**: 전국 모든 학교 검색 가능 (Mock 15개 → 실제 수천 개)
+
+---
+
+## 이전 완료된 작업 (2026-01-12 오전)
 
 ### 1. TODO 항목 4개 완료
 
@@ -63,9 +87,8 @@ ShaderCompilerException: ink_sparkle.frag failed with exit code -1073741819
 
 | 파일 | 내용 | 우선순위 |
 |------|------|----------|
-| audit_log_screen.dart | 날짜 범위 선택기 추가 | 낮음 |
 | user_repository.dart | 실제 이메일 발송 구현 (Phase 3) | 중간 |
-| business_info_screen.dart | 실제 사업자 정보로 변경 | 낮음 |
+| business_info_screen.dart | 정식 사업자 정보로 업데이트 | 낮음 |
 
 ---
 
