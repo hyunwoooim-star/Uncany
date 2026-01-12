@@ -1,13 +1,26 @@
 # 수동 작업 체크리스트
 
-> **마지막 업데이트**: 2026-01-06
-> **관련 커밋**: fa6d27f (feat: Phase 3 완료)
+> **마지막 업데이트**: 2026-01-12
+> **관련 커밋**: 62aa7a8 (docs: 수동 작업 체크리스트 및 세션 요약 업데이트)
 
 이 문서는 코드 변경 후 **수동으로 수행해야 할 작업**들을 정리합니다.
 
 ---
 
-## 즉시 해야 할 작업 (필수)
+## ✅ 완료된 작업
+
+- [x] schools 테이블 생성
+- [x] users 테이블 컬럼 추가 (school_id, grade, class_num, username)
+- [x] classrooms 테이블 컬럼 추가 (school_id, room_type, created_by)
+- [x] reservations 테이블 컬럼 추가 (periods)
+- [x] referral_codes 테이블 생성
+- [x] referral_usage 테이블 생성
+- [x] handle_new_user 트리거 업데이트
+- [x] 비밀번호 재설정 Redirect URL 설정
+
+---
+
+## 즉시 해야 할 작업 (필수) - 모두 완료됨!
 
 ### 1. Supabase DB 마이그레이션
 
@@ -242,14 +255,17 @@ INSERT INTO schools (code, name, address, office_code) VALUES
 
 | 항목 | 현재 상태 | 필요 조치 |
 |------|----------|----------|
-| schools 테이블 | ❌ 없음 | 생성 필요 |
-| users.school_id | ❌ 없음 | 추가 필요 |
-| users.username | ❌ 없음 | 추가 필요 |
-| classrooms.school_id | ❌ 없음 | 추가 필요 |
-| classrooms.room_type | ❌ 없음 | 추가 필요 |
-| reservations.periods | ❌ 없음 | 추가 필요 |
-| handle_new_user 트리거 | ✅ 있음 | 업데이트 필요 |
-| NEIS API 키 | ❌ 없음 | 발급 필요 |
+| schools 테이블 | ✅ 완료 | - |
+| users.school_id | ✅ 완료 | - |
+| users.username | ✅ 완료 | - |
+| classrooms.school_id | ✅ 완료 | - |
+| classrooms.room_type | ✅ 완료 | - |
+| reservations.periods | ✅ 완료 | - |
+| referral_codes 테이블 | ✅ 완료 | - |
+| referral_usage 테이블 | ✅ 완료 | - |
+| handle_new_user 트리거 | ✅ 완료 | - |
+| 비밀번호 재설정 URL | ✅ 완료 | - |
+| NEIS API 키 | ❌ 없음 | 발급 필요 (선택) |
 
 ---
 
