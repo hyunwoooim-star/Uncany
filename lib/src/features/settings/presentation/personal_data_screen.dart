@@ -215,11 +215,20 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
     }
   }
 
-  /// 마케팅 수신동의 철회
+  /// 마케팅 수신동의 업데이트 (즉시 저장)
+  Future<void> _toggleEmailMarketing(bool value) async {
+    setState(() => _agreeToEmailMarketing = value);
+    await _updateMarketingConsent();
+  }
+
+  Future<void> _toggleSMSMarketing(bool value) async {
+    setState(() => _agreeToSMSMarketing = value);
+    await _updateMarketingConsent();
+  }
+
+  /// 마케팅 수신동의 변경
   Future<void> _updateMarketingConsent() async {
     try {
-      setState(() => _isLoading = true);
-
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) {
         throw Exception(ErrorMessages.authRequired);
@@ -230,20 +239,17 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
         'agree_to_sms_marketing': _agreeToSMSMarketing,
       }).eq('id', userId);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('마케팅 수신동의 설정이 변경되었습니다')),
-        );
-      }
-
       await AppLogger.info('PersonalDataScreen', '마케팅 동의 변경', {
         'userId': userId,
         'email': _agreeToEmailMarketing,
         'sms': _agreeToSMSMarketing,
       });
 
-      // 데이터 다시 로드
-      await _loadUserData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('마케팅 수신동의 설정이 변경되었습니다')),
+        );
+      }
     } catch (e, stack) {
       await AppLogger.error('PersonalDataScreen._updateMarketingConsent', e, stack);
       if (mounted) {
@@ -348,9 +354,12 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  children: [
                 // 안내 문구
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -431,9 +440,7 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
                     children: [
                       SwitchListTile(
                         value: _agreeToEmailMarketing,
-                        onChanged: (value) {
-                          setState(() => _agreeToEmailMarketing = value);
-                        },
+                        onChanged: _toggleEmailMarketing,
                         title: const Text('이메일 수신동의'),
                         subtitle: const Text('서비스 업데이트, 이벤트 정보'),
                         contentPadding: EdgeInsets.zero,
@@ -442,29 +449,11 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
                       const Divider(),
                       SwitchListTile(
                         value: _agreeToSMSMarketing,
-                        onChanged: (value) {
-                          setState(() => _agreeToSMSMarketing = value);
-                        },
+                        onChanged: _toggleSMSMarketing,
                         title: const Text('SMS 수신동의'),
                         subtitle: const Text('중요 알림 문자'),
                         contentPadding: EdgeInsets.zero,
                         activeColor: TossColors.primary,
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _updateMarketingConsent,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TossColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('변경사항 저장'),
-                        ),
                       ),
                     ],
                   ),
@@ -492,7 +481,9 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ],
+                  ],
+                ),
+              ),
             ),
     );
   }

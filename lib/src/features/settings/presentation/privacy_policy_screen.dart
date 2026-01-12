@@ -14,20 +14,23 @@ class PrivacyPolicyScreen extends StatelessWidget {
         backgroundColor: TossColors.surface,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Uncany(이하 "서비스")는 개인정보보호법에 따라 이용자의 개인정보 보호 및 권익을 보호하고 개인정보와 관련한 이용자의 고충을 원활하게 처리할 수 있도록 다음과 같은 처리방침을 두고 있습니다.',
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.6,
-                color: TossColors.textSub,
-              ),
-            ),
-            const SizedBox(height: 24),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Uncany(이하 "서비스")는 개인정보보호법에 따라 이용자의 개인정보 보호 및 권익을 보호하고 개인정보와 관련한 이용자의 고충을 원활하게 처리할 수 있도록 다음과 같은 처리방침을 두고 있습니다.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: TossColors.textSub,
+                  ),
+                ),
+                const SizedBox(height: 24),
             _buildSection('제1조 (개인정보의 수집 및 이용 목적)', '''
 서비스는 다음의 목적을 위하여 개인정보를 처리합니다.
 
@@ -122,7 +125,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

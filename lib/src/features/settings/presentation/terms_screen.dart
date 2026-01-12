@@ -14,11 +14,14 @@ class TermsScreen extends StatelessWidget {
         backgroundColor: TossColors.surface,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             _buildSection('제1조 (목적)', '''
 본 약관은 Uncany(이하 "서비스")가 제공하는 교실 예약 서비스의 이용조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.
 '''),
@@ -83,7 +86,9 @@ class TermsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
