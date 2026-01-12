@@ -362,18 +362,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       if (_selectedSchool != null) {
         final schoolRepo = SchoolRepository(supabase);
 
-        // neis_code로 기존 학교 조회
-        final existingSchools = await supabase
-            .from('schools')
-            .select()
-            .eq('neis_code', _selectedSchool!.neisCode ?? '')
-            .maybeSingle();
+        // neis_code가 있으면 기존 학교 조회
+        if (_selectedSchool!.neisCode != null && _selectedSchool!.neisCode!.isNotEmpty) {
+          final existingSchools = await supabase
+              .from('schools')
+              .select()
+              .eq('neis_code', _selectedSchool!.neisCode!)
+              .maybeSingle();
 
-        if (existingSchools != null) {
-          schoolId = existingSchools['id'] as String;
-          await AppLogger.info('SignupScreen', '기존 학교 사용', {'schoolId': schoolId});
-        } else {
-          // 학교가 없으면 새로 생성
+          if (existingSchools != null) {
+            schoolId = existingSchools['id'] as String;
+            await AppLogger.info('SignupScreen', '기존 학교 사용', {'schoolId': schoolId});
+          }
+        }
+
+        // 학교가 없으면 새로 생성
+        if (schoolId == null) {
           final newSchool = await schoolRepo.createSchool(
             name: _selectedSchool!.name,
             address: _selectedSchool!.address,

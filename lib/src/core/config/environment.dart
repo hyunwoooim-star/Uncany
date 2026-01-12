@@ -20,6 +20,18 @@ class Environment {
     defaultValue: '',
   );
 
+  /// 앱 URL (비밀번호 재설정 등에 사용)
+  static String get appUrl {
+    if (isProduction) {
+      return 'https://uncany.web.app';
+    } else if (isStaging) {
+      return 'https://uncany-staging.web.app';
+    } else {
+      // 개발 환경
+      return 'http://localhost:5000';
+    }
+  }
+
   /// 개발 환경 여부
   static bool get isDevelopment => current == 'development';
 

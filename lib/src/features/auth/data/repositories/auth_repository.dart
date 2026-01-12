@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
+import 'package:uncany/src/core/config/environment.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/services/app_logger.dart';
 
@@ -93,10 +94,15 @@ class AuthRepository {
   /// Supabase가 자동으로 비밀번호 재설정 링크를 이메일로 전송
   Future<void> resetPassword(String email) async {
     try {
+      final redirectUrl = '${Environment.appUrl}/auth/update-password';
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'uncany://reset-password', // Deep Link
+        redirectTo: redirectUrl,
       );
+      await AppLogger.info('AuthRepository', '비밀번호 재설정 이메일 발송', {
+        'email': email,
+        'redirectUrl': redirectUrl,
+      });
     } on AuthException catch (e, stack) {
       AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});
       throw Exception(ErrorMessages.fromAuthError(e.message));

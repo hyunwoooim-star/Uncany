@@ -9,6 +9,7 @@ import '../../features/auth/presentation/admin_users_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/update_password_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
@@ -85,6 +86,11 @@ GoRouter router(RouterRef ref) {
         path: '/auth/reset-password',
         name: 'auth-reset-password',
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/auth/update-password',
+        name: 'auth-update-password',
+        builder: (context, state) => const UpdatePasswordScreen(),
       ),
       GoRoute(
         path: '/auth/find-username',
