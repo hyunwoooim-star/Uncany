@@ -397,6 +397,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
       // 3. users 테이블 업데이트 (username, grade, class_num, school_id, 마케팅 수신동의, 동의 날짜 추가)
       final now = DateTime.now().toIso8601String();
+      await AppLogger.info('SignupScreen', '2단계: users 테이블 업데이트 시작', {
+        'agreeToEmailMarketing': _agreeToEmailMarketing,
+        'agreeToSMSMarketing': _agreeToSMSMarketing,
+      });
+
       await supabase.from('users').update({
         'username': _usernameController.text.trim(),
         'grade': _selectedGrade,
@@ -412,7 +417,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         // 재직증명서 업로드 시 민감정보 동의 날짜 기록 (증명서 업로드 후 다시 업데이트)
       }).eq('id', userId);
 
-      await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트');
+      await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트 성공');
 
       // 3. 증명서 업로드 (추천인 코드 미사용 시)
       if (!_useReferralCode && _selectedFile != null) {

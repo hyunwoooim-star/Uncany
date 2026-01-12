@@ -56,7 +56,13 @@ class _PersonalDataScreenState extends ConsumerState<PersonalDataScreen> {
         _agreeToSMSMarketing = response['agree_to_sms_marketing'] ?? false;
       });
 
-      await AppLogger.info('PersonalDataScreen', '개인정보 조회 성공', {'userId': userId});
+      await AppLogger.info('PersonalDataScreen', '개인정보 조회 성공', {
+        'userId': userId,
+        'agreeToEmailMarketing': response['agree_to_email_marketing'],
+        'agreeToSMSMarketing': response['agree_to_sms_marketing'],
+        'loadedEmailValue': _agreeToEmailMarketing,
+        'loadedSMSValue': _agreeToSMSMarketing,
+      });
     } catch (e, stack) {
       await AppLogger.error('PersonalDataScreen._loadUserData', e, stack);
       if (mounted) {
