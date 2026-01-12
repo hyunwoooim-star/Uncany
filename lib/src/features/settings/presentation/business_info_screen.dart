@@ -82,20 +82,19 @@ class BusinessInfoScreen extends StatelessWidget {
             _buildInfoCard([
               _InfoItem(
                 label: '상호',
-                // TODO: 실제 사업자 정보로 변경
-                value: '[사업자 정보 입력 필요]',
+                value: 'Uncany',
               ),
               _InfoItem(
                 label: '대표자',
-                value: '[사업자 정보 입력 필요]',
+                value: '개발 중 (사업자 정보 미등록)',
               ),
               _InfoItem(
                 label: '사업자등록번호',
-                value: '[000-00-00000]',
+                value: '사업자 미등록',
               ),
               _InfoItem(
                 label: '통신판매업 신고번호',
-                value: '[제0000-서울강남-00000호]',
+                value: '해당 없음 (개발 단계)',
               ),
             ]),
 
@@ -115,15 +114,15 @@ class BusinessInfoScreen extends StatelessWidget {
             _buildInfoCard([
               _InfoItem(
                 label: '소재지',
-                value: '[사업자 주소 입력 필요]',
+                value: '대한민국 (개발 단계)',
               ),
               _InfoItem(
                 label: '이메일',
-                value: '[이메일 입력 필요]',
+                value: 'contact@uncany.com (예정)',
               ),
               _InfoItem(
                 label: '전화번호',
-                value: '[전화번호 입력 필요]',
+                value: '추후 공개 예정',
               ),
             ]),
 

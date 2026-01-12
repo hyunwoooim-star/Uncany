@@ -349,32 +349,154 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
   }
 
   void _showFilterDialog() {
+    DateTime? tempStartDate = _filterStartDate;
+    DateTime? tempEndDate = _filterEndDate;
+    String tempAction = _filterAction;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('필터'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // TODO: 날짜 범위 선택기 추가
-            const Text('날짜 범위 필터 (추후 구현)'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('필터'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 액션 필터
+                const Text(
+                  '작업 유형',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: tempAction,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'all', child: Text('전체')),
+                    DropdownMenuItem(value: 'INSERT', child: Text('생성')),
+                    DropdownMenuItem(value: 'UPDATE', child: Text('수정')),
+                    DropdownMenuItem(value: 'DELETE', child: Text('삭제')),
+                    DropdownMenuItem(value: 'RESTORE', child: Text('복원')),
+                  ],
+                  onChanged: (value) {
+                    setDialogState(() {
+                      tempAction = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // 날짜 범위
+                const Text(
+                  '기간',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // 시작일
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: tempStartDate ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      locale: const Locale('ko', 'KR'),
+                    );
+                    if (date != null) {
+                      setDialogState(() {
+                        tempStartDate = date;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: Text(
+                    tempStartDate == null
+                        ? '시작일 선택'
+                        : DateFormat('yyyy-MM-dd').format(tempStartDate!),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // 종료일
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: tempEndDate ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      locale: const Locale('ko', 'KR'),
+                    );
+                    if (date != null) {
+                      setDialogState(() {
+                        tempEndDate = date;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: Text(
+                    tempEndDate == null
+                        ? '종료일 선택'
+                        : DateFormat('yyyy-MM-dd').format(tempEndDate!),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // 필터 초기화
+                if (tempStartDate != null || tempEndDate != null)
+                  TextButton.icon(
+                    onPressed: () {
+                      setDialogState(() {
+                        tempStartDate = null;
+                        tempEndDate = null;
+                      });
+                    },
+                    icon: const Icon(Icons.clear, size: 18),
+                    label: const Text('날짜 초기화'),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _filterAction = tempAction;
+                  _filterStartDate = tempStartDate;
+                  _filterEndDate = tempEndDate;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('적용'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                // 필터 적용 후 화면 새로고침
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('적용'),
-          ),
-        ],
       ),
     );
   }

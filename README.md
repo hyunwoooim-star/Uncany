@@ -50,6 +50,27 @@ flutter run -d ios           # iOS
 flutter run -d android       # Android
 ```
 
+### 나이스 교육청 API 연동 (선택사항)
+
+전국 모든 학교 검색 기능을 사용하려면 나이스 API 키가 필요합니다.
+
+#### 1. API 키 발급
+1. [공공데이터포털](https://www.data.go.kr) 회원가입
+2. "학교기본정보" 검색 → 활용신청
+3. 승인 후 API 키 확인 (일반 인증키)
+
+#### 2. GitHub Secrets 등록
+1. GitHub 저장소 → Settings → Secrets and variables → Actions
+2. `New repository secret` 클릭
+3. Name: `NEIS_API_KEY`, Value: 발급받은 API 키
+
+#### 3. 로컬 개발 시
+```bash
+flutter run --dart-define=NEIS_API_KEY=your_api_key_here
+```
+
+**참고**: API 키가 없어도 앱은 정상 작동하며, Mock 데이터(15개 학교)를 사용합니다.
+
 ---
 
 ## 📚 문서
