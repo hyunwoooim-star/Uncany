@@ -11,6 +11,7 @@ import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/auth/presentation/update_password_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
+import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
@@ -97,6 +98,18 @@ GoRouter router(RouterRef ref) {
         path: '/auth/find-username',
         name: 'find-username',
         builder: (context, state) => const FindUsernameScreen(),
+      ),
+      GoRoute(
+        path: '/auth/onboarding',
+        name: 'onboarding',
+        builder: (context, state) {
+          final userName = state.uri.queryParameters['userName'] ?? '사용자';
+          final needsApproval = state.uri.queryParameters['needsApproval'] == 'true';
+          return OnboardingScreen(
+            userName: userName,
+            needsApproval: needsApproval,
+          );
+        },
       ),
 
       // 메인
