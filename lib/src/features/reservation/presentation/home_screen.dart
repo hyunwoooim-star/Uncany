@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -219,8 +220,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildGreetingCard(BuildContext context, User user) {
-    final now = DateTime.now();
-    final greeting = _getGreeting(now.hour);
+    final greeting = _getRandomGreeting();
 
     return TossCard(
       padding: responsiveCardPadding(context),
@@ -291,11 +291,41 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  String _getGreeting(int hour) {
-    if (hour < 6) return '새벽이에요';
-    if (hour < 12) return '좋은 아침이에요';
-    if (hour < 18) return '좋은 오후예요';
-    return '좋은 저녁이에요';
+  /// 랜덤 격려 메시지 생성
+  ///
+  /// 다른 앱들의 사례:
+  /// - 토스: "오늘도 화이팅!", "반가워요"
+  /// - 슬랙: "Welcome back"
+  /// - 카카오: "환영합니다"
+  ///
+  /// 교사용 앱에 맞는 긍정적이고 격려하는 메시지
+  String _getRandomGreeting() {
+    final greetings = [
+      // 환영 메시지
+      '환영합니다',
+      '반가워요',
+      '안녕하세요',
+
+      // 격려 메시지
+      '오늘도 화이팅하세요',
+      '좋은 하루 되세요',
+      '멋진 하루 되세요',
+      '활기찬 하루 되세요',
+
+      // 교육적 메시지
+      '오늘도 아이들과 함께 성장해요',
+      '멋진 수업 되세요',
+      '오늘도 최고의 하루 되세요',
+      '즐거운 하루 보내세요',
+
+      // 간단한 인사
+      '좋은 하루에요',
+      '행복한 하루 되세요',
+      '편안한 하루 되세요',
+    ];
+
+    final random = Random();
+    return greetings[random.nextInt(greetings.length)];
   }
 
   Widget _buildSectionTitle(String title) {
