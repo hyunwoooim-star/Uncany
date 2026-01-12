@@ -86,15 +86,19 @@ class BusinessInfoScreen extends StatelessWidget {
               ),
               _InfoItem(
                 label: '대표자',
-                value: '개발 중 (사업자 정보 미등록)',
+                value: '정식 사업자 등록 절차 진행 중',
               ),
               _InfoItem(
                 label: '사업자등록번호',
-                value: '사업자 미등록',
+                value: '등록 예정 (출시 전 완료)',
               ),
               _InfoItem(
                 label: '통신판매업 신고번호',
-                value: '해당 없음 (개발 단계)',
+                value: '등록 예정 (출시 전 완료)',
+              ),
+              _InfoItem(
+                label: '서비스 상태',
+                value: '베타 테스트 단계 (정식 출시 준비 중)',
               ),
             ]),
 
@@ -114,15 +118,19 @@ class BusinessInfoScreen extends StatelessWidget {
             _buildInfoCard([
               _InfoItem(
                 label: '소재지',
-                value: '대한민국 (개발 단계)',
+                value: '대한민국 (상세 주소는 정식 등록 후 공개)',
               ),
               _InfoItem(
-                label: '이메일',
-                value: 'contact@uncany.com (예정)',
+                label: '고객 문의',
+                value: 'contact@uncany.com',
+              ),
+              _InfoItem(
+                label: '개인정보 문의',
+                value: 'privacy@uncany.com',
               ),
               _InfoItem(
                 label: '전화번호',
-                value: '추후 공개 예정',
+                value: '정식 출시 후 공개 예정',
               ),
             ]),
 

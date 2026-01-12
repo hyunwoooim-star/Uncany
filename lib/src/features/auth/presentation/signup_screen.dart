@@ -395,7 +395,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         }
       }
 
-      // 3. users 테이블 업데이트 (username, grade, class_num, school_id, 마케팅 수신동의 추가)
+      // 3. users 테이블 업데이트 (username, grade, class_num, school_id, 마케팅 수신동의, 동의 날짜 추가)
+      final now = DateTime.now().toIso8601String();
       await supabase.from('users').update({
         'username': _usernameController.text.trim(),
         'grade': _selectedGrade,
@@ -403,6 +404,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         'school_id': schoolId,
         'agree_to_email_marketing': _agreeToEmailMarketing,
         'agree_to_sms_marketing': _agreeToSMSMarketing,
+        // 약관 동의 날짜 및 버전 기록
+        'terms_agreed_at': now,
+        'privacy_agreed_at': now,
+        'terms_version': 'v1.0',
+        'privacy_version': 'v1.0',
+        // 재직증명서 업로드 시 민감정보 동의 날짜 기록 (증명서 업로드 후 다시 업데이트)
       }).eq('id', userId);
 
       await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트');
@@ -433,6 +440,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               .uploadBinary(fileName, fileBytes);
 
           await AppLogger.info('SignupScreen', '3단계 완료: 증명서 업로드 성공');
+
+          // 민감정보(재직증명서) 동의 날짜 기록
+          await supabase.from('users').update({
+            'sensitive_data_agreed_at': DateTime.now().toIso8601String(),
+          }).eq('id', userId);
         }
       }
 
