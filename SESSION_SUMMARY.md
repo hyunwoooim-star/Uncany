@@ -1,10 +1,48 @@
 # Uncany 세션 요약
 
-## 최종 업데이트: 2026-01-12 (18:30)
+## 최종 업데이트: 2026-01-12 (19:00)
 
 ---
 
-## 🎉 오늘 완료된 작업 (2026-01-12 오후 - Phase 1 이메일/SMS 알림)
+## 🎉 오늘 완료된 작업 (2026-01-12 오후 - Phase 1 + 테스트 코드)
+
+### 5. 단위 테스트 코드 추가 ✅
+
+#### 5-1. 테스트 인프라 구축
+- **mocktail 패키지** 추가 (`pubspec.yaml`)
+- Mock 기반 단위 테스트 환경 구축
+- Supabase 클라이언트 Mock 구현
+
+#### 5-2. Repository 테스트 작성
+**AuthRepository 테스트** (`test/features/auth/data/repositories/auth_repository_test.dart`):
+- `getCurrentUser()`: 세션 없음/있음, DB 데이터 있음/없음 케이스
+- `signOut()`: 성공/실패 케이스
+- `updateProfile()`: 세션 검증, 프로필 업데이트
+- `resetPassword()`: 이메일 발송 성공/실패
+
+**UserRepository 테스트** (`test/features/auth/data/repositories/user_repository_test.dart`):
+- `getUsers()`: 전체 조회, 인증 상태 필터링
+- `getUser()`: 존재/비존재 케이스
+- `approveUser()`, `rejectUser()`: 승인/반려 로직
+- `updateUserRole()`, `deleteUser()`, `restoreUser()`
+- `getPendingCount()`: 대기 중인 사용자 수 조회
+
+**ReservationRepository 테스트** (`test/features/reservation/data/repositories/reservation_repository_test.dart`):
+- `getMyReservations()`: 세션 검증, 날짜 필터링
+- `getReservationsByClassroom()`: 교실별 예약 조회
+
+#### 5-3. 테스트 문서화
+- **테스트 README** 작성 (`test/README.md`):
+  - 테스트 실행 방법 (flutter test, 커버리지)
+  - 테스트 구조 및 목록
+  - Mock 작성 가이드 (AAA 패턴)
+  - 테스트 원칙 (한글 이름, 단일 책임, Edge Case)
+  - CI/CD 통합 예시
+  - TODO: Widget 테스트, Integration 테스트 계획
+
+---
+
+## 이전 완료 작업 (2026-01-12 오후 - Phase 1 이메일/SMS 알림)
 
 ### 4. Phase 1 이메일/SMS 수신동의 및 알림 시스템 구축 ✅
 
