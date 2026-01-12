@@ -310,6 +310,54 @@ class ProfileScreen extends ConsumerWidget {
 
               const SizedBox(height: 32),
 
+              // 약관 및 정책
+              const Text(
+                '약관 및 정책',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: TossColors.textMain,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings/terms'),
+                icon: const Icon(Icons.article_outlined),
+                label: const Text('이용약관'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: TossColors.textMain,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings/privacy'),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: const Text('개인정보처리방침'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: TossColors.textMain,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings/business-info'),
+                icon: const Icon(Icons.business_outlined),
+                label: const Text('사업자 정보'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: TossColors.textMain,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
               // 위험 구역
               const Text(
                 '위험 구역',

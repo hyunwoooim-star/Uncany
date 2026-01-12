@@ -170,6 +170,36 @@ class UserRepository {
     }
   }
 
+  /// 사용자 완전 삭제 (Hard Delete - 관리자 전용)
+  ///
+  /// users 테이블에서 완전히 삭제 (복구 불가)
+  /// 관련 데이터 (예약, 추천인 코드 등)도 함께 처리됨 (CASCADE or SET NULL)
+  Future<void> hardDeleteUser(String userId) async {
+    try {
+      // 1. 사용자의 예약 soft delete
+      await _supabase.from('reservations').update({
+        'deleted_at': DateTime.now().toIso8601String(),
+      }).eq('teacher_id', userId);
+
+      // 2. 사용자의 추천인 코드 비활성화
+      await _supabase.from('referral_codes').update({
+        'is_active': false,
+      }).eq('created_by', userId);
+
+      // 3. users 테이블에서 삭제
+      await _supabase.from('users').delete().eq('id', userId);
+
+      // 참고: Supabase Auth의 사용자는 Admin API로만 삭제 가능
+      // 클라이언트에서는 접근 불가. 필요시 Edge Function이나 백엔드 API 필요
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('UserRepository.hardDeleteUser', e, stack, {'userId': userId});
+      throw Exception(ErrorMessages.fromError(e));
+    } catch (e, stack) {
+      AppLogger.error('UserRepository.hardDeleteUser', e, stack, {'userId': userId});
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
   /// 승인 대기 중인 사용자 수 조회
   ///
   /// 관리자 대시보드 배지 표시용

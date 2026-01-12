@@ -301,15 +301,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
           const SizedBox(height: 16),
 
-          // 비밀번호 찾기
-          Center(
-            child: TextButton(
-              onPressed: () => context.push('/auth/reset-password'),
-              child: Text(
-                '비밀번호를 잊으셨나요?',
-                style: TextStyle(color: TossColors.textSub),
+          // 아이디/비밀번호 찾기
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => context.push('/auth/find-username'),
+                child: Text(
+                  '아이디 찾기',
+                  style: TextStyle(color: TossColors.textSub),
+                ),
               ),
-            ),
+              Text(
+                '|',
+                style: TextStyle(color: TossColors.textSub.withOpacity(0.5)),
+              ),
+              TextButton(
+                onPressed: () => context.push('/auth/reset-password'),
+                child: Text(
+                  '비밀번호 찾기',
+                  style: TextStyle(color: TossColors.textSub),
+                ),
+              ),
+            ],
           ),
 
           // 회원가입 링크

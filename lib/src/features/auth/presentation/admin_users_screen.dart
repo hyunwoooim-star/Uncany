@@ -197,6 +197,115 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     }
   }
 
+  Future<void> _hardDeleteUser(User user) async {
+    // 첫 번째 확인
+    final firstConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('계정 완전 삭제'),
+        content: Text(
+          '${user.name} 선생님의 계정을 완전히 삭제하시겠습니까?\n\n'
+          '⚠️ 이 작업은 되돌릴 수 없습니다.\n'
+          '모든 예약 기록과 데이터가 삭제됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('다음'),
+          ),
+        ],
+      ),
+    );
+
+    if (firstConfirm != true || !mounted) return;
+
+    // 두 번째 확인 (더블 체크)
+    final secondConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('정말로 삭제하시겠습니까?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '삭제할 계정: ${user.name} 선생님',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('이메일: ${user.email ?? "없음"}'),
+            Text('학교: ${user.schoolName}'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '이 작업은 복구할 수 없습니다!',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('완전 삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (secondConfirm == true && mounted) {
+      try {
+        final repository = ref.read(userRepositoryProvider);
+        await repository.hardDeleteUser(user.id);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('계정을 완전히 삭제했습니다'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          _loadUsers();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(ErrorMessages.fromError(e)),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -310,6 +419,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                                   user: user,
                                   onChangeRole: () => _changeUserRole(user),
                                   onDelete: () => _deleteUser(user),
+                                  onHardDelete: () => _hardDeleteUser(user),
                                 );
                               },
                             ),
@@ -368,11 +478,13 @@ class _UserCard extends StatelessWidget {
   final User user;
   final VoidCallback onChangeRole;
   final VoidCallback onDelete;
+  final VoidCallback onHardDelete;
 
   const _UserCard({
     required this.user,
     required this.onChangeRole,
     required this.onDelete,
+    required this.onHardDelete,
   });
 
   @override
@@ -447,9 +559,15 @@ class _UserCard extends StatelessWidget {
               const SizedBox(width: 8),
               IconButton(
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
-                color: Colors.red,
+                icon: const Icon(Icons.block),
+                color: Colors.orange,
                 tooltip: '계정 비활성화',
+              ),
+              IconButton(
+                onPressed: onHardDelete,
+                icon: const Icon(Icons.delete_forever),
+                color: Colors.red,
+                tooltip: '완전 삭제',
               ),
             ],
           ),

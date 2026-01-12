@@ -9,7 +9,11 @@ import '../../features/auth/presentation/admin_users_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
+import '../../features/settings/presentation/terms_screen.dart';
+import '../../features/settings/presentation/privacy_policy_screen.dart';
+import '../../features/settings/presentation/business_info_screen.dart';
 import '../../features/auth/domain/models/user.dart';
 import '../../features/reservation/presentation/home_screen.dart';
 import '../../features/classroom/presentation/classroom_list_screen.dart';
@@ -76,6 +80,16 @@ GoRouter router(RouterRef ref) {
         path: '/auth/signup',
         name: 'signup',
         builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: '/auth/reset-password',
+        name: 'auth-reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/auth/find-username',
+        name: 'find-username',
+        builder: (context, state) => const FindUsernameScreen(),
       ),
 
       // 메인
@@ -182,6 +196,23 @@ GoRouter router(RouterRef ref) {
             classroom: classroom,
           );
         },
+      ),
+
+      // 설정/법적 문서
+      GoRoute(
+        path: '/settings/terms',
+        name: 'terms',
+        builder: (context, state) => const TermsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        name: 'privacy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/settings/business-info',
+        name: 'business-info',
+        builder: (context, state) => const BusinessInfoScreen(),
       ),
     ],
   );

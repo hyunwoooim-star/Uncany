@@ -85,7 +85,83 @@ ALTER TABLE reservations
 CREATE INDEX IF NOT EXISTS idx_reservations_periods ON reservations USING GIN(periods);
 ```
 
-#### 1.5 handle_new_user 트리거 업데이트
+#### 1.5 referral_codes 테이블 생성 (추천인 코드)
+```sql
+-- 추천인 코드 테이블
+CREATE TABLE IF NOT EXISTS referral_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code VARCHAR(20) UNIQUE NOT NULL,
+  created_by UUID REFERENCES auth.users(id) NOT NULL,
+  school_name TEXT NOT NULL,
+  max_uses INTEGER DEFAULT 5,
+  current_uses INTEGER DEFAULT 0,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- 인덱스
+CREATE INDEX IF NOT EXISTS idx_referral_codes_code ON referral_codes(code);
+CREATE INDEX IF NOT EXISTS idx_referral_codes_created_by ON referral_codes(created_by);
+
+-- RLS 활성화
+ALTER TABLE referral_codes ENABLE ROW LEVEL SECURITY;
+
+-- 인증된 사용자가 코드 조회 가능
+CREATE POLICY "Authenticated users can view referral codes"
+  ON referral_codes FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- 본인 코드만 생성/수정 가능
+CREATE POLICY "Users can manage own referral codes"
+  ON referral_codes FOR ALL
+  TO authenticated
+  USING (created_by = auth.uid())
+  WITH CHECK (created_by = auth.uid());
+
+-- 추천인 코드 사용 기록 테이블
+CREATE TABLE IF NOT EXISTS referral_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  referral_code_id UUID REFERENCES referral_codes(id) NOT NULL,
+  used_by UUID REFERENCES auth.users(id) NOT NULL,
+  used_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(used_by)  -- 한 사용자는 한 번만 추천인 코드 사용 가능
+);
+
+-- 인덱스
+CREATE INDEX IF NOT EXISTS idx_referral_usage_code ON referral_usage(referral_code_id);
+CREATE INDEX IF NOT EXISTS idx_referral_usage_user ON referral_usage(used_by);
+
+-- RLS 활성화
+ALTER TABLE referral_usage ENABLE ROW LEVEL SECURITY;
+
+-- 인증된 사용자가 사용 기록 생성/조회 가능
+CREATE POLICY "Authenticated users can view referral usage"
+  ON referral_usage FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can insert referral usage"
+  ON referral_usage FOR INSERT
+  TO authenticated
+  WITH CHECK (used_by = auth.uid());
+
+-- 추천인 코드 사용 횟수 증가 함수
+CREATE OR REPLACE FUNCTION increment_referral_uses(code_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE referral_codes
+  SET current_uses = current_uses + 1
+  WHERE id = code_id;
+END;
+$$;
+```
+
+#### 1.6 handle_new_user 트리거 업데이트
 ```sql
 -- 기존 트리거 삭제
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -191,6 +267,15 @@ INSERT INTO schools (code, name, address, office_code) VALUES
 3. **초등학교 데이터 캐싱**
    - 전국 초등학교 목록 schools 테이블에 저장
    - API 호출 횟수 절약
+
+4. **비밀번호 재설정 Redirect URL 설정**
+   - Supabase Dashboard → Authentication → URL Configuration
+   - **Redirect URLs**에 다음 추가:
+     - `https://your-domain.com/reset-password` (웹)
+     - `uncany://reset-password` (앱 Deep Link)
+   - 앱 Deep Link 설정:
+     - Android: `android/app/src/main/AndroidManifest.xml`에 intent-filter 추가
+     - iOS: `ios/Runner/Info.plist`에 URL scheme 추가
 
 ---
 
