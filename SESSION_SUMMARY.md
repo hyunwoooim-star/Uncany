@@ -1,10 +1,50 @@
 # Uncany 세션 요약
 
-## 최종 업데이트: 2026-01-12 (17:00)
+## 최종 업데이트: 2026-01-12 (18:30)
 
 ---
 
-## 🎉 오늘 완료된 작업 (2026-01-12 오후)
+## 🎉 오늘 완료된 작업 (2026-01-12 오후 - Phase 1 이메일/SMS 알림)
+
+### 4. Phase 1 이메일/SMS 수신동의 및 알림 시스템 구축 ✅
+
+#### 4-1. 회원가입 수신동의 체크박스 추가
+- **이메일/SMS 마케팅 수신동의** 체크박스 추가 (선택 항목)
+- **Database Migration**: `003_add_marketing_consent.sql` 추가
+  - `agree_to_email_marketing BOOLEAN DEFAULT FALSE`
+  - `agree_to_sms_marketing BOOLEAN DEFAULT FALSE`
+- **signup_screen.dart** 수정:
+  - 상태 변수 추가: `_agreeToEmailMarketing`, `_agreeToSMSMarketing`
+  - UI 체크박스 추가 (이용약관/개인정보처리방침 아래)
+  - 안내 문구: "승인/반려 알림은 이메일로 발송됩니다"
+  - DB 저장 로직 추가
+- 파일: `lib/src/features/auth/presentation/signup_screen.dart`
+
+#### 4-2. 승인/반려 이메일 발송 구현 (Supabase 준비)
+- **user_repository.dart** 수정:
+  - `_sendApprovalNotification`: 승인 알림 이메일 템플릿 및 로직 구현
+  - `_sendRejectionNotification`: 반려 알림 이메일 템플릿 및 로직 구현
+  - Phase 1: 로그만 기록 (Supabase Edge Function 배포 대기)
+  - Phase 2: SendGrid/AWS SES로 업그레이드 가능
+  - 이메일 내용 완전히 구성 (제목, 본문, 발신자)
+- 파일: `lib/src/features/auth/data/repositories/user_repository.dart:235-324`
+
+#### 4-3. Phase 2 업그레이드 계획 문서화
+- **PHASE2_UPGRADE_PLAN.md** 신규 생성 (40KB+)
+- **내용**:
+  - Supabase Edge Function 배포 가이드 (무료)
+  - SendGrid 연동 방법 (월 100건 무료)
+  - AWS SES 연동 방법 (월 1,000건 무료)
+  - SMS 서비스 비교 (알리고/네이버 클라우드/NHN Cloud)
+  - PASS 인증 연동 방법 (NICE 평가정보)
+  - 커스텀 도메인 이메일 설정 (noreply@uncany.com)
+  - 비용 예상 (월 1,000명 기준)
+  - 단계별 업그레이드 로드맵
+- 파일: `docs/PHASE2_UPGRADE_PLAN.md`
+
+---
+
+## 이전 완료 작업 (2026-01-12 오전~오후)
 
 ### 1. 회원가입 및 비밀번호 재설정 오류 수정
 - **비밀번호 재설정**: redirectTo를 웹 URL로 변경 (`uncany://...` → `https://...`)

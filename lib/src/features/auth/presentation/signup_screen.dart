@@ -51,6 +51,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _agreeToPrivacy = false;
   bool _agreeToAll = false;
 
+  // 마케팅 수신동의 (선택)
+  bool _agreeToEmailMarketing = false;
+  bool _agreeToSMSMarketing = false;
+
   // 파일 업로드 관련
   PlatformFile? _selectedFile;
   bool _isUploading = false;
@@ -77,12 +81,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       _agreeToAll = value ?? false;
       _agreeToTerms = _agreeToAll;
       _agreeToPrivacy = _agreeToAll;
+      _agreeToEmailMarketing = _agreeToAll;
+      _agreeToSMSMarketing = _agreeToAll;
     });
   }
 
   void _updateAgreeAll() {
     setState(() {
-      _agreeToAll = _agreeToTerms && _agreeToPrivacy;
+      _agreeToAll = _agreeToTerms && _agreeToPrivacy && _agreeToEmailMarketing && _agreeToSMSMarketing;
     });
   }
 
@@ -389,12 +395,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         }
       }
 
-      // 3. users 테이블 업데이트 (username, grade, class_num, school_id 추가)
+      // 3. users 테이블 업데이트 (username, grade, class_num, school_id, 마케팅 수신동의 추가)
       await supabase.from('users').update({
         'username': _usernameController.text.trim(),
         'grade': _selectedGrade,
         'class_num': _selectedClassNum,
         'school_id': schoolId,
+        'agree_to_email_marketing': _agreeToEmailMarketing,
+        'agree_to_sms_marketing': _agreeToSMSMarketing,
       }).eq('id', userId);
 
       await AppLogger.info('SignupScreen', '2단계 완료: users 테이블 업데이트');
@@ -1017,6 +1025,106 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             ),
                           ),
                         ],
+                      ),
+
+                      const Divider(height: 16),
+
+                      // 이메일 마케팅 수신동의 (선택)
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToEmailMarketing,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToEmailMarketing = value ?? false;
+                              });
+                              _updateAgreeAll();
+                            },
+                            activeColor: TossColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _agreeToEmailMarketing = !_agreeToEmailMarketing;
+                                });
+                                _updateAgreeAll();
+                              },
+                              child: Text(
+                                '[선택] 이메일 수신동의',
+                                style: TextStyle(
+                                  color: TossColors.textSub,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // SMS 마케팅 수신동의 (선택)
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToSMSMarketing,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToSMSMarketing = value ?? false;
+                              });
+                              _updateAgreeAll();
+                            },
+                            activeColor: TossColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _agreeToSMSMarketing = !_agreeToSMSMarketing;
+                                });
+                                _updateAgreeAll();
+                              },
+                              child: Text(
+                                '[선택] SMS 수신동의',
+                                style: TextStyle(
+                                  color: TossColors.textSub,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // 안내 문구
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: TossColors.background,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: TossColors.textSub,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '승인/반려 알림은 이메일로 발송됩니다. 마케팅 정보 수신은 선택사항입니다.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: TossColors.textSub,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

@@ -233,12 +233,13 @@ class UserRepository {
   }
 
   // =========================================
-  // 알림 발송 (Phase 3 - 추후 구현)
+  // 알림 발송 (Phase 1 - Supabase 기본 이메일)
   // =========================================
 
   /// 승인 알림 발송
   ///
-  /// TODO: Supabase Edge Function 또는 외부 이메일 서비스 연동
+  /// Phase 1: 로그만 기록 (Supabase Edge Function 배포 필요)
+  /// Phase 2: SendGrid/AWS SES로 업그레이드 가능
   Future<void> _sendApprovalNotification(
     String userId,
     String? email,
@@ -247,13 +248,32 @@ class UserRepository {
     if (email == null) return;
 
     try {
-      await AppLogger.info('UserRepository', '승인 알림 발송 (미구현)', {
-        'userId': userId,
-        'email': email,
-        'name': name,
-      });
-      // TODO: 실제 이메일 발송 구현
-      // 예: SendGrid, AWS SES, Supabase Edge Function 등
+      // Phase 1: 이메일 발송 준비 완료 (Edge Function 배포 대기)
+      final emailData = {
+        'to': email,
+        'subject': '[Uncany] 회원가입 승인 완료',
+        'name': name ?? '선생님',
+        'template': 'approval',
+        'body': '''
+안녕하세요, $name님!
+
+Uncany 회원가입이 승인되었습니다.
+이제 학교 교실 예약 서비스를 자유롭게 이용하실 수 있습니다.
+
+로그인: https://uncany.web.app/auth/login
+
+감사합니다.
+Uncany 팀
+''',
+      };
+
+      await AppLogger.info('UserRepository', '[이메일 발송 대기] 승인 알림', emailData);
+
+      // TODO: Supabase Edge Function 배포 후 활성화
+      // await _supabase.functions.invoke('send-email', body: emailData);
+
+      // 또는 SendGrid/AWS SES 사용 시:
+      // await _sendEmailViaSendGrid(emailData);
     } catch (e, stack) {
       // 알림 발송 실패는 로그만 남기고 에러를 던지지 않음
       AppLogger.error('UserRepository._sendApprovalNotification', e, stack);
@@ -262,7 +282,8 @@ class UserRepository {
 
   /// 반려 알림 발송
   ///
-  /// TODO: Supabase Edge Function 또는 외부 이메일 서비스 연동
+  /// Phase 1: 로그만 기록 (Supabase Edge Function 배포 필요)
+  /// Phase 2: SendGrid/AWS SES로 업그레이드 가능
   Future<void> _sendRejectionNotification(
     String userId,
     String? email,
@@ -272,14 +293,34 @@ class UserRepository {
     if (email == null) return;
 
     try {
-      await AppLogger.info('UserRepository', '반려 알림 발송 (미구현)', {
-        'userId': userId,
-        'email': email,
-        'name': name,
+      // Phase 1: 이메일 발송 준비 완료 (Edge Function 배포 대기)
+      final emailData = {
+        'to': email,
+        'subject': '[Uncany] 회원가입 반려 안내',
+        'name': name ?? '선생님',
+        'template': 'rejection',
         'reason': reason,
-      });
-      // TODO: 실제 이메일 발송 구현
-      // 예: SendGrid, AWS SES, Supabase Edge Function 등
+        'body': '''
+안녕하세요, $name님.
+
+Uncany 회원가입이 반려되었습니다.
+
+반려 사유: $reason
+
+궁금하신 사항은 contact@uncany.com으로 문의해주세요.
+
+감사합니다.
+Uncany 팀
+''',
+      };
+
+      await AppLogger.info('UserRepository', '[이메일 발송 대기] 반려 알림', emailData);
+
+      // TODO: Supabase Edge Function 배포 후 활성화
+      // await _supabase.functions.invoke('send-email', body: emailData);
+
+      // 또는 SendGrid/AWS SES 사용 시:
+      // await _sendEmailViaSendGrid(emailData);
     } catch (e, stack) {
       // 알림 발송 실패는 로그만 남기고 에러를 던지지 않음
       AppLogger.error('UserRepository._sendRejectionNotification', e, stack);
