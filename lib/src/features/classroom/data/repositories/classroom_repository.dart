@@ -15,10 +15,14 @@ class ClassroomRepository {
 
   ClassroomRepository(this._supabase);
 
-  /// 교실 목록 조회
+  /// 교실 목록 조회 (학교별 필터링)
   ///
   /// [activeOnly]가 true면 deleted_at이 null이고 is_active가 true인 교실만 조회
-  Future<List<Classroom>> getClassrooms({bool activeOnly = true}) async {
+  /// [schoolId]를 제공하면 해당 학교의 교실만 조회
+  Future<List<Classroom>> getClassrooms({
+    bool activeOnly = true,
+    String? schoolId,
+  }) async {
     try {
       dynamic query = _supabase.from('classrooms').select();
 
@@ -28,12 +32,22 @@ class ClassroomRepository {
             .eq('is_active', true);
       }
 
+      // 학교별 필터링 (같은 학교 교실만 보기)
+      if (schoolId != null) {
+        query = query.eq('school_id', schoolId);
+      }
+
       // 이름순 정렬
       query = query.order('name', ascending: true);
 
       final response = await query;
 
-      return (response as List)
+      await AppLogger.info('ClassroomRepository', '교실 목록 조회', {
+        'schoolId': schoolId,
+        'count': (response as List).length,
+      });
+
+      return response
           .map((json) => Classroom.fromJson(json as Map<String, dynamic>))
           .toList();
     } on PostgrestException catch (e) {
@@ -65,6 +79,7 @@ class ClassroomRepository {
   /// 교실 생성 (모든 선생님 가능)
   ///
   /// [accessCode]를 제공하면 SHA-256 해시로 저장
+  /// [schoolId]를 제공하면 해당 학교의 교실로 생성
   Future<Classroom> createClassroom({
     required String name,
     String? accessCode,
@@ -72,6 +87,7 @@ class ClassroomRepository {
     int? capacity,
     String? location,
     String? roomType,
+    String? schoolId,
   }) async {
     try {
       final session = _supabase.auth.currentSession;
@@ -94,6 +110,7 @@ class ClassroomRepository {
         'is_active': true,
         'room_type': roomType ?? 'other',
         'created_by': session.user.id,
+        'school_id': schoolId, // 학교별 분리
       };
 
       final response = await _supabase

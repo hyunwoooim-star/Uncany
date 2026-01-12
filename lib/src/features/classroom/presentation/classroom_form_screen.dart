@@ -7,6 +7,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/constants/period_times.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
 
 /// 교실 등록/수정 폼 화면 (v0.2)
 ///
@@ -74,6 +75,10 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
     });
 
     try {
+      // 현재 사용자의 school_id 가져오기
+      final currentUser = ref.read(currentUserProvider).value;
+      final schoolId = currentUser?.schoolId;
+
       final repository = ref.read(classroomRepositoryProvider);
       final name = _nameController.text.trim();
       final accessCode = _accessCodeController.text.trim();
@@ -82,7 +87,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
       final location = _locationController.text.trim();
 
       if (widget.classroom == null) {
-        // 생성
+        // 생성 (같은 학교의 교실로 생성)
         await repository.createClassroom(
           name: name,
           accessCode: accessCode.isEmpty ? null : accessCode,
@@ -90,6 +95,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
           capacity: capacity,
           location: location.isEmpty ? null : location,
           roomType: _selectedRoomType.code,
+          schoolId: schoolId,
         );
       } else {
         // 수정

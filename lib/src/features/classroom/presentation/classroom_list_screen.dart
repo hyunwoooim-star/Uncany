@@ -11,6 +11,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/month_calendar.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
 
 /// 교실 예약 메인 화면 (리디자인)
 ///
@@ -45,8 +46,16 @@ class _ClassroomListScreenState extends ConsumerState<ClassroomListScreen> {
     });
 
     try {
+      // 현재 사용자의 school_id 가져오기
+      final currentUser = ref.read(currentUserProvider).value;
+      final schoolId = currentUser?.schoolId;
+
       final repository = ref.read(classroomRepositoryProvider);
-      final classrooms = await repository.getClassrooms(activeOnly: true);
+      // 같은 학교의 교실만 조회 (학교별 분리)
+      final classrooms = await repository.getClassrooms(
+        activeOnly: true,
+        schoolId: schoolId,
+      );
 
       setState(() {
         _classrooms = classrooms;
