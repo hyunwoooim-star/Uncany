@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/services/app_logger.dart';
+import 'package:uncany/src/core/config/env.dart';
 
 /// 인증 관련 Repository
 ///
@@ -91,11 +93,18 @@ class AuthRepository {
   /// 비밀번호 재설정 이메일 발송
   ///
   /// Supabase가 자동으로 비밀번호 재설정 링크를 이메일로 전송
+  /// - Web: HTTP/HTTPS URL 사용
+  /// - Mobile: Deep Link 사용
   Future<void> resetPassword(String email) async {
     try {
+      // 플랫폼에 따라 다른 redirectTo URL 사용
+      final redirectTo = kIsWeb
+          ? '${Env.webBaseUrl}/reset-password' // Web: HTTP/HTTPS URL
+          : 'uncany://reset-password'; // Mobile: Deep Link
+
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'uncany://reset-password', // Deep Link
+        redirectTo: redirectTo,
       );
     } on AuthException catch (e, stack) {
       AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});

@@ -20,6 +20,12 @@ class Env {
     defaultValue: 'development',
   );
 
+  /// Web 앱 Base URL (비밀번호 재설정 등 redirect에 사용)
+  static const String webBaseUrl = String.fromEnvironment(
+    'WEB_BASE_URL',
+    defaultValue: 'http://localhost:53104', // 로컬 개발용
+  );
+
   /// 개발 환경인지 확인
   static bool get isDevelopment => environment == 'development';
 
