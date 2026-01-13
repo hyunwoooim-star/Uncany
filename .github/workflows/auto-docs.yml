@@ -67,7 +67,9 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add PROJECT_PLAN.md docs/
+          # PROJECT_PLAN.md가 있으면 추가, 없으면 무시
+          [ -f PROJECT_PLAN.md ] && git add PROJECT_PLAN.md || true
+          git add docs/
 
           if git diff --staged --quiet; then
             echo "No documentation changes to commit"

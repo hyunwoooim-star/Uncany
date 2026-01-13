@@ -15,6 +15,7 @@
 - 법적 문서 (이용약관, 개인정보처리방침, 사업자 정보)
 - 아이디 찾기/비밀번호 찾기
 - **학교 검색 (NEIS API 연동)**
+- **승인 대기 온보딩 화면 (토스 스타일)**
 
 ### 오늘 완료된 작업 (2026-01-13)
 
@@ -35,6 +36,12 @@
 - 학교 샘플 데이터 35개로 확장
 - widget_test.dart 삭제 (테스트 실패 해결)
 - Auto Documentation workflow 수정
+
+#### 승인 대기 온보딩 (PR #9)
+- `PendingApprovalScreen` 신규 생성 (토스 스타일)
+- 라우터에 승인 대기 상태 체크 및 리다이렉트 로직 추가
+- 회원가입 완료 시 승인 대기 화면으로 자동 이동
+- 새로고침으로 승인 상태 확인 가능
 
 ---
 
@@ -97,12 +104,12 @@ docs/templates/                      # Android/iOS 템플릿
 ## 최근 커밋
 
 ```
+03af40a feat: 승인 대기 온보딩 화면 추가 (토스 스타일)
 806733e fix: Auto Documentation workflow - PROJECT_PLAN.md 없어도 실패 안 함
 1b34669 fix: NEIS API 키 환경변수 연동 복원
 e5e9437 feat: 실제 로고 이미지 적용 (Uncany.png)
 e3bf70e fix: 학교 샘플 데이터 확장 (35개 학교 추가)
 fc1dac5 test: 불필요한 widget_test.dart 삭제
-70c4416 feat: Android/iOS 플랫폼 추가 및 모바일 설정 완료
 ```
 
 ---
