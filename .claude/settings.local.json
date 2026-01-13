@@ -12,7 +12,11 @@
       "Bash(flutter pub get:*)",
       "Bash(flutter create:*)",
       "Bash(flutter build:*)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(git fetch:*)",
+      "Bash(cat:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
