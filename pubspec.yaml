@@ -29,6 +29,8 @@ dependencies:
   # UI/UX
   flutter_animate: ^4.5.0
   google_fonts: ^6.1.0
+  shimmer: ^3.0.0
+  flutter_staggered_animations: ^1.1.1
 
   # 유틸리티
   intl: ^0.20.2
@@ -66,28 +68,30 @@ dev_dependencies:
   flutter_native_splash: ^2.3.10   # 스플래시 화면 자동 생성
 
 # ====================================
-# 앱 아이콘 설정
+# 앱 아이콘 설정 (토스 스타일)
 # ====================================
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/logo_foreground.png"
-  # 실행: flutter pub run flutter_launcher_icons
+  image_path: "assets/images/Uncany.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#3182F6"  # 토스 블루
+  adaptive_icon_foreground: "assets/images/Uncany.png"
+  # 실행: dart run flutter_launcher_icons
 
 # ====================================
-# 스플래시 화면 설정
+# 스플래시 화면 설정 (토스 스타일)
 # ====================================
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/images/splash_logo.png
+  color: "#3182F6"  # 토스 블루
+  image: assets/images/Uncany.png
   android_12:
-    image: assets/images/splash_logo.png
-    color: "#FFFFFF"
+    image: assets/images/Uncany.png
+    color: "#3182F6"
   ios: true
   android: true
-  # 실행: flutter pub run flutter_native_splash:create
+  web: true
+  # 실행: dart run flutter_native_splash:create
 
 flutter:
   uses-material-design: true
@@ -95,6 +99,5 @@ flutter:
   # 폰트는 google_fonts 사용
 
   assets:
-    - assets/images/logo.png
-    - assets/images/logo_foreground.png
-    - assets/images/splash_logo.png
+    - assets/images/
+    - assets/images/Uncany.png

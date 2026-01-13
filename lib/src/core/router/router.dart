@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'toss_page_transition.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
@@ -137,19 +139,31 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const HomeScreen(),
+        pageBuilder: (context, state) => buildTossTransitionPage(
+          context: context,
+          state: state,
+          child: const HomeScreen(),
+        ),
       ),
 
       // 프로필
       GoRoute(
         path: '/profile',
         name: 'profile',
-        builder: (context, state) => const ProfileScreen(),
+        pageBuilder: (context, state) => buildTossTransitionPage(
+          context: context,
+          state: state,
+          child: const ProfileScreen(),
+        ),
       ),
       GoRoute(
         path: '/profile/edit',
         name: 'profile-edit',
-        builder: (context, state) => const EditProfileScreen(),
+        pageBuilder: (context, state) => buildTossSlideUpTransitionPage(
+          context: context,
+          state: state,
+          child: const EditProfileScreen(),
+        ),
       ),
       GoRoute(
         path: '/profile/reset-password',
@@ -196,19 +210,31 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: '/classrooms',
         name: 'classrooms',
-        builder: (context, state) => const ClassroomListScreen(),
+        pageBuilder: (context, state) => buildTossTransitionPage(
+          context: context,
+          state: state,
+          child: const ClassroomListScreen(),
+        ),
       ),
       GoRoute(
         path: '/classrooms/create',
         name: 'classroom-create',
-        builder: (context, state) => const ClassroomFormScreen(),
+        pageBuilder: (context, state) => buildTossSlideUpTransitionPage(
+          context: context,
+          state: state,
+          child: const ClassroomFormScreen(),
+        ),
       ),
       GoRoute(
         path: '/classrooms/:id',
         name: 'classroom-detail',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id']!;
-          return ClassroomDetailScreen(classroomId: id);
+          return buildTossTransitionPage(
+            context: context,
+            state: state,
+            child: ClassroomDetailScreen(classroomId: id),
+          );
         },
       ),
       GoRoute(
@@ -224,17 +250,25 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: '/reservations/my',
         name: 'my-reservations',
-        builder: (context, state) => const MyReservationsScreen(),
+        pageBuilder: (context, state) => buildTossTransitionPage(
+          context: context,
+          state: state,
+          child: const MyReservationsScreen(),
+        ),
       ),
       GoRoute(
         path: '/reservations/:classroomId',
         name: 'reservation',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final classroomId = state.pathParameters['classroomId']!;
           final classroom = state.extra as Classroom?;
-          return ReservationScreen(
-            classroomId: classroomId,
-            classroom: classroom,
+          return buildTossTransitionPage(
+            context: context,
+            state: state,
+            child: ReservationScreen(
+              classroomId: classroomId,
+              classroom: classroom,
+            ),
           );
         },
       ),
