@@ -150,8 +150,8 @@ GoRouter router(RouterRef ref) {
       ),
       GoRoute(
         path: '/profile/reset-password',
-        name: 'reset-password',
-        builder: (context, state) => const ResetPasswordScreen(),
+        name: 'profile-change-password',
+        builder: (context, state) => const UpdatePasswordScreen(),
       ),
       GoRoute(
         path: '/profile/referral-codes',
