@@ -21,7 +21,8 @@
       "Bash(gh pr merge:*)",
       "Bash(gh pr view:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(gh secret:*)"
     ]
   }
 }

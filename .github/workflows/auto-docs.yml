@@ -36,8 +36,10 @@ jobs:
 
       - name: Update PROJECT_PLAN.md
         run: |
-          # 마지막 업데이트 날짜 갱신
-          sed -i "s/\*\*마지막 업데이트\*\*: .*/\*\*마지막 업데이트\*\*: $(date +%Y-%m-%d)/" PROJECT_PLAN.md
+          # 마지막 업데이트 날짜 갱신 (파일이 있을 때만)
+          if [ -f PROJECT_PLAN.md ]; then
+            sed -i "s/\*\*마지막 업데이트\*\*: .*/\*\*마지막 업데이트\*\*: $(date +%Y-%m-%d)/" PROJECT_PLAN.md
+          fi
 
       - name: Generate daily log
         run: |
