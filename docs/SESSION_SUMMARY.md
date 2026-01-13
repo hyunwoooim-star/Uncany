@@ -1,10 +1,10 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-14 13:00
+## 마지막 업데이트: 2026-01-14 13:30
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.1 (Staging 테스트 진행 중)
+## 프로젝트 현재 상태: ✅ v0.4 (토스 UI 적용 완료)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
@@ -41,23 +41,36 @@
 - [x] 아이디 찾기 RLS 문제 (RPC 함수로 우회)
 - [x] 비밀번호 재설정 Redirect URL 하드코딩 (환경별 동적 URL)
 
+### 토스 스타일 UI 컴포넌트 (PR #15)
+- TossBouncingButton: 터치 시 축소 효과 (0.96 scale)
+- TossSkeleton: Shimmer 로딩 스켈레톤
+- TossAnimatedListView: staggered 리스트 애니메이션
+- GoRouter 토스 스타일 페이지 전환 적용
+- 앱 아이콘/스플래시 토스 블루(#3182F6) 적용
+
 ### 커밋 내역
 ```
+4ad2c5f feat: 토스 스타일 UI 컴포넌트 및 애니메이션 추가
+13d1788 docs: 토스 스타일 UI/UX 폴리싱 가이드 추가
 29e1468 fix: 아이디 찾기/비밀번호 재설정 기능 수정
 4604e6f fix: 승인 상태 확인 버튼 피드백 개선
 5a3618a fix: 학교 선택 - onTapDown으로 포커스 변경 전 즉시 처리
-3266061 fix: 학교 검색 목록 선택 문제 수정
-d435ac0 fix: 학교 검색 결과 선택 버그 수정
 ```
 
 ---
 
 ## 다음에 할 작업
 
-### 즉시 테스트 필요
+### 즉시 테스트 필요 (Staging: https://uncany-staging.web.app)
 1. **아이디 찾기** - RPC 함수 적용 확인
 2. **비밀번호 재설정** - 이메일 발송 및 링크 작동 확인
 3. **회원가입 전체 플로우** - 가입 → 승인 대기 → 승인 후 홈 이동
+4. **토스 애니메이션** - 페이지 전환이 부드러운지 확인
+
+### 토스 UI 추가 적용 가능
+- 기존 화면에 `TossBouncingButton` 적용
+- 로딩 화면에 `TossSkeleton` 적용
+- 리스트에 `TossAnimatedListView` 적용
 
 ### 우선순위 높음
 - Staging 전체 기능 E2E 테스트
@@ -142,3 +155,34 @@ lib/src/features/school/presentation/widgets/school_search_field.dart  # onTapDo
 
 1. **audit_log_screen.dart**: 모의 데이터 사용 중
 2. **Deploy Web Preview**: GitHub 권한 문제 (앱 동작에 영향 없음)
+
+---
+
+## 🌅 내일 새 세션 시작 시 입력할 내용
+
+```
+Uncany 프로젝트 계속 진행합니다.
+
+현재 상태:
+- v0.4 (토스 UI 적용 완료)
+- Staging 배포됨: https://uncany-staging.web.app
+- exciting-margulis 브랜치
+
+오늘 할 일:
+1. Staging에서 테스트
+   - 아이디 찾기
+   - 비밀번호 재설정
+   - 회원가입 플로우
+   - 토스 애니메이션 확인
+
+2. 버그 있으면 수정
+
+3. 토스 UI 기존 화면에 추가 적용
+   - TossBouncingButton
+   - TossSkeleton
+   - TossAnimatedListView
+
+참고 문서:
+- docs/SESSION_SUMMARY.md
+- docs/TOSS_UI_GUIDE.md
+```
