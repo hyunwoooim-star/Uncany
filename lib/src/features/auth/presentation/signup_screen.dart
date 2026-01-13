@@ -430,7 +430,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             backgroundColor: TossColors.primary,
           ),
         );
-        context.go('/home');
+        // 추천인 코드 사용 시 바로 홈, 아니면 승인 대기 화면
+        context.go(_useReferralCode ? '/home' : '/pending-approval');
       }
     } on AuthException catch (e, stack) {
       AppLogger.error('SignupScreen.handleSignup', e, stack, {
