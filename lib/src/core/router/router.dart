@@ -4,11 +4,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
+import '../../features/auth/presentation/onboarding_screen.dart';
+import '../../features/auth/presentation/approval_pending_screen.dart';
+import '../../features/auth/presentation/approval_complete_screen.dart';
 import '../../features/auth/presentation/admin_approvals_screen.dart';
 import '../../features/auth/presentation/admin_users_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/update_password_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
@@ -38,6 +42,11 @@ GoRouter router(RouterRef ref) {
     redirect: (context, state) {
       // 스플래시 화면은 리다이렉트 제외
       if (state.matchedLocation == '/') {
+        return null;
+      }
+
+      // 비밀번호 재설정 화면은 인증 없이 접근 가능
+      if (state.matchedLocation == '/reset-password') {
         return null;
       }
 
@@ -90,6 +99,35 @@ GoRouter router(RouterRef ref) {
         path: '/auth/find-username',
         name: 'find-username',
         builder: (context, state) => const FindUsernameScreen(),
+      ),
+      GoRoute(
+        path: '/auth/onboarding',
+        name: 'onboarding',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return OnboardingScreen(
+            userName: extra?['userName'] ?? '',
+            needsApproval: extra?['needsApproval'] ?? true,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/auth/approval-pending',
+        name: 'approval-pending',
+        builder: (context, state) => const ApprovalPendingScreen(),
+      ),
+      GoRoute(
+        path: '/auth/approval-complete',
+        name: 'approval-complete',
+        builder: (context, state) {
+          final userName = state.extra as String?;
+          return ApprovalCompleteScreen(userName: userName ?? '선생님');
+        },
+      ),
+      GoRoute(
+        path: '/reset-password',
+        name: 'update-password',
+        builder: (context, state) => const UpdatePasswordScreen(),
       ),
 
       // 메인

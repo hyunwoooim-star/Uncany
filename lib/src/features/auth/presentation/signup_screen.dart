@@ -420,17 +420,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _useReferralCode
-                  ? '회원가입이 완료되었습니다!'
-                  : '회원가입이 완료되었습니다. 관리자 승인 후 이용 가능합니다.',
-            ),
-            backgroundColor: TossColors.primary,
-          ),
-        );
-        context.go('/home');
+        // 온보딩 화면으로 이동
+        context.go('/auth/onboarding', extra: {
+          'userName': _nameController.text.trim(),
+          'needsApproval': !_useReferralCode, // 추천인 코드 사용 시 즉시 승인
+        });
       }
     } on AuthException catch (e, stack) {
       AppLogger.error('SignupScreen.handleSignup', e, stack, {
