@@ -54,7 +54,8 @@ class _SchoolSearchFieldState extends ConsumerState<SchoolSearchField> {
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
-      Future.delayed(const Duration(milliseconds: 200), () {
+      // 300ms로 늘려서 탭 이벤트가 먼저 처리되도록 함
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted && !_focusNode.hasFocus) {
           _removeOverlay();
           setState(() => _isSearching = false);
@@ -284,45 +285,48 @@ class _SchoolListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.school,
-              color: TossColors.primary,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    school.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (school.address != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      school.address!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: TossColors.textSub,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                Icons.school,
+                color: TossColors.primary,
+                size: 20,
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      school.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (school.address != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        school.address!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: TossColors.textSub,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

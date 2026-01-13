@@ -22,7 +22,8 @@
       "Bash(gh pr view:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(gh secret:*)"
+      "Bash(gh secret:*)",
+      "Bash(where:*)"
     ]
   }
 }
