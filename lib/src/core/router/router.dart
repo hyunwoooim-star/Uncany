@@ -12,6 +12,7 @@ import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/auth/presentation/reset_password_confirm_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
+import '../../features/auth/presentation/pending_approval_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
 import '../../features/settings/presentation/privacy_policy_screen.dart';
 import '../../features/settings/presentation/business_info_screen.dart';
@@ -57,7 +58,28 @@ GoRouter router(RouterRef ref) {
 
       // 인증된 사용자가 인증 페이지 접근 (비밀번호 재설정 확인 제외)
       if (isAuthenticated && isAuthPage && !isResetPasswordConfirm) {
+        // 승인 대기 상태면 대기 화면으로
+        if (currentUser?.verificationStatus == VerificationStatus.pending) {
+          return '/pending-approval';
+        }
         return '/home';
+      }
+
+      // 승인 대기 상태 체크 (관리자 제외)
+      final isPendingPage = state.matchedLocation == '/pending-approval';
+      if (isAuthenticated && currentUser != null) {
+        final isPending = currentUser.verificationStatus == VerificationStatus.pending;
+        final isAdmin = currentUser.role == UserRole.admin;
+
+        // 승인 대기 중인데 대기 페이지가 아닌 곳으로 가려 할 때 (관리자 제외)
+        if (isPending && !isAdmin && !isPendingPage && !isAuthPage) {
+          return '/pending-approval';
+        }
+
+        // 승인 완료됐는데 대기 페이지에 있을 때
+        if (!isPending && isPendingPage) {
+          return '/home';
+        }
       }
 
       // 관리자 페이지 권한 체크
@@ -102,6 +124,13 @@ GoRouter router(RouterRef ref) {
         path: '/auth/find-username',
         name: 'find-username',
         builder: (context, state) => const FindUsernameScreen(),
+      ),
+
+      // 승인 대기
+      GoRoute(
+        path: '/pending-approval',
+        name: 'pending-approval',
+        builder: (context, state) => const PendingApprovalScreen(),
       ),
 
       // 메인
