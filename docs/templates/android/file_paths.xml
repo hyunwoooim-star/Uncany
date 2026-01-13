@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+====================================
+FileProvider Paths Configuration
+====================================
+목적: image_picker 카메라 촬영 시 임시 파일 저장 경로 정의
+배치 위치: android/app/src/main/res/xml/file_paths.xml
+
+⚠️ 사용 방법:
+1. flutter create --platforms android . 실행
+2. android/app/src/main/res/xml/ 폴더 생성
+3. 이 파일을 file_paths.xml로 저장
+
+작성일: 2026-01-13
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    ====================================
+    카메라 임시 파일 저장 경로
+    ====================================
+    -->
+
+    <!-- 1. 앱 내부 캐시 디렉토리 (권장) -->
+    <!-- 경로: /data/data/com.uncany.uncany/cache/ -->
+    <cache-path name="camera_images" path="camera/"/>
+
+    <!-- 2. 외부 캐시 디렉토리 (SD 카드) -->
+    <!-- 경로: /sdcard/Android/data/com.uncany.uncany/cache/ -->
+    <external-cache-path name="external_camera_images" path="camera/"/>
+
+    <!-- 3. 앱 내부 파일 디렉토리 -->
+    <!-- 경로: /data/data/com.uncany.uncany/files/ -->
+    <files-path name="internal_files" path="."/>
+
+    <!-- 4. 외부 파일 디렉토리 -->
+    <!-- 경로: /sdcard/Android/data/com.uncany.uncany/files/ -->
+    <external-files-path name="external_files" path="."/>
+</paths>
+
+<!--
+====================================
+📝 경로 설명
+====================================
+
+<cache-path>:
+- 앱 내부 캐시 디렉토리
+- 시스템이 자동으로 삭제 가능 (저장 공간 부족 시)
+- 권장: 임시 파일 저장 (카메라 촬영 이미지)
+
+<external-cache-path>:
+- 외부 저장소 캐시 디렉토리
+- SD 카드에 저장
+- 앱 삭제 시 함께 삭제됨
+
+<files-path>:
+- 앱 내부 영구 파일 디렉토리
+- 사용자가 명시적으로 삭제해야 함
+
+<external-files-path>:
+- 외부 저장소 영구 파일 디렉토리
+- 앱 삭제 시 함께 삭제됨
+
+====================================
+🚨 주의사항
+====================================
+
+1. 폴더 생성:
+   - android/app/src/main/res/xml/ 폴더가 없으면 생성
+   - mkdir -p android/app/src/main/res/xml
+
+2. 파일명 고정:
+   - 반드시 file_paths.xml이어야 함
+   - AndroidManifest.xml에서 @xml/file_paths로 참조
+
+3. 권한 필요 없음:
+   - cache-path는 권한 불필요 (앱 내부 저장소)
+   - external-cache-path는 Android 10+에서 권한 불필요
+
+====================================
+🔍 작동 원리
+====================================
+
+1. image_picker가 카메라 실행
+2. 촬영한 사진을 cache/camera/ 폴더에 임시 저장
+3. FileProvider가 URI 생성 (content://)
+4. Flutter 앱이 URI를 통해 이미지 읽기
+5. Supabase에 업로드 후 임시 파일 삭제
+
+최종 업데이트: 2026-01-13
+-->
