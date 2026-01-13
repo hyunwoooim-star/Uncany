@@ -7,6 +7,7 @@ import '../../../shared/theme/toss_colors.dart';
 import '../../../shared/widgets/toss_card.dart';
 import '../../../shared/widgets/responsive_layout.dart';
 import '../data/providers/auth_repository_provider.dart';
+import '../domain/models/user.dart';
 
 /// 승인 대기 안내 화면 (토스 스타일)
 ///
@@ -51,17 +52,109 @@ class PendingApprovalScreen extends ConsumerWidget {
   }
 
   Future<void> _refreshStatus(BuildContext context, WidgetRef ref) async {
+    // 로딩 표시
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('승인 상태 확인 중...'),
+          ],
+        ),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
     // 사용자 정보 새로고침
     ref.invalidate(currentUserProvider);
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('승인 상태를 확인했습니다'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
+    // 새로운 데이터 대기
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!context.mounted) return;
+
+    // 새로운 사용자 정보 확인
+    final userAsync = ref.read(currentUserProvider);
+
+    userAsync.when(
+      data: (user) {
+        if (user == null) return;
+
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        if (user.verificationStatus == VerificationStatus.approved) {
+          // 승인됨 - 홈으로 이동
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('승인되었습니다! 홈으로 이동합니다'),
+                ],
+              ),
+              backgroundColor: TossColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (context.mounted) {
+              context.go('/');
+            }
+          });
+        } else if (user.verificationStatus == VerificationStatus.rejected) {
+          // 반려됨
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.cancel, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text('승인이 반려되었습니다. 관리자에게 문의해주세요'),
+                  ),
+                ],
+              ),
+              backgroundColor: TossColors.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        } else {
+          // 아직 대기 중
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.hourglass_top, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('아직 승인 대기 중입니다'),
+                ],
+              ),
+              backgroundColor: TossColors.warning,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      loading: () {},
+      error: (e, _) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('상태 확인 실패: $e'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      },
+    );
   }
 
   @override

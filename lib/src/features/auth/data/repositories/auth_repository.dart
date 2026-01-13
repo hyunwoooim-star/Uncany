@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/models/user.dart';
@@ -91,12 +92,19 @@ class AuthRepository {
   /// 비밀번호 재설정 이메일 발송
   ///
   /// Supabase가 자동으로 비밀번호 재설정 링크를 이메일로 전송
-  /// Flutter Web에서는 HTTP(S) URL을 사용
+  /// 환경에 따라 적절한 Redirect URL 사용
   Future<void> resetPassword(String email) async {
     try {
+      // 환경에 따라 Redirect URL 결정
+      // kDebugMode: 로컬 개발 환경
+      // Release: Staging/Production 환경
+      final redirectUrl = kDebugMode
+          ? 'http://localhost:3000/auth/reset-password'
+          : 'https://uncany-staging.web.app/auth/reset-password';
+
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'http://localhost:3000/auth/reset-password',
+        redirectTo: redirectUrl,
       );
     } on AuthException catch (e, stack) {
       AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});
