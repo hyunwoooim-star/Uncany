@@ -5,9 +5,13 @@ import 'package:http/http.dart' as http;
 ///
 /// 나이스 교육정보 개방포털 API 또는 공공데이터포털 API 사용
 class SchoolApiService {
-  // TODO: 실제 API 키로 교체 필요
-  // 공공데이터포털 (data.go.kr)에서 "학교기본정보" API 키 발급
-  static const String _apiKey = '';
+  /// 나이스 API 키 (환경변수에서 읽기)
+  ///
+  /// 빌드 시: flutter build web --dart-define=NEIS_API_KEY=your_key
+  static const String _apiKey = String.fromEnvironment(
+    'NEIS_API_KEY',
+    defaultValue: '', // 개발 중에는 Mock 데이터 사용
+  );
   static const String _baseUrl = 'https://open.neis.go.kr/hub/schoolInfo';
 
   /// 학교명으로 검색 (나이스 API)
