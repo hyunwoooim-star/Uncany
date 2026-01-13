@@ -9,6 +9,7 @@ import '../../features/auth/presentation/admin_users_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/reset_password_confirm_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/settings/presentation/terms_screen.dart';
@@ -45,13 +46,17 @@ GoRouter router(RouterRef ref) {
       final isAuthPage = state.matchedLocation.startsWith('/auth');
       final isAdminPage = state.matchedLocation.startsWith('/admin');
 
+      // 비밀번호 재설정 확인 페이지는 type=recovery가 있을 때 인증 없이 접근 허용
+      final isResetPasswordConfirm = state.matchedLocation == '/auth/reset-password'
+          && state.uri.queryParameters['type'] == 'recovery';
+
       // 미인증 사용자
       if (!isAuthenticated && !isAuthPage) {
         return '/auth/login';
       }
 
-      // 인증된 사용자가 인증 페이지 접근
-      if (isAuthenticated && isAuthPage) {
+      // 인증된 사용자가 인증 페이지 접근 (비밀번호 재설정 확인 제외)
+      if (isAuthenticated && isAuthPage && !isResetPasswordConfirm) {
         return '/home';
       }
 
@@ -84,7 +89,14 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: '/auth/reset-password',
         name: 'auth-reset-password',
-        builder: (context, state) => const ResetPasswordScreen(),
+        builder: (context, state) {
+          // URL에 type=recovery가 있으면 확인 화면, 없으면 이메일 입력 화면
+          final type = state.uri.queryParameters['type'];
+          if (type == 'recovery') {
+            return const ResetPasswordConfirmScreen();
+          }
+          return const ResetPasswordScreen();
+        },
       ),
       GoRoute(
         path: '/auth/find-username',

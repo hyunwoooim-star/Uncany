@@ -91,11 +91,12 @@ class AuthRepository {
   /// 비밀번호 재설정 이메일 발송
   ///
   /// Supabase가 자동으로 비밀번호 재설정 링크를 이메일로 전송
+  /// Flutter Web에서는 HTTP(S) URL을 사용
   Future<void> resetPassword(String email) async {
     try {
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'uncany://reset-password', // Deep Link
+        redirectTo: 'http://localhost:3000/auth/reset-password',
       );
     } on AuthException catch (e, stack) {
       AppLogger.error('AuthRepository.resetPassword', e, stack, {'email': email});
