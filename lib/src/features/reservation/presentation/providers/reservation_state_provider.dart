@@ -7,22 +7,26 @@ part 'reservation_state_provider.g.dart';
 
 /// 예약 정보 상태 (특정 교실, 특정 날짜)
 class ReservationState {
+  final String classroomId; // ✅ Gemini 피드백: instance variable에서 state로 이동
   final Map<int, Reservation> reservedPeriods;
   final Set<int> selectedPeriods;
   final DateTime selectedDate;
 
   const ReservationState({
+    required this.classroomId,
     required this.reservedPeriods,
     required this.selectedPeriods,
     required this.selectedDate,
   });
 
   ReservationState copyWith({
+    String? classroomId,
     Map<int, Reservation>? reservedPeriods,
     Set<int>? selectedPeriods,
     DateTime? selectedDate,
   }) {
     return ReservationState(
+      classroomId: classroomId ?? this.classroomId,
       reservedPeriods: reservedPeriods ?? this.reservedPeriods,
       selectedPeriods: selectedPeriods ?? this.selectedPeriods,
       selectedDate: selectedDate ?? this.selectedDate,
@@ -33,19 +37,18 @@ class ReservationState {
 /// 예약 화면 상태 관리 Notifier
 ///
 /// Riverpod 2.0 스타일 (AsyncNotifier 사용)
+/// ✅ Gemini 피드백 반영: classroomId를 state에 저장하여 Hot Reload 안전성 확보
 @riverpod
 class ReservationScreenNotifier extends _$ReservationScreenNotifier {
-  String? _classroomId;
-
   @override
   Future<ReservationState> build({required String classroomId}) async {
-    _classroomId = classroomId;
     final today = DateTime.now();
 
     // 초기 예약 정보 로드
-    final reservedMap = await _loadReservations(today);
+    final reservedMap = await _loadReservations(classroomId, today);
 
     return ReservationState(
+      classroomId: classroomId, // ✅ state에 저장
       reservedPeriods: reservedMap,
       selectedPeriods: {},
       selectedDate: today,
@@ -53,17 +56,20 @@ class ReservationScreenNotifier extends _$ReservationScreenNotifier {
   }
 
   /// 예약 정보 로드 (내부 헬퍼)
-  Future<Map<int, Reservation>> _loadReservations(DateTime date) async {
+  Future<Map<int, Reservation>> _loadReservations(
+    String classroomId,
+    DateTime date,
+  ) async {
     final repository = ref.read(reservationRepositoryProvider);
-    return await repository.getReservedPeriodsMap(_classroomId!, date);
+    return await repository.getReservedPeriodsMap(classroomId, date);
   }
 
   /// 날짜 변경
   Future<void> selectDate(DateTime date) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final reservedMap = await _loadReservations(date);
       final current = await future;
+      final reservedMap = await _loadReservations(current.classroomId, date);
       return current.copyWith(
         selectedDate: date,
         reservedPeriods: reservedMap,
@@ -101,7 +107,7 @@ class ReservationScreenNotifier extends _$ReservationScreenNotifier {
 
     final repository = ref.read(reservationRepositoryProvider);
     await repository.createReservation(
-      classroomId: _classroomId!,
+      classroomId: current.classroomId, // ✅ state에서 읽기
       date: current.selectedDate,
       periods: current.selectedPeriods.toList(),
     );
