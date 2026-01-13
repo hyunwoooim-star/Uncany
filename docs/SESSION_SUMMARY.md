@@ -1,10 +1,10 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-13 23:30
+## 마지막 업데이트: 2026-01-14 13:00
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3 (모바일 배포 준비 완료)
+## 프로젝트 현재 상태: ✅ v0.3.1 (Staging 테스트 진행 중)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
@@ -17,31 +17,84 @@
 - **학교 검색 (NEIS API 연동)**
 - **승인 대기 온보딩 화면 (토스 스타일)**
 
-### 오늘 완료된 작업 (2026-01-13)
+---
 
-#### 브랜치 정리
-- musing-thompson → exciting-margulis 머지
-- exciting-margulis → main 머지 (PR #2~#7)
-- 문서 최신화 및 중복 파일 정리
+## 오늘 완료된 작업 (2026-01-14)
 
-#### 모바일 플랫폼 추가
-- `flutter create --platforms android,ios .` 완료
-- AndroidManifest.xml 템플릿 적용
-- Info.plist 병합 (권한 설명, 딥링크, ATS 설정)
-- PrivacyInfo.xcprivacy 복사
-- 실제 로고 이미지 적용 (Uncany.png)
+### Supabase 수동 설정 완료
+- [x] Edge Functions 배포 (Dashboard에서 직접)
+  - `neis-api`: NEIS 학교 검색 API 프록시
+  - `delete-account`: 회원 탈퇴 처리
+- [x] NEIS_API_KEY 시크릿 설정
+- [x] Storage 버킷 (`verification-documents`) 확인
+- [x] Redirect URL 화이트리스트 추가
+  - `http://localhost:3000/auth/reset-password`
+  - `https://uncany-staging.web.app/auth/reset-password`
+  - `https://uncany-staging.web.app/reset-password`
+- [x] RPC 함수 생성 (`get_username_by_email`)
+- [x] 회원가입 트리거 생성 (`handle_new_user`)
 
-#### 버그 수정
-- NEIS API 키 환경변수 연동 복원
-- 학교 샘플 데이터 35개로 확장
-- widget_test.dart 삭제 (테스트 실패 해결)
-- Auto Documentation workflow 수정
+### 버그 수정
+- [x] 학교 검색 드롭다운 선택 안 되는 문제 (`onTapDown` 사용)
+- [x] 회원가입 후 "사용자 정보를 불러올 수 없습니다" 오류 (DB 트리거로 해결)
+- [x] 승인 상태 확인 버튼 피드백 없음 (상태별 스낵바 추가)
+- [x] 아이디 찾기 RLS 문제 (RPC 함수로 우회)
+- [x] 비밀번호 재설정 Redirect URL 하드코딩 (환경별 동적 URL)
 
-#### 승인 대기 온보딩 (PR #9)
-- `PendingApprovalScreen` 신규 생성 (토스 스타일)
-- 라우터에 승인 대기 상태 체크 및 리다이렉트 로직 추가
-- 회원가입 완료 시 승인 대기 화면으로 자동 이동
-- 새로고침으로 승인 상태 확인 가능
+### 커밋 내역
+```
+29e1468 fix: 아이디 찾기/비밀번호 재설정 기능 수정
+4604e6f fix: 승인 상태 확인 버튼 피드백 개선
+5a3618a fix: 학교 선택 - onTapDown으로 포커스 변경 전 즉시 처리
+3266061 fix: 학교 검색 목록 선택 문제 수정
+d435ac0 fix: 학교 검색 결과 선택 버그 수정
+```
+
+---
+
+## 다음에 할 작업
+
+### 즉시 테스트 필요
+1. **아이디 찾기** - RPC 함수 적용 확인
+2. **비밀번호 재설정** - 이메일 발송 및 링크 작동 확인
+3. **회원가입 전체 플로우** - 가입 → 승인 대기 → 승인 후 홈 이동
+
+### 우선순위 높음
+- Staging 전체 기능 E2E 테스트
+- 관리자 계정으로 사용자 승인 테스트
+
+### 우선순위 중간
+- SHA-1 키 Supabase 등록 (Android Google 로그인)
+- 알림 시스템 (FCM)
+- Production 환경 설정
+
+### 우선순위 낮음
+- 앱스토어 등록 준비
+
+---
+
+## Supabase 설정 현황
+
+### Dashboard에서 완료한 작업
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| Edge Functions | ✅ | neis-api, delete-account |
+| Secrets | ✅ | NEIS_API_KEY |
+| Storage Bucket | ✅ | verification-documents |
+| Redirect URLs | ✅ | localhost + staging |
+| RPC 함수 | ✅ | get_username_by_email |
+| Auth 트리거 | ✅ | handle_new_user |
+
+### 마이그레이션 파일 (참고용)
+```
+supabase/migrations/
+├── 001_initial_schema.sql
+├── 002_schools_and_multitenancy.sql
+├── 003_fix_rls_and_add_periods.sql
+├── 004_production_ready_security.sql
+├── 005_fix_critical_vulnerabilities.sql
+└── 006_auth_helpers.sql  ← NEW (RPC 함수)
+```
 
 ---
 
@@ -50,7 +103,7 @@
 - [x] SUPABASE_URL_STAGING
 - [x] SUPABASE_ANON_KEY_STAGING
 - [x] FIREBASE_SERVICE_ACCOUNT
-- [x] NEIS_API_KEY ✅
+- [x] NEIS_API_KEY
 
 ---
 
@@ -58,35 +111,12 @@
 
 | 환경 | URL | 상태 |
 |------|-----|------|
-| Staging | https://uncany-staging.web.app | ✅ 최신 배포됨 |
+| Staging | https://uncany-staging.web.app | ✅ 배포됨 |
 | Production | - | 미설정 |
 
 ---
 
-## 다음 작업
-
-### 우선순위 높음
-1. Staging에서 전체 기능 테스트
-   - 학교 검색 (NEIS API)
-   - 회원가입 플로우
-   - 예약 기능
-
-### 우선순위 중간
-- Edge Functions 배포 (delete-account, neis-api)
-- SHA-1 키 Supabase 등록 (Android Google 로그인)
-- 알림 시스템 (FCM)
-
-### 우선순위 낮음
-- Production 배포
-- 앱스토어 등록 준비
-
----
-
 ## 개발 환경 참고
-
-### 빌드 방법
-- **권장**: GitHub Actions 사용 (push → main 자동 빌드/배포)
-- **Windows 로컬**: shader compiler 이슈 발생 가능
 
 ### 주요 파일 위치
 ```
@@ -96,20 +126,14 @@ lib/src/features/reservation/        # 예약 관련
 lib/src/features/school/             # 학교 검색 (NEIS API)
 supabase/migrations/                 # DB 마이그레이션
 supabase/functions/                  # Edge Functions
-docs/templates/                      # Android/iOS 템플릿
 ```
 
----
-
-## 최근 커밋
-
+### 오늘 수정된 주요 파일
 ```
-03af40a feat: 승인 대기 온보딩 화면 추가 (토스 스타일)
-806733e fix: Auto Documentation workflow - PROJECT_PLAN.md 없어도 실패 안 함
-1b34669 fix: NEIS API 키 환경변수 연동 복원
-e5e9437 feat: 실제 로고 이미지 적용 (Uncany.png)
-e3bf70e fix: 학교 샘플 데이터 확장 (35개 학교 추가)
-fc1dac5 test: 불필요한 widget_test.dart 삭제
+lib/src/features/auth/presentation/find_username_screen.dart  # RPC 호출
+lib/src/features/auth/data/repositories/auth_repository.dart  # 동적 Redirect URL
+lib/src/features/auth/presentation/pending_approval_screen.dart  # 상태 피드백
+lib/src/features/school/presentation/widgets/school_search_field.dart  # onTapDown
 ```
 
 ---
