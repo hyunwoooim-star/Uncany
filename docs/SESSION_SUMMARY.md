@@ -1,6 +1,6 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-13
+## 마지막 업데이트: 2026-01-13 23:30
 
 ---
 
@@ -14,30 +14,36 @@
 - 관리자 기능 (사용자 승인/반려/삭제)
 - 법적 문서 (이용약관, 개인정보처리방침, 사업자 정보)
 - 아이디 찾기/비밀번호 찾기
+- **학교 검색 (NEIS API 연동)**
 
-### 최근 완료된 작업 (2026-01-13)
+### 오늘 완료된 작업 (2026-01-13)
 
-#### 보안 수정 (프로덕션 레벨)
-- **RLS 정책 전면 재작성**: SELECT/INSERT/UPDATE/DELETE 세분화
-- **Race Condition 해결**: Advisory Lock + Exclusion Constraint
-- **Edge Function JWT 검증**: 가짜 토큰 차단
-- **periods 배열 검증**: 중복 제거, 자동 정렬, 범위 검증
+#### 브랜치 정리
+- musing-thompson → exciting-margulis 머지
+- exciting-margulis → main 머지 (PR #2~#7)
+- 문서 최신화 및 중복 파일 정리
 
-#### 모바일 배포 준비
-- `flutter_localizations` 추가
-- iOS Privacy Manifest 템플릿 생성
-- AndroidManifest.xml 템플릿 생성
-- Info.plist 템플릿 생성
-- SafeArea 가이드 작성
+#### 모바일 플랫폼 추가
+- `flutter create --platforms android,ios .` 완료
+- AndroidManifest.xml 템플릿 적용
+- Info.plist 병합 (권한 설명, 딥링크, ATS 설정)
+- PrivacyInfo.xcprivacy 복사
+- 실제 로고 이미지 적용 (Uncany.png)
+
+#### 버그 수정
+- NEIS API 키 환경변수 연동 복원
+- 학교 샘플 데이터 35개로 확장
+- widget_test.dart 삭제 (테스트 실패 해결)
+- Auto Documentation workflow 수정
 
 ---
 
-## Supabase 설정 완료
+## GitHub Secrets 설정 완료
 
-- [x] DB 마이그레이션 실행 (001~005)
-- [x] referral_codes/referral_usage 테이블
-- [x] 비밀번호 재설정 Redirect URL
-- [x] Edge Functions (delete-account, neis-api)
+- [x] SUPABASE_URL_STAGING
+- [x] SUPABASE_ANON_KEY_STAGING
+- [x] FIREBASE_SERVICE_ACCOUNT
+- [x] NEIS_API_KEY ✅
 
 ---
 
@@ -45,36 +51,34 @@
 
 | 환경 | URL | 상태 |
 |------|-----|------|
-| Staging | https://uncany-staging.web.app | ✅ 배포됨 |
+| Staging | https://uncany-staging.web.app | ✅ 최신 배포됨 |
 | Production | - | 미설정 |
 
 ---
 
-## 다음 세션에서 할 일
+## 다음 작업
 
-### 🔴 우선순위 높음: 모바일 앱 빌드
-1. `flutter create --platforms android,ios .` 실행
-2. 템플릿 파일 복사 (docs/templates/)
-3. 이미지 에셋 준비 (logo.png, splash_logo.png)
-4. SHA-1 키 Supabase에 등록
-5. 빌드 테스트
-
-**참고**: `docs/NEXT_SESSION_COMMANDS.md` 참조
+### 우선순위 높음
+1. Staging에서 전체 기능 테스트
+   - 학교 검색 (NEIS API)
+   - 회원가입 플로우
+   - 예약 기능
 
 ### 우선순위 중간
 - Edge Functions 배포 (delete-account, neis-api)
+- SHA-1 키 Supabase 등록 (Android Google 로그인)
 - 알림 시스템 (FCM)
 
 ### 우선순위 낮음
-- 테스트 코드 추가
 - Production 배포
+- 앱스토어 등록 준비
 
 ---
 
 ## 개발 환경 참고
 
 ### 빌드 방법
-- **권장**: GitHub Actions 사용 (push하면 자동 빌드)
+- **권장**: GitHub Actions 사용 (push → main 자동 빌드/배포)
 - **Windows 로컬**: shader compiler 이슈 발생 가능
 
 ### 주요 파일 위치
@@ -82,7 +86,7 @@
 lib/src/core/router/router.dart       # 라우트 정의
 lib/src/features/auth/               # 인증 관련
 lib/src/features/reservation/        # 예약 관련
-lib/src/features/settings/           # 설정/법적 문서
+lib/src/features/school/             # 학교 검색 (NEIS API)
 supabase/migrations/                 # DB 마이그레이션
 supabase/functions/                  # Edge Functions
 docs/templates/                      # Android/iOS 템플릿
@@ -93,10 +97,12 @@ docs/templates/                      # Android/iOS 템플릿
 ## 최근 커밋
 
 ```
-2c29c3b docs: Git 브랜치 정보 및 Claude 웹 컨텍스트 추가
-b0045b6 feat: 모바일 배포 설정 파일 및 의존성 추가
-26a6570 fix: CRITICAL - Advisory Lock + JWT validation
-160b935 fix: 시니어 개발자 코드 리뷰 피드백 전면 반영
+806733e fix: Auto Documentation workflow - PROJECT_PLAN.md 없어도 실패 안 함
+1b34669 fix: NEIS API 키 환경변수 연동 복원
+e5e9437 feat: 실제 로고 이미지 적용 (Uncany.png)
+e3bf70e fix: 학교 샘플 데이터 확장 (35개 학교 추가)
+fc1dac5 test: 불필요한 widget_test.dart 삭제
+70c4416 feat: Android/iOS 플랫폼 추가 및 모바일 설정 완료
 ```
 
 ---
@@ -104,4 +110,4 @@ b0045b6 feat: 모바일 배포 설정 파일 및 의존성 추가
 ## 알려진 이슈
 
 1. **audit_log_screen.dart**: 모의 데이터 사용 중
-2. **school_api_service.dart**: API 키 미설정 (로컬 데이터로 대체)
+2. **Deploy Web Preview**: GitHub 권한 문제 (앱 동작에 영향 없음)
