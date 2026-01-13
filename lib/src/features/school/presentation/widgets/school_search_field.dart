@@ -285,11 +285,13 @@ class _SchoolListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
+    // GestureDetector의 onTapDown으로 즉시 처리 (포커스 변경 전에)
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => onTap(),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
