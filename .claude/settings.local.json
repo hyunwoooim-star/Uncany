@@ -9,7 +9,10 @@
       "Bash(ls:*)",
       "Bash(git commit:*)",
       "Bash(flutter pub run build_runner build:*)",
-      "Bash(flutter pub get:*)"
+      "Bash(flutter pub get:*)",
+      "Bash(flutter create:*)",
+      "Bash(flutter build:*)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }
