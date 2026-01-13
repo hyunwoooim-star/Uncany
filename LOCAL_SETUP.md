@@ -2,11 +2,24 @@
 
 ## 최신 코드로 업데이트 후 실행하기
 
-### 방법 1: 자동 스크립트 사용 (권장)
+### 방법 1A: Windows PowerShell (권장)
+
+```powershell
+# 1. 프로젝트 디렉토리로 이동
+cd C:\Users\임현우\Uncany
+
+# 2. 최신화 및 설정
+.\local-setup.ps1
+
+# 3. 실행
+.\run-local.ps1
+```
+
+### 방법 1B: WSL/Linux Bash
 
 ```bash
 # 1. 프로젝트 디렉토리로 이동
-cd /home/user/Uncany
+cd /mnt/c/Users/임현우/Uncany
 
 # 2. 최신화 및 설정
 ./local-setup.sh
@@ -15,7 +28,31 @@ cd /home/user/Uncany
 ./run-local.sh
 ```
 
-### 방법 2: 수동 명령어
+### 방법 2A: Windows PowerShell 수동 명령어
+
+```powershell
+# 1. 프로젝트 디렉토리로 이동
+cd C:\Users\임현우\Uncany
+
+# 2. 최신 코드 가져오기
+git fetch origin
+git pull origin claude/load-progress-checkpoint-EzHEV
+
+# 3. 패키지 설치
+flutter pub get
+
+# 4. 코드 생성
+flutter pub run build_runner build --delete-conflicting-outputs
+
+# 5. 실행 (.env 파일이 있어야 함)
+flutter run -d chrome `
+  --dart-define=ENVIRONMENT=development `
+  --dart-define=SUPABASE_URL=$env:SUPABASE_URL `
+  --dart-define=SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY `
+  --dart-define=WEB_BASE_URL=http://localhost:53104
+```
+
+### 방법 2B: WSL/Linux 수동 명령어
 
 ```bash
 # 1. 최신 코드 가져오기
@@ -28,10 +65,7 @@ flutter pub get
 # 3. 코드 생성
 flutter pub run build_runner build --delete-conflicting-outputs
 
-# 4. 코드 분석 (선택)
-flutter analyze lib --no-fatal-infos
-
-# 5. 실행
+# 4. 실행
 flutter run -d chrome \
   --dart-define=ENVIRONMENT=development \
   --dart-define=SUPABASE_URL=$SUPABASE_URL \
@@ -120,13 +154,28 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ---
 
-## WSL 사용자
+## 플랫폼별 가이드
 
-Windows에서 WSL로 실행 시:
+### Windows 사용자
+
+**PowerShell 사용 (권장):**
+```powershell
+cd C:\Users\임현우\Uncany
+.\local-setup.ps1
+.\run-local.ps1
+```
+
+**WSL 사용:**
+```bash
+cd /mnt/c/Users/임현우/Uncany
+./local-setup.sh
+./run-local.sh
+```
+
+### Linux/Mac 사용자
 
 ```bash
-# WSL 터미널에서
-cd /mnt/c/Users/임현우/Uncany
+cd ~/Uncany
 ./local-setup.sh
 ./run-local.sh
 ```
