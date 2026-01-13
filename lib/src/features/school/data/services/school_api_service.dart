@@ -74,21 +74,45 @@ class SchoolApiService {
   /// 샘플 초등학교 데이터 (API 키 없을 때 사용)
   /// 실제 운영 시 공공데이터 API 또는 DB에서 로드
   static final List<SchoolApiResult> _sampleElementarySchools = [
-    SchoolApiResult(name: '나진초등학교', address: '인천광역시 서구', neisCode: 'E100000001', educationOffice: 'incheon'),
-    SchoolApiResult(name: '나비초등학교', address: '서울특별시 강남구', neisCode: 'E100000002', educationOffice: 'seoul'),
-    SchoolApiResult(name: '나래초등학교', address: '경기도 성남시', neisCode: 'E100000003', educationOffice: 'gyeonggi'),
-    SchoolApiResult(name: '구래초등학교', address: '인천광역시 서구', neisCode: 'E100000004', educationOffice: 'incheon'),
-    SchoolApiResult(name: '서울초등학교', address: '서울특별시 중구', neisCode: 'E100000005', educationOffice: 'seoul'),
-    SchoolApiResult(name: '부산초등학교', address: '부산광역시 중구', neisCode: 'E100000006', educationOffice: 'busan'),
-    SchoolApiResult(name: '대구초등학교', address: '대구광역시 중구', neisCode: 'E100000007', educationOffice: 'daegu'),
+    // 인천
+    SchoolApiResult(name: '나진초등학교', address: '인천광역시 서구 나진로 123', neisCode: 'E100000001', educationOffice: 'incheon'),
+    SchoolApiResult(name: '구래초등학교', address: '인천광역시 서구 구래동', neisCode: 'E100000004', educationOffice: 'incheon'),
     SchoolApiResult(name: '인천초등학교', address: '인천광역시 중구', neisCode: 'E100000008', educationOffice: 'incheon'),
+    SchoolApiResult(name: '청라초등학교', address: '인천광역시 서구 청라동', neisCode: 'E100000011', educationOffice: 'incheon'),
+    SchoolApiResult(name: '송도초등학교', address: '인천광역시 연수구 송도동', neisCode: 'E100000012', educationOffice: 'incheon'),
+    SchoolApiResult(name: '연수초등학교', address: '인천광역시 연수구', neisCode: 'E100000020', educationOffice: 'incheon'),
+    SchoolApiResult(name: '부평초등학교', address: '인천광역시 부평구', neisCode: 'E100000021', educationOffice: 'incheon'),
+    SchoolApiResult(name: '계양초등학교', address: '인천광역시 계양구', neisCode: 'E100000022', educationOffice: 'incheon'),
+    SchoolApiResult(name: '남동초등학교', address: '인천광역시 남동구', neisCode: 'E100000023', educationOffice: 'incheon'),
+    // 서울
+    SchoolApiResult(name: '서울초등학교', address: '서울특별시 중구', neisCode: 'E100000005', educationOffice: 'seoul'),
+    SchoolApiResult(name: '강남초등학교', address: '서울특별시 강남구', neisCode: 'E100000013', educationOffice: 'seoul'),
+    SchoolApiResult(name: '나비초등학교', address: '서울특별시 강남구', neisCode: 'E100000002', educationOffice: 'seoul'),
+    SchoolApiResult(name: '서초초등학교', address: '서울특별시 서초구', neisCode: 'E100000024', educationOffice: 'seoul'),
+    SchoolApiResult(name: '송파초등학교', address: '서울특별시 송파구', neisCode: 'E100000025', educationOffice: 'seoul'),
+    SchoolApiResult(name: '마포초등학교', address: '서울특별시 마포구', neisCode: 'E100000026', educationOffice: 'seoul'),
+    SchoolApiResult(name: '영등포초등학교', address: '서울특별시 영등포구', neisCode: 'E100000027', educationOffice: 'seoul'),
+    SchoolApiResult(name: '노원초등학교', address: '서울특별시 노원구', neisCode: 'E100000028', educationOffice: 'seoul'),
+    SchoolApiResult(name: '은평초등학교', address: '서울특별시 은평구', neisCode: 'E100000029', educationOffice: 'seoul'),
+    // 경기
+    SchoolApiResult(name: '나래초등학교', address: '경기도 성남시', neisCode: 'E100000003', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '분당초등학교', address: '경기도 성남시 분당구', neisCode: 'E100000014', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '판교초등학교', address: '경기도 성남시 분당구', neisCode: 'E100000015', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '수원초등학교', address: '경기도 수원시', neisCode: 'E100000030', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '용인초등학교', address: '경기도 용인시', neisCode: 'E100000031', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '고양초등학교', address: '경기도 고양시', neisCode: 'E100000032', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '일산초등학교', address: '경기도 고양시 일산구', neisCode: 'E100000033', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '안양초등학교', address: '경기도 안양시', neisCode: 'E100000034', educationOffice: 'gyeonggi'),
+    SchoolApiResult(name: '부천초등학교', address: '경기도 부천시', neisCode: 'E100000035', educationOffice: 'gyeonggi'),
+    // 부산/대구/광주/대전
+    SchoolApiResult(name: '부산초등학교', address: '부산광역시 중구', neisCode: 'E100000006', educationOffice: 'busan'),
+    SchoolApiResult(name: '해운대초등학교', address: '부산광역시 해운대구', neisCode: 'E100000036', educationOffice: 'busan'),
+    SchoolApiResult(name: '대구초등학교', address: '대구광역시 중구', neisCode: 'E100000007', educationOffice: 'daegu'),
+    SchoolApiResult(name: '수성초등학교', address: '대구광역시 수성구', neisCode: 'E100000037', educationOffice: 'daegu'),
     SchoolApiResult(name: '광주초등학교', address: '광주광역시 동구', neisCode: 'E100000009', educationOffice: 'gwangju'),
     SchoolApiResult(name: '대전초등학교', address: '대전광역시 중구', neisCode: 'E100000010', educationOffice: 'daejeon'),
-    SchoolApiResult(name: '청라초등학교', address: '인천광역시 서구', neisCode: 'E100000011', educationOffice: 'incheon'),
-    SchoolApiResult(name: '송도초등학교', address: '인천광역시 연수구', neisCode: 'E100000012', educationOffice: 'incheon'),
-    SchoolApiResult(name: '강남초등학교', address: '서울특별시 강남구', neisCode: 'E100000013', educationOffice: 'seoul'),
-    SchoolApiResult(name: '분당초등학교', address: '경기도 성남시', neisCode: 'E100000014', educationOffice: 'gyeonggi'),
-    SchoolApiResult(name: '판교초등학교', address: '경기도 성남시', neisCode: 'E100000015', educationOffice: 'gyeonggi'),
+    // 테스트용
+    SchoolApiResult(name: '테스트초등학교', address: '테스트시 테스트구', neisCode: 'E100000099', educationOffice: 'seoul'),
   ];
 }
 
