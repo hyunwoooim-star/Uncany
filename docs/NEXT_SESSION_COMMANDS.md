@@ -2,6 +2,21 @@
 
 **작성일**: 2026-01-13
 **현재 상태**: 코드 100% 완성, 플랫폼 생성 대기 중
+**Git 브랜치**: `musing-thompson` ⭐️ **이 브랜치에서 작업 중!**
+**원격 저장소**: `https://github.com/hyunwoooim-star/Uncany.git`
+
+---
+
+## 🌿 Git 브랜치 정보 (중요!)
+
+### 현재 작업 브랜치
+- **브랜치명**: `musing-thompson`
+- **Worktree 경로**: `C:\Users\임현우\.claude-worktrees\Uncany\musing-thompson`
+- **메인 저장소**: `C:\Users\임현우\Desktop\현우 작업폴더\Uncany`
+
+### 메인 브랜치
+- **브랜치명**: `main`
+- **용도**: Production 배포 브랜치 (PR 머지 후)
 
 ---
 
@@ -13,7 +28,7 @@
 ✅ Info.plist 템플릿 생성
 ✅ file_paths.xml 템플릿 생성
 ✅ SafeArea 가이드 작성
-✅ 모든 문서 커밋 & 푸시 완료
+✅ 모든 문서 커밋 & 푸시 완료 (musing-thompson 브랜치)
 
 ---
 
@@ -24,7 +39,13 @@
 cd /mnt/c/Users/임현우/.claude-worktrees/Uncany/musing-thompson
 ```
 
-### 2. 최신 코드 pull
+### 2. 현재 브랜치 확인 (musing-thompson 여야 함!)
+```bash
+git branch
+# * musing-thompson 이면 OK!
+```
+
+### 3. 최신 코드 pull
 ```bash
 git pull origin musing-thompson
 ```
@@ -193,5 +214,33 @@ cp some_image.png assets/images/splash_logo.png
 
 ---
 
+## 🤖 Claude 웹에게 전달할 컨텍스트
+
+```
+안녕! 이전 세션 이어서 하려고 해.
+
+**프로젝트**: Uncany (Flutter 학교 커뮤니티 플랫폼)
+**Git 브랜치**: musing-thompson (⭐️ 중요!)
+**작업 폴더**: C:\Users\임현우\.claude-worktrees\Uncany\musing-thompson
+**원격 저장소**: https://github.com/hyunwoooim-star/Uncany.git
+
+**현재 상태**:
+- 모바일 배포 준비 코드 100% 완성
+- flutter_localizations, Privacy Manifest, 템플릿 파일 모두 생성됨
+- 커밋 & 푸시 완료 (musing-thompson 브랜치)
+
+**다음 해야 할 작업**:
+1. flutter create --platforms android,ios . 실행
+2. 템플릿 파일 복사 (Android, iOS)
+3. 이미지 에셋 준비
+4. SHA-1 키 등록
+5. 빌드 테스트
+
+**참고 문서**: docs/NEXT_SESSION_COMMANDS.md 보고 순서대로 진행하면 돼!
+```
+
+---
+
 **최종 업데이트**: 2026-01-13
-**다음 세션 시작 명령어**: 위 1번부터 순서대로 실행!
+**Git 브랜치**: musing-thompson ⭐️
+**다음 세션 시작**: 위 1번부터 순서대로 실행!
