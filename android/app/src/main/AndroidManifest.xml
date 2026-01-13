@@ -1,0 +1,196 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    ====================================
+    Android Manifest Template
+    ====================================
+    목적: 모바일 배포를 위한 완전한 AndroidManifest.xml 템플릿
+    배치 위치: android/app/src/main/AndroidManifest.xml
+
+    ⚠️ 사용 방법:
+    1. flutter create --platforms android . 실행
+    2. 이 파일을 android/app/src/main/AndroidManifest.xml에 복사
+    3. ${applicationId} 변수는 자동으로 com.uncany.uncany로 치환됨
+    4. Deep Link 도메인(uncany.app)은 실제 도메인으로 변경
+
+    작성일: 2026-01-13
+    작성자: Claude Sonnet 4.5
+    -->
+
+    <!-- ====================================
+    권한 선언 (Permissions)
+    ==================================== -->
+
+    <!-- 인터넷 필수 (Supabase 통신) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 📸 이미지 선택 권한 (Android 버전별) -->
+    <!-- ⚠️ Gemini 강조: maxSdkVersion으로 버전 분기 필수! -->
+
+    <!-- Android 12 이하 (API 32-): READ_EXTERNAL_STORAGE -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
+    <!-- Android 13 이상 (API 33+): READ_MEDIA_IMAGES -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- 📷 카메라 권한 -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- 📁 파일 쓰기 (Android 10 이하에서만) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <application
+        android:label="Uncany"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+
+        <!-- ====================================
+        MainActivity (Flutter 엔진)
+        ==================================== -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- Specifies an Android theme to apply to this Activity as soon as
+                 the Android process has started. This theme is visible to the user
+                 while the Flutter UI initializes. After that, this theme continues
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
+
+            <!-- ====================================
+            Intent Filter 1: 앱 실행 (Launcher)
+            ==================================== -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- ====================================
+            Intent Filter 2: Deep Link (https)
+            ⚠️ uncany.app 도메인은 실제 배포 도메인으로 변경!
+            ==================================== -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <!-- HTTPS Deep Link -->
+                <data
+                    android:scheme="https"
+                    android:host="uncany.app"/>
+            </intent-filter>
+
+            <!-- ====================================
+            Intent Filter 3: Deep Link (Custom Scheme)
+            ==================================== -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <!-- Custom Scheme: uncany://... -->
+                <data android:scheme="uncany"/>
+            </intent-filter>
+        </activity>
+
+        <!-- ====================================
+        FileProvider (파일 공유)
+        ⚠️ image_picker에서 카메라 촬영 시 필수!
+        ==================================== -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+    </application>
+
+    <!-- ====================================
+    Internet 쿼리 (Android 11+ 필요)
+    ==================================== -->
+    <queries>
+        <!-- 브라우저 실행 (소셜 로그인 시) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+
+        <!-- 이메일 앱 실행 (문의하기 등) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="mailto"/>
+        </intent>
+    </queries>
+</manifest>
+
+<!--
+====================================
+📝 주요 설정 설명
+====================================
+
+1. 권한 설정:
+   - READ_EXTERNAL_STORAGE (maxSdkVersion="32"): Android 12 이하에서만 요청
+   - READ_MEDIA_IMAGES: Android 13 이상에서 요청
+   - CAMERA: 카메라 직접 촬영 시 필요
+   - INTERNET: Supabase API 통신 필수
+
+2. Deep Link 설정:
+   - android:autoVerify="true": Android App Links (자동 앱 열기)
+   - uncany.app: 실제 도메인으로 변경 필요
+   - uncany://: 커스텀 스킴 (fallback)
+
+3. FileProvider:
+   - image_picker에서 카메라 촬영 시 필수
+   - authorities: ${applicationId}.fileprovider (자동 치환)
+   - file_paths.xml 참조 (res/xml/file_paths.xml 필요)
+
+====================================
+🚨 주의사항
+====================================
+
+1. ${applicationId} 변수:
+   - Gradle에서 자동으로 com.uncany.uncany로 치환
+   - 직접 수정하지 말 것!
+
+2. Deep Link 도메인:
+   - uncany.app을 실제 배포 도메인으로 변경
+   - Supabase Dashboard의 Site URL과 일치해야 함
+
+3. FileProvider 주의:
+   - file_paths.xml 파일 필수 (별도 템플릿 참조)
+   - 없으면 카메라 촬영 시 앱 크래시
+
+4. Android 13+ 테스트:
+   - READ_MEDIA_IMAGES 권한이 제대로 요청되는지 확인
+   - maxSdkVersion="32" 설정이 핵심!
+
+====================================
+📖 참고 자료
+====================================
+
+- Android Permissions: https://developer.android.com/guide/topics/permissions/overview
+- Deep Links: https://developer.android.com/training/app-links
+- FileProvider: https://developer.android.com/reference/androidx/core/content/FileProvider
+
+최종 업데이트: 2026-01-13
+-->

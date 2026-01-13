@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+====================================
+iOS Privacy Manifest (PrivacyInfo.xcprivacy)
+====================================
+목적: Apple App Store 제출 필수 요구사항 (2024년 5월 이후)
+배치 위치: ios/Runner/PrivacyInfo.xcprivacy
+
+⚠️ 중요:
+- flutter create --platforms ios . 실행 후 이 파일을 ios/Runner/ 폴더에 복사
+- file_picker, image_picker 사용 시 반드시 필요
+- API 사용 이유를 명확히 선언해야 심사 통과
+
+참고: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+-->
+<plist version="1.0">
+<dict>
+    <!-- ====================================
+    Privacy Tracking Domains
+    ==================================== -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array>
+        <!-- 추적 도메인 없음 (광고/분석 없음) -->
+    </array>
+
+    <!-- ====================================
+    Privacy Tracking Enabled
+    ==================================== -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- ====================================
+    Privacy Collected Data Types
+    ==================================== -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <!-- 1. 이메일 주소 수집 -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeEmailAddress</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- 2. 이름 수집 -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeName</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- 3. 사진 수집 (프로필 이미지, 재직증명서) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- ====================================
+    Privacy Accessed API Types
+    ⚠️ 가장 중요! file_picker/image_picker 사용 이유 선언
+    ==================================== -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- 1. User Defaults API (앱 설정 저장) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- CA92.1: 앱 설정 및 상태 저장 -->
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- 2. File Timestamp API (파일 선택/업로드) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- C617.1: 사용자가 선택한 파일 접근 (file_picker) -->
+                <string>C617.1</string>
+                <!-- 0A2A.1: 앱 내 파일 관리 (image_picker) -->
+                <string>0A2A.1</string>
+            </array>
+        </dict>
+
+        <!-- 3. System Boot Time API (세션 관리) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- 35F9.1: 세션 타이머 측정 -->
+                <string>35F9.1</string>
+            </array>
+        </dict>
+
+        <!-- 4. Disk Space API (스토리지 관리) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- E174.1: 파일 업로드 전 저장 공간 확인 -->
+                <string>E174.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
+
+<!--
+====================================
+📚 API Reason Code 참고
+====================================
+
+User Defaults API (CA92.1):
+- CA92.1: 앱 설정, 상태, 사용자 환경설정 저장
+
+File Timestamp API:
+- C617.1: 사용자가 명시적으로 선택한 파일 접근 ✅ (file_picker 주 사유)
+- 0A2A.1: 앱이 생성/관리하는 파일 접근 ✅ (image_picker 주 사유)
+- 3B52.1: 캐시 파일 관리
+- DDA9.1: 파일 다운로드
+
+System Boot Time API:
+- 35F9.1: 절대 타임스탬프 계산 (세션 관리)
+- 8FFB.1: 디버그 로깅
+
+Disk Space API:
+- E174.1: 앱 기능에 필요한 저장 공간 확인 ✅ (이미지 업로드 전)
+- 7D9E.1: 앱이 생성하는 파일 크기 표시
+- B728.1: 시스템 상태 확인
+
+====================================
+🚨 주의사항
+====================================
+
+1. 파일 복사 위치:
+   - ios/Runner/PrivacyInfo.xcprivacy (정확한 경로!)
+
+2. Xcode에서 추가:
+   - Xcode 열기 → Runner.xcworkspace
+   - File → Add Files to "Runner"
+   - PrivacyInfo.xcprivacy 선택
+   - "Copy items if needed" 체크
+   - "Runner" 타겟에 추가
+
+3. 검증:
+   - Xcode → Runner → Build Phases → Copy Bundle Resources
+   - PrivacyInfo.xcprivacy가 목록에 있는지 확인
+
+4. 심사 통과 팁:
+   - API 사용 이유는 구체적으로! (C617.1은 file_picker 전용)
+   - 불필요한 API는 제거 (사용하지 않는데 선언하면 반려됨)
+   - 추적(Tracking)은 false로 (광고 없음)
+
+====================================
+📖 Apple 공식 문서
+====================================
+
+https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
+
+최종 업데이트: 2026-01-13
+작성자: Claude Sonnet 4.5
+-->

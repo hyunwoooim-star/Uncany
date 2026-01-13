@@ -14,11 +14,24 @@ class AppConstants {
   /// Deep Link 스킴
   static const String deepLinkScheme = 'uncany';
 
-  /// 비밀번호 재설정 Deep Link
+  /// 비밀번호 재설정 Deep Link (모바일용)
   static const String resetPasswordDeepLink = '$deepLinkScheme://reset-password';
 
-  /// 이메일 인증 Deep Link
+  /// 이메일 인증 Deep Link (모바일용)
   static const String verifyEmailDeepLink = '$deepLinkScheme://verify-email';
+
+  /// 웹 기본 URL (개발 환경)
+  static const String webBaseUrlDev = 'http://localhost:3000';
+
+  /// 웹 기본 URL (프로덕션 환경) - 배포 시 변경 필요
+  static const String webBaseUrlProd = 'https://your-domain.com';
+
+  /// 비밀번호 재설정 웹 URL
+  static String get webResetPasswordUrl {
+    // TODO: 프로덕션 환경 구분 로직 추가 (kReleaseMode 사용)
+    const baseUrl = webBaseUrlDev;
+    return '$baseUrl/auth/reset-password';
+  }
 }
 
 /// 예약 관련 상수

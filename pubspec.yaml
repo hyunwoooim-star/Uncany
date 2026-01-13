@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # 상태 관리
   flutter_riverpod: ^2.5.1
@@ -29,7 +31,7 @@ dependencies:
   google_fonts: ^6.1.0
 
   # 유틸리티
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.3.3
   crypto: ^3.0.3
 
@@ -38,6 +40,13 @@ dependencies:
 
   # 이미지 압축
   image: ^4.1.0
+
+  # 📱 모바일 전용 의존성 (Web에서는 무시됨)
+  permission_handler: ^11.3.0  # 권한 관리 (Android 13+ 대응)
+  device_info_plus: ^10.1.0    # 디바이스 정보 (Android 버전 확인)
+  uni_links: ^0.5.1            # Deep Link 감지
+  sign_in_with_apple: ^5.0.0   # 애플 로그인 (iOS 필수)
+  image_picker: ^1.0.7         # 카메라 촬영
 
 dev_dependencies:
   flutter_test:
@@ -52,10 +61,40 @@ dev_dependencies:
   json_serializable: ^6.7.1
   riverpod_generator: ^2.4.0
 
+  # 📱 모바일 에셋 생성
+  flutter_launcher_icons: ^0.13.1  # 앱 아이콘 자동 생성
+  flutter_native_splash: ^2.3.10   # 스플래시 화면 자동 생성
+
+# ====================================
+# 앱 아이콘 설정
+# ====================================
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo_foreground.png"
+  # 실행: flutter pub run flutter_launcher_icons
+
+# ====================================
+# 스플래시 화면 설정
+# ====================================
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/splash_logo.png
+  android_12:
+    image: assets/images/splash_logo.png
+    color: "#FFFFFF"
+  ios: true
+  android: true
+  # 실행: flutter pub run flutter_native_splash:create
+
 flutter:
   uses-material-design: true
 
   # 폰트는 google_fonts 사용
 
-  # assets:
-  #   - images/
+  assets:
+    - assets/images/logo.png
+    - assets/images/logo_foreground.png
+    - assets/images/splash_logo.png
