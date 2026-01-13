@@ -44,29 +44,21 @@ class _FindUsernameScreenState extends ConsumerState<FindUsernameScreen> {
       final supabase = Supabase.instance.client;
       final email = _emailController.text.trim();
 
-      // 이메일로 사용자 조회
-      final response = await supabase
-          .from('users')
-          .select('username')
-          .eq('email', email)
-          .maybeSingle();
+      // RPC 함수로 이메일 기반 username 조회 (RLS 우회)
+      final username = await supabase.rpc(
+        'get_username_by_email',
+        params: {'email_input': email},
+      );
 
-      if (response == null) {
+      if (username == null || (username as String).isEmpty) {
         setState(() {
           _errorMessage = '해당 이메일로 등록된 계정이 없습니다';
         });
       } else {
-        final username = response['username'] as String?;
-        if (username != null && username.isNotEmpty) {
-          setState(() {
-            _found = true;
-            _foundUsername = username;
-          });
-        } else {
-          setState(() {
-            _errorMessage = '아이디가 설정되지 않은 계정입니다.\n이메일로 로그인해주세요.';
-          });
-        }
+        setState(() {
+          _found = true;
+          _foundUsername = username;
+        });
       }
     } on PostgrestException catch (e) {
       setState(() {
