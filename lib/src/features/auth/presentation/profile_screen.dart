@@ -358,26 +358,27 @@ class ProfileScreen extends ConsumerWidget {
 
               const SizedBox(height: 32),
 
-              // 위험 구역
+              // 계정 관리
               const Text(
-                '위험 구역',
+                '계정 관리',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red,
+                  color: TossColors.textMain,
                 ),
               ),
 
               const SizedBox(height: 12),
 
-              OutlinedButton.icon(
+              TextButton(
                 onPressed: () => _deleteAccount(context, ref),
-                icon: const Icon(Icons.delete_forever),
-                label: const Text('계정 삭제'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                child: const Text(
+                  '회원 탈퇴',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: TossColors.textSub,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
 

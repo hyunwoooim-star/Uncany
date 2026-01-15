@@ -85,24 +85,30 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      // 날짜 변경 시 이전 데이터 즉시 초기화
+      _reservedPeriods = {};
+      _selectedPeriods.clear();
     });
 
     try {
       final supabase = ref.read(supabaseProvider);
       final repository = ReservationRepository(supabase);
 
+      // 디버그: 선택된 날짜 확인
+      debugPrint('📅 예약 조회: ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}');
+
       final reservedMap = await repository.getReservedPeriodsMap(
         widget.classroomId,
         _selectedDate,
       );
 
+      // 디버그: 조회된 예약 수 확인
+      debugPrint('📋 조회된 교시 수: ${reservedMap.length}');
+
       if (mounted) {
         setState(() {
           _reservedPeriods = reservedMap;
           _isLoading = false;
-
-          // 날짜 변경 시 선택 초기화
-          _selectedPeriods.clear();
         });
       }
     } catch (e) {
@@ -205,7 +211,21 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
     if (sorted.length == 1) {
       return '${sorted.first}교시';
     }
-    return '${sorted.first}~${sorted.last}교시';
+
+    // 연속된 교시인지 확인
+    bool isConsecutive = true;
+    for (int i = 1; i < sorted.length; i++) {
+      if (sorted[i] != sorted[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+
+    if (isConsecutive) {
+      return '${sorted.first}~${sorted.last}교시';
+    } else {
+      return '${sorted.join(", ")}교시';
+    }
   }
 
   @override
