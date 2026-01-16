@@ -4,7 +4,7 @@
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.3 (Staging 테스트 진행 중)
+## 프로젝트 현재 상태: ✅ v0.3.4 (Staging 테스트 진행 중)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
@@ -17,6 +17,7 @@
 - 학교 검색 (NEIS API 연동)
 - 승인 대기 온보딩 화면 (토스 스타일)
 - 토스 스타일 UI 컴포넌트 (bouncing button, skeleton, animations 등)
+- **아이디 저장 / 자동 로그인 기능** (NEW)
 
 ---
 
@@ -45,8 +46,25 @@
 - [x] **교시 표시 버그 수정** (3,6교시 → "3, 6교시"로 올바르게 표시)
 - [x] **날짜 변경 시 이전 데이터 초기화**
 
+### v0.3.4 업데이트 (2026-01-16)
+
+#### 아이디/비밀번호 찾기 버그 수정
+- [x] **이메일 동기화 트리거 추가** (007_fix_user_email_sync.sql)
+  - auth.users → public.users 이메일 자동 동기화
+  - 기존 사용자 이메일 일괄 동기화 SQL 포함
+  - get_username_by_email 함수 대소문자 무시 개선
+- [x] **회원가입 시 이메일 명시적 저장** (signup_screen.dart)
+
+#### 로그인 설정 기능 추가
+- [x] **아이디 저장 체크박스** - 다음 로그인 시 자동 입력
+- [x] **자동 로그인 체크박스** - 세션 유지
+- [x] **LoginPreferencesService** 서비스 추가 (SharedPreferences 사용)
+- [x] 로그아웃 시 자동 로그인 해제
+- [x] 계정 삭제 시 모든 로그인 설정 초기화
+
 ### 커밋 내역
 ```
+6efab51 feat: 아이디/비밀번호 찾기 버그 수정 및 로그인 설정 기능 추가
 191e85c feat: UI/UX 대폭 개선
 7a070c1 docs: 세션 요약 업데이트 (2026-01-15 작업 내역)
 19db533 fix: 프로필 화면 UX 개선 및 교시 표시 버그 수정
@@ -56,10 +74,15 @@
 
 ## 다음에 할 작업
 
+### 즉시 수동 작업 필요 (Supabase Dashboard)
+1. **⚠️ SQL 마이그레이션 적용** - `007_fix_user_email_sync.sql` 실행
+   - Supabase Dashboard → SQL Editor → 파일 내용 복사 후 실행
+   - 기존 사용자 이메일 동기화 + 트리거 생성
+
 ### 즉시 테스트 필요
-1. **아이폰 로딩 화면** - 앱 배경색으로 표시되는지 확인
-2. **교실 수정 기능** - 설정 버튼 클릭 → 수정 화면 이동 확인
-3. **홈 화면 레이아웃** - 컴팩트한 2열 그리드 확인
+1. **아이디/비밀번호 찾기** - 마이그레이션 적용 후 테스트
+2. **아이디 저장/자동 로그인** - 로그인 화면에서 체크박스 테스트
+3. **아이폰 로딩 화면** - 앱 배경색으로 표시되는지 확인
 
 ### 우선순위 높음
 - Staging 전체 기능 E2E 테스트
@@ -83,8 +106,8 @@
 | Secrets | ✅ | NEIS_API_KEY |
 | Storage Bucket | ✅ | verification-documents |
 | Redirect URLs | ✅ | localhost + staging |
-| RPC 함수 | ✅ | get_username_by_email |
-| Auth 트리거 | ✅ | handle_new_user |
+| RPC 함수 | ✅ | get_username_by_email (대소문자 무시) |
+| Auth 트리거 | ⚠️ | handle_new_user, sync_user_email (마이그레이션 필요) |
 
 ---
 
@@ -101,6 +124,7 @@
 
 ```
 lib/src/core/router/router.dart                    # 라우트 정의
+lib/src/core/services/login_preferences_service.dart  # 로그인 설정 (SharedPreferences)
 lib/src/features/auth/                             # 인증 관련
 lib/src/features/reservation/                      # 예약 관련
 lib/src/features/classroom/                        # 교실 관련
