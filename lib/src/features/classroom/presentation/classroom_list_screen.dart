@@ -589,6 +589,9 @@ class _ReservationCard extends StatelessWidget {
     final startStr = timeFormat.format(reservation.startTime);
     final endStr = timeFormat.format(reservation.endTime);
 
+    // 교시 정보가 있으면 교시로 표시, 없으면 시간으로 표시
+    final displayText = reservation.periodsDisplay ?? '$startStr ~ $endStr';
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -605,7 +608,7 @@ class _ReservationCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              '$startStr ~ $endStr',
+              displayText,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
