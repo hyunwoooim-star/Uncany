@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/providers/user_repository_provider.dart';
-import '../domain/models/user.dart';
+import '../domain/models/user.dart' as app_user;
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
@@ -21,8 +25,8 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
 class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   final _searchController = TextEditingController();
   bool _isLoading = true;
-  List<User> _allUsers = [];
-  List<User> _filteredUsers = [];
+  List<app_user.User> _allUsers = [];
+  List<app_user.User> _filteredUsers = [];
   String? _errorMessage;
 
   // 통계
@@ -62,13 +66,13 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         // 통계 계산
         _totalCount = users.length;
         _approvedCount = users
-            .where((u) => u.verificationStatus == VerificationStatus.approved)
+            .where((u) => u.verificationStatus == app_user.VerificationStatus.approved)
             .length;
         _pendingCount = users
-            .where((u) => u.verificationStatus == VerificationStatus.pending)
+            .where((u) => u.verificationStatus == app_user.VerificationStatus.pending)
             .length;
         _rejectedCount = users
-            .where((u) => u.verificationStatus == VerificationStatus.rejected)
+            .where((u) => u.verificationStatus == app_user.VerificationStatus.rejected)
             .length;
       });
     } catch (e) {
@@ -95,17 +99,165 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     });
   }
 
-  Future<void> _changeUserRole(User user) async {
-    final newRole = user.role == UserRole.teacher
-        ? UserRole.admin
-        : UserRole.teacher;
+  /// 임시 비밀번호 생성 (8자리 영숫자)
+  String _generateTempPassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    return List.generate(8, (_) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  /// 비밀번호 초기화
+  Future<void> _resetPassword(app_user.User user) async {
+    final tempPassword = _generateTempPassword();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('비밀번호 초기화'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${user.name} 선생님의 비밀번호를 초기화하시겠습니까?'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '임시 비밀번호:',
+                    style: TextStyle(fontSize: 12, color: TossColors.textSub),
+                  ),
+                  const SizedBox(height: 4),
+                  SelectableText(
+                    tempPassword,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '⚠️ 이 비밀번호를 사용자에게 전달해 주세요.',
+              style: TextStyle(fontSize: 12, color: TossColors.textSub),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('초기화'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        final supabase = Supabase.instance.client;
+        await supabase.rpc('admin_reset_user_password', params: {
+          'target_user_id': user.id,
+          'new_password': tempPassword,
+        });
+
+        if (mounted) {
+          // 비밀번호 복사 다이얼로그
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('비밀번호 초기화 완료'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${user.name} 선생님의 비밀번호가 초기화되었습니다.'),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SelectableText(
+                            tempPassword,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: tempPassword));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('비밀번호가 복사되었습니다')),
+                            );
+                          },
+                          tooltip: '복사',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('확인'),
+                ),
+              ],
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(ErrorMessages.fromError(e)),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _changeUserRole(app_user.User user) async {
+    final newRole = user.role == app_user.UserRole.teacher
+        ? app_user.UserRole.admin
+        : app_user.UserRole.teacher;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('역할 변경'),
         content: Text(
-          '${user.name} 선생님을 ${newRole == UserRole.admin ? '관리자' : '일반 교사'}로 변경하시겠습니까?',
+          '${user.name} 선생님을 ${newRole == app_user.UserRole.admin ? '관리자' : '일반 교사'}로 변경하시겠습니까?',
         ),
         actions: [
           TextButton(
@@ -147,7 +299,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     }
   }
 
-  Future<void> _deleteUser(User user) async {
+  Future<void> _deleteUser(app_user.User user) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -197,7 +349,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     }
   }
 
-  Future<void> _hardDeleteUser(User user) async {
+  Future<void> _hardDeleteUser(app_user.User user) async {
     // 첫 번째 확인
     final firstConfirm = await showDialog<bool>(
       context: context,
@@ -418,6 +570,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                                 return _UserCard(
                                   user: user,
                                   onChangeRole: () => _changeUserRole(user),
+                                  onResetPassword: () => _resetPassword(user),
                                   onDelete: () => _deleteUser(user),
                                   onHardDelete: () => _hardDeleteUser(user),
                                 );
@@ -475,14 +628,16 @@ class _StatCard extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
-  final User user;
+  final app_user.User user;
   final VoidCallback onChangeRole;
+  final VoidCallback onResetPassword;
   final VoidCallback onDelete;
   final VoidCallback onHardDelete;
 
   const _UserCard({
     required this.user,
     required this.onChangeRole,
+    required this.onResetPassword,
     required this.onDelete,
     required this.onHardDelete,
   });
@@ -541,13 +696,13 @@ class _UserCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onChangeRole,
                   icon: Icon(
-                    user.role == UserRole.admin
+                    user.role == app_user.UserRole.admin
                         ? Icons.person
                         : Icons.admin_panel_settings,
                     size: 16,
                   ),
                   label: Text(
-                    user.role == UserRole.admin
+                    user.role == app_user.UserRole.admin
                         ? '일반 교사로 변경'
                         : '관리자로 변경',
                   ),
@@ -557,6 +712,12 @@ class _UserCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              IconButton(
+                onPressed: onResetPassword,
+                icon: const Icon(Icons.lock_reset),
+                color: TossColors.primary,
+                tooltip: '비밀번호 초기화',
+              ),
               IconButton(
                 onPressed: onDelete,
                 icon: const Icon(Icons.block),
@@ -578,13 +739,13 @@ class _UserCard extends StatelessWidget {
 }
 
 class _RoleBadge extends StatelessWidget {
-  final UserRole role;
+  final app_user.UserRole role;
 
   const _RoleBadge({required this.role});
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = role == UserRole.admin;
+    final isAdmin = role == app_user.UserRole.admin;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -618,7 +779,7 @@ class _RoleBadge extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  final VerificationStatus status;
+  final app_user.VerificationStatus status;
 
   const _StatusBadge({required this.status});
 
@@ -628,15 +789,15 @@ class _StatusBadge extends StatelessWidget {
     String text;
 
     switch (status) {
-      case VerificationStatus.pending:
+      case app_user.VerificationStatus.pending:
         color = Colors.orange;
         text = '대기 중';
         break;
-      case VerificationStatus.approved:
+      case app_user.VerificationStatus.approved:
         color = Colors.green;
         text = '승인됨';
         break;
-      case VerificationStatus.rejected:
+      case app_user.VerificationStatus.rejected:
         color = Colors.red;
         text = '반려됨';
         break;
