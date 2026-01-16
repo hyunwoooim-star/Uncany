@@ -323,7 +323,7 @@ class HomeScreen extends ConsumerWidget {
     final today = DateTime.now();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
