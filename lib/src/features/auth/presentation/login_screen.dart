@@ -4,13 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/core/services/login_preferences_service.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 
-/// 로그인 화면 (v0.2)
+/// 로그인 화면 (v0.3)
 ///
 /// 아이디 + 비밀번호 로그인 방식
-/// (내부적으로 아이디 → 이메일 변환 후 Supabase Auth 사용)
+/// 아이디 저장 / 자동 로그인 기능 추가
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -27,11 +28,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _showLoginForm = false;
   String? _errorMessage;
 
+  // 로그인 설정
+  bool _rememberUsername = false;
+  bool _autoLogin = false;
+  bool _isLoadingPreferences = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// 저장된 설정 로드
+  Future<void> _loadPreferences() async {
+    try {
+      final rememberUsername = await LoginPreferencesService.getRememberUsername();
+      final savedUsername = await LoginPreferencesService.getSavedUsername();
+      final autoLogin = await LoginPreferencesService.getAutoLogin();
+
+      if (mounted) {
+        setState(() {
+          _rememberUsername = rememberUsername;
+          _autoLogin = autoLogin;
+          _isLoadingPreferences = false;
+
+          if (savedUsername != null && savedUsername.isNotEmpty) {
+            _usernameController.text = savedUsername;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingPreferences = false;
+        });
+      }
+    }
+  }
+
+  /// 설정 저장
+  Future<void> _savePreferences() async {
+    await LoginPreferencesService.setRememberUsername(_rememberUsername);
+    await LoginPreferencesService.setAutoLogin(_autoLogin);
+
+    if (_rememberUsername) {
+      await LoginPreferencesService.saveUsername(_usernameController.text.trim());
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -84,6 +133,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         email: email,
         password: _passwordController.text,
       );
+
+      // 로그인 성공 시 설정 저장
+      await _savePreferences();
 
       if (mounted) {
         context.go('/home');
@@ -265,6 +317,105 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             },
             onFieldSubmitted: (_) => _handleLogin(),
           ),
+
+          const SizedBox(height: 12),
+
+          // 아이디 저장 / 자동 로그인 체크박스
+          if (!_isLoadingPreferences) ...[
+            Row(
+              children: [
+                // 아이디 저장
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _rememberUsername = !_rememberUsername;
+                      // 아이디 저장 해제 시 자동 로그인도 해제
+                      if (!_rememberUsername) {
+                        _autoLogin = false;
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: _rememberUsername,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberUsername = value ?? false;
+                              if (!_rememberUsername) {
+                                _autoLogin = false;
+                              }
+                            });
+                          },
+                          activeColor: TossColors.primary,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '아이디 저장',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                // 자동 로그인
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _autoLogin = !_autoLogin;
+                      // 자동 로그인 활성화 시 아이디 저장도 활성화
+                      if (_autoLogin) {
+                        _rememberUsername = true;
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: _autoLogin,
+                          onChanged: (value) {
+                            setState(() {
+                              _autoLogin = value ?? false;
+                              if (_autoLogin) {
+                                _rememberUsername = true;
+                              }
+                            });
+                          },
+                          activeColor: TossColors.primary,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '자동 로그인',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
 
           // 에러 메시지
           if (_errorMessage != null) ...[

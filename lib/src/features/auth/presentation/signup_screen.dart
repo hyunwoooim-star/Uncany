@@ -356,9 +356,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       final userId = authResponse.user!.id;
       await AppLogger.info('SignupScreen', '1단계 완료: Auth signUp 성공', {'userId': userId});
 
-      // 2. users 테이블 업데이트 (username, grade, class_num 추가)
+      // 2. users 테이블 업데이트 (username, grade, class_num, email 추가)
       await supabase.from('users').update({
         'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(), // 이메일 명시적 저장
         'grade': _selectedGrade,
         'class_num': _selectedClassNum,
         // TODO: school_id 추가 (학교가 DB에 있으면)

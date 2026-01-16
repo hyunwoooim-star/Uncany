@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../domain/models/user.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/services/app_logger.dart';
+import 'package:uncany/src/core/services/login_preferences_service.dart';
 
 /// 인증 관련 Repository
 ///
@@ -44,6 +45,8 @@ class AuthRepository {
   /// Supabase 세션을 종료하고 로컬 저장소 초기화
   Future<void> signOut() async {
     try {
+      // 자동 로그인 설정 해제 (아이디 저장은 유지)
+      await LoginPreferencesService.clearAutoLogin();
       await _supabase.auth.signOut();
     } on AuthException catch (e, stack) {
       AppLogger.error('AuthRepository.signOut', e, stack);
@@ -151,6 +154,9 @@ class AuthRepository {
           .from('users')
           .update({'deleted_at': DateTime.now().toIso8601String()})
           .eq('id', session.user.id);
+
+      // 모든 로그인 설정 초기화
+      await LoginPreferencesService.clearAll();
 
       // Supabase Auth 세션 종료
       await _supabase.auth.signOut();

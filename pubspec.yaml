@@ -36,6 +36,7 @@ dependencies:
   intl: ^0.20.2
   uuid: ^4.3.3
   crypto: ^3.0.3
+  shared_preferences: ^2.2.2  # 로컬 저장소 (아이디 저장, 자동 로그인)
 
   # 파일 선택
   file_picker: ^8.0.0
