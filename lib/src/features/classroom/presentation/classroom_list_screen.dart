@@ -204,69 +204,160 @@ class _ClassroomListScreenState extends ConsumerState<ClassroomListScreen> {
   }
 
   Widget _buildClassroomSelector() {
-    return InkWell(
-      onTap: _classrooms.length > 1 ? _showClassroomSelector : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.meeting_room,
-                color: TossColors.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      color: TossColors.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 교실 선택 행
+          InkWell(
+            onTap: _classrooms.length > 1 ? _showClassroomSelector : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
                 children: [
-                  Text(
-                    _selectedClassroom?.name ?? '교실을 선택하세요',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.textMain,
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _getRoomTypeIcon(_selectedClassroom?.roomType),
+                      color: TossColors.primary,
+                      size: 24,
                     ),
                   ),
-                  if (_selectedClassroom?.location != null)
-                    Text(
-                      _selectedClassroom!.location!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: TossColors.textSub,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedClassroom?.name ?? '교실을 선택하세요',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: TossColors.textMain,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            if (_selectedClassroom?.location != null) ...[
+                              Icon(Icons.location_on, size: 14, color: TossColors.textSub),
+                              const SizedBox(width: 2),
+                              Text(
+                                _selectedClassroom!.location!,
+                                style: TextStyle(fontSize: 13, color: TossColors.textSub),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            if (_selectedClassroom?.capacity != null) ...[
+                              Icon(Icons.people, size: 14, color: TossColors.textSub),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${_selectedClassroom!.capacity}명',
+                                style: TextStyle(fontSize: 13, color: TossColors.textSub),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 수정 버튼
+                  IconButton(
+                    onPressed: _selectedClassroom != null
+                        ? () => context.push(
+                              '/classrooms/${_selectedClassroom!.id}/edit',
+                              extra: _selectedClassroom,
+                            ).then((_) => _loadClassrooms())
+                        : null,
+                    icon: const Icon(Icons.settings, size: 20),
+                    color: TossColors.textSub,
+                    tooltip: '교실 설정',
+                  ),
+                  if (_classrooms.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: TossColors.divider),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '변경',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: TossColors.textSub,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
-            if (_classrooms.length > 1)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          ),
+
+          // 공지사항 (있으면 표시)
+          if (_selectedClassroom?.noticeMessage != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: TossColors.divider),
-                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
-                child: Text(
-                  '변경',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.textSub,
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.campaign, size: 18, color: Colors.orange.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _selectedClassroom!.noticeMessage!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.orange.shade900,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ],
-        ),
+        ],
       ),
     );
+  }
+
+  IconData _getRoomTypeIcon(String? roomType) {
+    switch (roomType) {
+      case 'computer':
+        return Icons.computer;
+      case 'music':
+        return Icons.music_note;
+      case 'science':
+        return Icons.science;
+      case 'art':
+        return Icons.palette;
+      case 'library':
+        return Icons.menu_book;
+      case 'gym':
+        return Icons.sports_basketball;
+      case 'auditorium':
+        return Icons.theater_comedy;
+      case 'special':
+        return Icons.star;
+      default:
+        return Icons.meeting_room;
+    }
   }
 
   Widget _buildReservationHeader() {

@@ -140,71 +140,72 @@ class HomeScreen extends ConsumerWidget {
 
               SizedBox(height: spacing * 1.25),
 
+              // 빠른 액션 버튼들 (2열 그리드)
+              Row(
+                children: [
+                  Expanded(
+                    child: _CompactActionButton(
+                      icon: Icons.calendar_today,
+                      label: '교실 예약',
+                      color: TossColors.primary,
+                      onTap: () => context.push('/classrooms'),
+                    ),
+                  ),
+                  SizedBox(width: spacing * 0.75),
+                  Expanded(
+                    child: _CompactActionButton(
+                      icon: Icons.list_alt,
+                      label: '내 예약',
+                      color: TossColors.success,
+                      onTap: () => context.push('/reservations/my'),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: spacing * 1.5),
+
               // 오늘의 예약 섹션
               _buildTodayReservationsSection(
                 context,
                 todayReservationsAsync,
               ),
 
-              SizedBox(height: spacing * 1.5),
-
-              // 빠른 메뉴 섹션
-              _buildSectionTitle('빠른 메뉴'),
-              SizedBox(height: spacing * 0.75),
-
-              _QuickActionCard(
-                icon: Icons.calendar_today,
-                title: '교실 예약',
-                subtitle: '컴퓨터실, 음악실, 과학실 등',
-                color: TossColors.primary,
-                onTap: () => context.push('/classrooms'),
-              ),
-
-              SizedBox(height: spacing * 0.75),
-
-              _QuickActionCard(
-                icon: Icons.list_alt,
-                title: '내 예약 내역',
-                subtitle: '예약 확인 및 관리',
-                color: TossColors.success,
-                onTap: () => context.push('/reservations/my'),
-              ),
-
               // 관리자 메뉴
               if (user.role == UserRole.admin) ...[
                 SizedBox(height: spacing * 1.5),
-                _buildSectionTitle('관리자 메뉴'),
+                _buildSectionTitle('관리자'),
                 SizedBox(height: spacing * 0.75),
-                _QuickActionCard(
-                  icon: Icons.how_to_reg,
-                  title: '사용자 승인',
-                  subtitle: pendingCountAsync.when(
-                    data: (count) =>
-                        count > 0 ? '$count명 대기 중' : '대기 중인 사용자 없음',
-                    loading: () => '로딩 중...',
-                    error: (_, __) => '확인 필요',
-                  ),
-                  color: Colors.purple,
-                  onTap: () => context.push('/admin/approvals'),
-                  badge: pendingCountAsync.when(
-                    data: (count) => count > 0 ? count : null,
-                    loading: () => null,
-                    error: (_, __) => null,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CompactActionButton(
+                        icon: Icons.how_to_reg,
+                        label: '사용자 승인',
+                        color: Colors.purple,
+                        onTap: () => context.push('/admin/approvals'),
+                        badge: pendingCountAsync.when(
+                          data: (count) => count > 0 ? count : null,
+                          loading: () => null,
+                          error: (_, __) => null,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: spacing * 0.75),
+                    Expanded(
+                      child: _CompactActionButton(
+                        icon: Icons.people,
+                        label: '사용자 관리',
+                        color: Colors.indigo,
+                        onTap: () => context.push('/admin/users'),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: spacing * 0.75),
-                _QuickActionCard(
-                  icon: Icons.people,
-                  title: '사용자 관리',
-                  subtitle: '전체 사용자 조회 및 관리',
-                  color: Colors.indigo,
-                  onTap: () => context.push('/admin/users'),
-                ),
-                SizedBox(height: spacing * 0.75),
-                _QuickActionCard(
+                _CompactActionButton(
                   icon: Icons.meeting_room,
-                  title: '교실 관리',
-                  subtitle: '교실 등록, 수정 및 삭제',
+                  label: '교실 관리',
                   color: Colors.teal,
                   onTap: () => context.push('/admin/classrooms'),
                 ),
@@ -733,6 +734,94 @@ class _QuickActionCard extends StatelessWidget {
           Icon(
             Icons.chevron_right,
             size: responsiveIconSize(context, base: 20),
+            color: TossColors.textSub,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 컴팩트 액션 버튼 (2열 그리드용)
+class _CompactActionButton extends StatelessWidget {
+  const _CompactActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.badge,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  final int? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    return TossCard(
+      onTap: onTap,
+      padding: responsiveCardPadding(context),
+      child: Row(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: responsiveValue(context, mobile: 40.0, desktop: 48.0),
+                height: responsiveValue(context, mobile: 40.0, desktop: 48.0),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: responsiveIconSize(context, base: 20),
+                ),
+              ),
+              if (badge != null && badge! > 0)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      badge! > 99 ? '99+' : badge.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: responsiveFontSize(context, base: 14),
+                fontWeight: FontWeight.w600,
+                color: TossColors.textMain,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            size: 18,
             color: TossColors.textSub,
           ),
         ],
