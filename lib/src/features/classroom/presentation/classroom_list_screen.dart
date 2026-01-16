@@ -599,37 +599,18 @@ class _ReservationCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              children: [
-                Text(
-                  startStr,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.primary,
-                  ),
-                ),
-                Text(
-                  '~',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: TossColors.textSub,
-                  ),
-                ),
-                Text(
-                  endStr,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.primary,
-                  ),
-                ),
-              ],
+            child: Text(
+              '$startStr ~ $endStr',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: TossColors.primary,
+              ),
             ),
           ),
           const SizedBox(width: 12),
