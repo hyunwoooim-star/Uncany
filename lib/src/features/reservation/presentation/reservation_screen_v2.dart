@@ -13,6 +13,7 @@ import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
 
 import 'providers/reservation_state_provider.dart';
+import 'home_screen.dart' show todayReservationsProvider;
 
 /// 예약 화면 (v2.0 - Riverpod 2.0 리팩토링)
 ///
@@ -317,6 +318,9 @@ class _ReservationBottomBarState extends ConsumerState<_ReservationBottomBar> {
       );
 
       await notifier.createReservation();
+
+      // 홈 화면 오늘의 예약 자동 새로고침
+      ref.invalidate(todayReservationsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

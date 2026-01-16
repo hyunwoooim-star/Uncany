@@ -59,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final pendingCountAsync = ref.watch(_pendingCountProvider);
-    final todayReservationsAsync = ref.watch(_todayReservationsProvider);
+    final todayReservationsAsync = ref.watch(todayReservationsProvider);
 
     return Scaffold(
       backgroundColor: TossColors.background,
@@ -124,7 +124,7 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(_todayReservationsProvider);
+        ref.invalidate(todayReservationsProvider);
         ref.invalidate(_pendingCountProvider);
       },
       child: ResponsiveBuilder(
@@ -633,8 +633,8 @@ final _pendingCountProvider = FutureProvider<int>((ref) async {
   return await repository.getPendingCount();
 });
 
-// 오늘의 내 예약 목록 Provider
-final _todayReservationsProvider =
+// 오늘의 내 예약 목록 Provider (예약 생성 후 invalidate 용도로 public)
+final todayReservationsProvider =
     FutureProvider<List<Reservation>>((ref) async {
   final repository = ref.watch(reservationRepositoryProvider);
   return await repository.getTodayMyReservations();
