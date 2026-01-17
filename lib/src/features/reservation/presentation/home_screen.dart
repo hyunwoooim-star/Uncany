@@ -11,6 +11,7 @@ import '../domain/models/reservation.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 
 /// 홈 화면 (v0.2)
@@ -94,7 +95,7 @@ class HomeScreen extends ConsumerWidget {
               todayReservationsAsync,
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => _buildHomeSkeletonLoading(context),
           error: (error, stack) => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -346,29 +347,7 @@ class HomeScreen extends ConsumerWidget {
             }
             return _buildReservationsList(context, reservations);
           },
-          loading: () => TossCard(
-            padding: responsiveCardPadding(context),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '예약 정보 로딩 중...',
-                    style: TextStyle(
-                      fontSize: responsiveFontSize(context, base: 14),
-                      color: TossColors.textSub,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          loading: () => _buildReservationsSkeletonLoading(context),
           error: (_, __) => TossCard(
             padding: responsiveCardPadding(context),
             child: Center(
@@ -381,6 +360,136 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  /// 전체 홈 화면 스켈레톤 로딩
+  Widget _buildHomeSkeletonLoading(BuildContext context) {
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final padding = responsivePadding(context);
+        final spacing = responsiveSpacing(context);
+
+        return ListView(
+          padding: padding,
+          children: [
+            // 인사말 카드 스켈레톤
+            TossCard(
+              padding: responsiveCardPadding(context),
+              child: Row(
+                children: [
+                  TossSkeleton(
+                    width: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                    height: responsiveValue(context, mobile: 48.0, desktop: 56.0),
+                    borderRadius: 12,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TossSkeleton(width: 80, height: 14, borderRadius: 4),
+                        const SizedBox(height: 8),
+                        TossSkeleton(width: 120, height: 20, borderRadius: 4),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: spacing * 1.25),
+
+            // 빠른 액션 버튼 스켈레톤
+            Row(
+              children: [
+                Expanded(
+                  child: TossSkeletonCard(height: 64),
+                ),
+                SizedBox(width: spacing * 0.75),
+                Expanded(
+                  child: TossSkeletonCard(height: 64),
+                ),
+              ],
+            ),
+
+            SizedBox(height: spacing * 1.5),
+
+            // 오늘의 예약 섹션 스켈레톤
+            Row(
+              children: [
+                TossSkeleton(width: 80, height: 15, borderRadius: 4),
+                const Spacer(),
+                TossSkeleton(width: 100, height: 13, borderRadius: 4),
+              ],
+            ),
+            SizedBox(height: spacing * 0.75),
+            _buildReservationsSkeletonLoading(context),
+          ],
+        );
+      },
+    );
+  }
+
+  /// 예약 목록 스켈레톤 로딩
+  Widget _buildReservationsSkeletonLoading(BuildContext context) {
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        children: [
+          // 상단 요약 스켈레톤
+          TossSkeleton(
+            width: double.infinity,
+            height: 48,
+            borderRadius: 8,
+          ),
+          const SizedBox(height: 16),
+          // 예약 아이템 스켈레톤 2개
+          _buildReservationItemSkeleton(context),
+          const SizedBox(height: 12),
+          _buildReservationItemSkeleton(context),
+        ],
+      ),
+    );
+  }
+
+  /// 예약 아이템 스켈레톤
+  Widget _buildReservationItemSkeleton(BuildContext context) {
+    return Row(
+      children: [
+        // 교시 표시 스켈레톤
+        TossSkeleton(
+          width: responsiveValue(context, mobile: 64.0, desktop: 72.0),
+          height: 48,
+          borderRadius: 8,
+        ),
+        const SizedBox(width: 12),
+        // 교실 정보 스켈레톤
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TossSkeleton(
+                width: 120,
+                height: 16,
+                borderRadius: 4,
+              ),
+              const SizedBox(height: 6),
+              TossSkeleton(
+                width: 80,
+                height: 12,
+                borderRadius: 4,
+              ),
+            ],
+          ),
+        ),
+        // 상태 배지 스켈레톤
+        TossSkeleton(
+          width: 48,
+          height: 24,
+          borderRadius: 4,
         ),
       ],
     );

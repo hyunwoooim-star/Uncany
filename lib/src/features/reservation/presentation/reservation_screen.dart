@@ -9,10 +9,12 @@ import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/shared/widgets/month_calendar.dart';
 import 'package:uncany/src/shared/widgets/period_grid.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
+import 'package:uncany/src/shared/widgets/error_bottom_sheet.dart';
 import 'package:uncany/src/features/reservation/data/repositories/reservation_repository.dart';
 import 'package:uncany/src/features/reservation/domain/models/reservation.dart';
 import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
 import 'home_screen.dart' show todayReservationsProvider;
 import 'my_reservations_screen.dart' show myReservationsProvider;
 
@@ -186,17 +188,58 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
         // 예약 목록 새로고침
         _loadReservations();
       }
+    } on PostgrestException catch (e) {
+      if (mounted) {
+        final errorMessage = ErrorMessages.fromPostgrestException(e);
+        setState(() {
+          _errorMessage = errorMessage;
+        });
+
+        // 예약 충돌 에러인 경우 바텀시트로 표시
+        if (ErrorMessages.isReservationConflictError(e)) {
+          ErrorBottomSheet.showReservationConflict(
+            context,
+            message: errorMessage,
+            onRetry: () {
+              // 예약 정보 새로고침 후 선택 초기화
+              _loadReservations();
+            },
+          );
+        } else {
+          ErrorBottomSheet.showError(
+            context,
+            title: '예약 실패',
+            message: errorMessage,
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
+        final errorMessage = e.toString().replaceAll('Exception: ', '');
         setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          _errorMessage = errorMessage;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage ?? '예약에 실패했습니다'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+
+        // 네트워크 에러 확인
+        if (errorMessage.contains('네트워크') || errorMessage.contains('연결')) {
+          ErrorBottomSheet.showNetworkError(
+            context,
+            onRetry: _createReservation,
+          );
+        } else if (ErrorMessages.isReservationConflictError(e)) {
+          // 예약 충돌 에러인 경우 친절한 바텀시트로 표시
+          ErrorBottomSheet.showReservationConflict(
+            context,
+            message: errorMessage,
+            onRetry: _loadReservations,
+          );
+        } else {
+          ErrorBottomSheet.showError(
+            context,
+            title: '예약 실패',
+            message: errorMessage,
+          );
+        }
       }
     } finally {
       if (mounted) {

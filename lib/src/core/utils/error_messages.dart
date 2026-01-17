@@ -1,7 +1,89 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 /// 에러 메시지 한글화 유틸리티
 /// 모든 에러 메시지는 한국어로 표시되어야 함
 class ErrorMessages {
   ErrorMessages._();
+
+  /// PostgrestException에서 사용자 친화적 메시지 추출
+  ///
+  /// DB 트리거에서 RAISE EXCEPTION으로 던진 한글 메시지를 추출
+  static String fromPostgrestException(PostgrestException e) {
+    // 1. message 필드에서 직접 한글 메시지 확인
+    final message = e.message;
+
+    // DB 트리거에서 던진 한글 메시지인 경우 그대로 반환
+    if (_isKoreanMessage(message)) {
+      return message;
+    }
+
+    // 2. details 필드 확인
+    final details = e.details;
+    if (details != null && details is String && _isKoreanMessage(details)) {
+      return details;
+    }
+
+    // 3. hint 필드 확인
+    final hint = e.hint;
+    if (hint != null && _isKoreanMessage(hint)) {
+      return hint;
+    }
+
+    // 4. 에러 코드 기반 변환
+    return _fromPostgresErrorCode(e.code, message);
+  }
+
+  /// 한글이 포함된 메시지인지 확인
+  static bool _isKoreanMessage(String text) {
+    // 한글 유니코드 범위: 가-힣 (AC00-D7A3), ㄱ-ㅎ (3131-314E), ㅏ-ㅣ (314F-3163)
+    return RegExp(r'[\uAC00-\uD7A3\u3131-\u314E\u314F-\u3163]').hasMatch(text);
+  }
+
+  /// PostgreSQL 에러 코드 기반 메시지 변환
+  static String _fromPostgresErrorCode(String? code, String message) {
+    switch (code) {
+      case '23505': // unique_violation
+        if (message.contains('reservations')) {
+          return '이미 예약된 시간대입니다';
+        }
+        return '이미 존재하는 데이터입니다';
+      case '23503': // foreign_key_violation
+        return '연결된 데이터를 찾을 수 없습니다';
+      case '23502': // not_null_violation
+        return '필수 정보가 누락되었습니다';
+      case 'P0001': // raise_exception (사용자 정의 에러)
+        // 트리거에서 던진 메시지가 영어인 경우
+        if (message.contains('already reserved') || message.contains('conflict')) {
+          return '해당 시간은 이미 예약되어 있습니다';
+        }
+        return message;
+      case '42501': // insufficient_privilege
+        return '권한이 없습니다';
+      case '42P01': // undefined_table
+        return '데이터를 찾을 수 없습니다';
+      default:
+        return fromError(message);
+    }
+  }
+
+  /// 예약 충돌 에러인지 확인
+  static bool isReservationConflictError(dynamic error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('예약') ||
+           message.contains('교시') ||
+           message.contains('이미') ||
+           message.contains('conflict') ||
+           message.contains('reserved');
+  }
+
+  /// 예약 충돌 에러 메시지 생성
+  static String reservationConflictMessage(List<int>? conflictPeriods) {
+    if (conflictPeriods == null || conflictPeriods.isEmpty) {
+      return '앗, 방금 다른 선생님이 예약했어요!';
+    }
+    final periodsText = conflictPeriods.join(', ');
+    return '앗, $periodsText교시는 방금 다른 선생님이 예약했어요!';
+  }
 
   /// Supabase Auth 에러 메시지 한글화
   static String fromAuthError(String message) {
