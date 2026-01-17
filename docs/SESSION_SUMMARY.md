@@ -1,10 +1,10 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-16
+## 마지막 업데이트: 2026-01-17
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.4 (Staging 테스트 진행 중)
+## 프로젝트 현재 상태: ✅ v0.3.5 (Staging 테스트 진행 중)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
@@ -62,7 +62,45 @@
 - [x] 로그아웃 시 자동 로그인 해제
 - [x] 계정 삭제 시 모든 로그인 설정 초기화
 
+### v0.3.5 업데이트 (2026-01-17)
+
+#### 코드 품질 개선
+- [x] **Lint 경고 수정**
+  - analysis_options.yaml: Dart 3.7.0에서 제거된 lint 규칙 주석 처리
+  - datetime_extensions.dart: 불필요한 this. 제거
+  - router.dart: import 알파벳순 정렬, deprecated RouterRef → Ref 변경
+  - image_compressor_v2.dart: 불필요한 import 및 await 제거
+
+#### 성능 최적화
+- [x] **시간표 대시보드 N+1 쿼리 최적화**
+  - ReservationRepository: getAllReservationsForDate() 메서드 추가
+  - TimetableDashboardScreen: Future.wait로 병렬 쿼리 실행
+  - 기존 N+1 쿼리 → 2개 쿼리로 개선 (교실 10개 기준 약 80% 쿼리 감소)
+
+#### 에러 UX 개선
+- [x] **DB 에러 메시지 한글화** - PostgrestException 친화적 메시지 변환
+- [x] **스켈레톤 로딩** - 모든 화면에 Shimmer 로딩 적용
+
+#### 기능 추가
+- [x] **종합 시간표 대시보드** - 모든 교실 × 교시 그리드 뷰
+- [x] **예약 취소 정책** - 시작 10분 전까지만 취소 가능
+
+#### CI/CD 개선
+- [x] **워크플로우 브랜치 패턴 추가** - fix/**, perf/** 브랜치 자동 빌드
+
 ### 커밋 내역
+```
+da9e980 ci: perf/** 브랜치 패턴 추가
+1bb9f9d perf: 시간표 대시보드 N+1 쿼리 최적화
+46db640 ci: fix/** 브랜치 패턴 추가
+397eae7 refactor: lint 경고 수정 및 코드 정리
+449f7cd fix: 코드 품질 개선 및 에러 수정
+06608de feat: 예약 취소 정책 구현 (시작 10분 전까지)
+1311d6c feat: 종합 시간표 대시보드 추가
+5f5e98b feat: 에러 UX 개선 및 스켈레톤 로딩 적용
+```
+
+### 이전 커밋 내역 (v0.3.4)
 ```
 6efab51 feat: 아이디/비밀번호 찾기 버그 수정 및 로그인 설정 기능 추가
 191e85c feat: UI/UX 대폭 개선
