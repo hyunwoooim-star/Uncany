@@ -2,7 +2,7 @@ name: Deploy Web Staging
 
 on:
   push:
-    branches: [main, develop, 'claude/**', 'exciting-margulis', 'musing-thompson']
+    branches: [main, develop, 'claude/**', 'exciting-margulis', 'musing-thompson', 'dazzling-swirles']
 
 jobs:
   deploy-staging:
