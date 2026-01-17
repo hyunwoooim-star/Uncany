@@ -176,6 +176,15 @@ class ErrorMessages {
   /// 일반 에러 메시지 한글화
   static String fromError(dynamic error) {
     final message = error.toString().toLowerCase();
+    final originalMessage = error.toString();
+
+    // 이미 한글화된 메시지는 그대로 반환 (Exception: 메시지 형태에서 메시지 추출)
+    if (originalMessage.startsWith('Exception: ') &&
+        originalMessage.contains('주세요') ||
+        originalMessage.contains('입니다') ||
+        originalMessage.contains('습니다')) {
+      return originalMessage.replaceFirst('Exception: ', '');
+    }
 
     // 네트워크 관련
     if (message.contains('network') || message.contains('socket')) {
