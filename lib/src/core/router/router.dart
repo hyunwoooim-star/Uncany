@@ -38,7 +38,7 @@ GoRouter router(Ref ref) {
   final currentUser = ref.watch(currentUserProvider).value;
 
   return GoRouter(
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false, // Production에서는 false
     initialLocation: '/',
     redirect: (context, state) {
       // 스플래시 화면은 리다이렉트 제외

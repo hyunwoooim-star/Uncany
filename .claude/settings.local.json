@@ -5,8 +5,16 @@
       "Read(*)",
       "Write(*)",
       "Edit(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Task(*)",
+      "TodoWrite(*)",
+      "NotebookEdit(*)",
+      "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Gemini 피드백 기반 Production 준비 개선\n\n## 보안 강화\n- 취소 정책 서버 단 검증 추가 \\(010_cancellation_policy_enforcement.sql\\)\n  - is_reservation_cancellable\\(\\) 함수\n  - validate_reservation_cancellation\\(\\) 트리거\n  - 클라이언트 + 서버 양쪽에서 10분 전 취소 정책 검증\n\n## Production 준비\n- debugLogDiagnostics: false 설정 \\(router.dart\\)\n- PWA manifest.json 개선\n  - 앱 이름 한글화: \"Uncany - 교실 예약\"\n  - 테마 색상: 토스 블루 \\(#3182F6\\)\n  - 카테고리, 언어 추가\n\n## 문서화\n- GEMINI_FEEDBACK_REPORT.md: Gemini 피드백 종합 보고서\n- PRODUCTION_CHECKLIST.md: Production 배포 체크리스트\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }

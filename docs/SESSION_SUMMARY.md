@@ -5,11 +5,14 @@
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
-- 완료: Claude-Gemini 협업 규칙 추가 (CLAUDE.md, GEMINI.md)
-- 완료: bypass mode 설정 (.claude/settings.local.json)
+- 완료: Gemini 피드백 수집 및 보고서 작성 (GEMINI_FEEDBACK_REPORT.md)
+- 완료: Production 체크리스트 작성 (PRODUCTION_CHECKLIST.md)
+- 완료: 취소 정책 서버 단 검증 추가 (010_cancellation_policy_enforcement.sql)
+- 완료: debugLogDiagnostics false 설정
+- 완료: PWA manifest.json 개선 (한글화, 토스 색상)
 - 진행중: 없음
-- 주의사항: 없음
-- 다음 할 일: 사용자 요청에 따라 진행
+- 주의사항: 010 마이그레이션 Supabase에 적용 필요
+- 다음 할 일: Production 배포 준비
 
 ---
 
@@ -100,8 +103,28 @@
 #### Staging 배포 설정
 - [x] **dazzling-swirles 브랜치 Staging 배포 추가** - deploy-web-staging.yml 업데이트
 
+### Gemini 피드백 기반 개선 (2026-01-17)
+
+#### 보안 강화
+- [x] **취소 정책 서버 단 검증** - 010_cancellation_policy_enforcement.sql
+  - `is_reservation_cancellable()` 함수
+  - `validate_reservation_cancellation()` 트리거
+  - 클라이언트 + 서버 양쪽에서 10분 전 취소 정책 검증
+
+#### Production 준비
+- [x] **debugLogDiagnostics: false** - router.dart
+- [x] **PWA manifest.json 개선**
+  - 앱 이름 한글화: "Uncany - 교실 예약"
+  - 테마 색상: 토스 블루 (#3182F6)
+  - 카테고리, 언어 추가
+
+#### 문서화
+- [x] **GEMINI_FEEDBACK_REPORT.md** - Gemini 피드백 종합 보고서
+- [x] **PRODUCTION_CHECKLIST.md** - Production 배포 체크리스트
+
 ### 커밋 내역
 ```
+(신규) feat: Gemini 피드백 기반 개선 (취소 정책 서버 검증, PWA 개선)
 230a5a8 ci: dazzling-swirles 브랜치 Staging 배포 추가
 d31db7c docs: 세션 요약 업데이트 (v0.3.5 작업 내역)
 da9e980 ci: perf/** 브랜치 패턴 추가
