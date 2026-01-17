@@ -1,38 +1,39 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'toss_page_transition.dart';
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/auth/presentation/signup_screen.dart';
-import '../../features/auth/presentation/splash_screen.dart';
+import '../../features/auth/domain/models/user.dart';
 import '../../features/auth/presentation/admin_approvals_screen.dart';
 import '../../features/auth/presentation/admin_users_screen.dart';
-import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
-import '../../features/auth/presentation/reset_password_screen.dart';
-import '../../features/auth/presentation/reset_password_confirm_screen.dart';
 import '../../features/auth/presentation/find_username_screen.dart';
+import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/my_referral_codes_screen.dart';
 import '../../features/auth/presentation/pending_approval_screen.dart';
-import '../../features/settings/presentation/terms_screen.dart';
-import '../../features/settings/presentation/privacy_policy_screen.dart';
-import '../../features/settings/presentation/business_info_screen.dart';
-import '../../features/auth/domain/models/user.dart';
-import '../../features/reservation/presentation/home_screen.dart';
-import '../../features/classroom/presentation/classroom_list_screen.dart';
-import '../../features/classroom/presentation/classroom_detail_screen.dart';
-import '../../features/classroom/presentation/admin_classroom_screen.dart';
-import '../../features/classroom/presentation/classroom_form_screen.dart';
+import '../../features/auth/presentation/profile_screen.dart';
+import '../../features/auth/presentation/reset_password_confirm_screen.dart';
+import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/auth/presentation/signup_screen.dart';
+import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/classroom/domain/models/classroom.dart';
+import '../../features/classroom/presentation/admin_classroom_screen.dart';
+import '../../features/classroom/presentation/classroom_detail_screen.dart';
+import '../../features/classroom/presentation/classroom_form_screen.dart';
+import '../../features/classroom/presentation/classroom_list_screen.dart';
+import '../../features/reservation/presentation/home_screen.dart';
 import '../../features/reservation/presentation/my_reservations_screen.dart';
 import '../../features/reservation/presentation/reservation_screen.dart';
 import '../../features/reservation/presentation/timetable_dashboard_screen.dart';
+import '../../features/settings/presentation/business_info_screen.dart';
+import '../../features/settings/presentation/privacy_policy_screen.dart';
+import '../../features/settings/presentation/terms_screen.dart';
 import '../providers/auth_provider.dart';
+import 'toss_page_transition.dart';
 
 part 'router.g.dart';
 
 @riverpod
-GoRouter router(RouterRef ref) {
+GoRouter router(Ref ref) {
   final isAuthenticated = ref.watch(isAuthenticatedProvider);
   final currentUser = ref.watch(currentUserProvider).value;
 

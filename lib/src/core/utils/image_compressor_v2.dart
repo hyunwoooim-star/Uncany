@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
@@ -40,7 +39,7 @@ class ImageCompressorV2 {
       );
     } else {
       // 모바일 환경: compute()로 별도 Isolate에서 실행
-      return await compute(
+      return compute(
         _compressImageSync,
         _CompressionParams(
           imageBytes: imageBytes,

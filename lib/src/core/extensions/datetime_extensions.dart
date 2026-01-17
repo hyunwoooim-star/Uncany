@@ -157,12 +157,12 @@ extension DateTimeExtensions on DateTime {
   }
 
   /// 특정 날짜로 설정 (시간 유지)
-  DateTime setDate(int year, int month, int day) {
+  DateTime setDate(int newYear, int newMonth, int newDay) {
     return DateTime(
-      year,
-      month,
-      day,
-      this.hour,
+      newYear,
+      newMonth,
+      newDay,
+      hour,
       minute,
       second,
       millisecond,
