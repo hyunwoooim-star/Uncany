@@ -88,8 +88,13 @@
 #### CI/CD 개선
 - [x] **워크플로우 브랜치 패턴 추가** - fix/**, perf/** 브랜치 자동 빌드
 
+#### Staging 배포 설정
+- [x] **dazzling-swirles 브랜치 Staging 배포 추가** - deploy-web-staging.yml 업데이트
+
 ### 커밋 내역
 ```
+230a5a8 ci: dazzling-swirles 브랜치 Staging 배포 추가
+d31db7c docs: 세션 요약 업데이트 (v0.3.5 작업 내역)
 da9e980 ci: perf/** 브랜치 패턴 추가
 1bb9f9d perf: 시간표 대시보드 N+1 쿼리 최적화
 46db640 ci: fix/** 브랜치 패턴 추가
@@ -116,6 +121,11 @@ da9e980 ci: perf/** 브랜치 패턴 추가
 1. **⚠️ SQL 마이그레이션 적용** - `007_fix_user_email_sync.sql` 실행
    - Supabase Dashboard → SQL Editor → 파일 내용 복사 후 실행
    - 기존 사용자 이메일 동기화 + 트리거 생성
+
+### Staging 테스트 완료 (2026-01-17)
+- [x] **종합 시간표 대시보드** - 모든 교실 × 교시 그리드 뷰 정상 작동
+- [x] **N+1 쿼리 최적화** - 병렬 쿼리로 빠른 로딩 확인
+- [x] **예약 취소 정책** - 코드 검증 완료 (시작 10분 전 제한)
 
 ### 즉시 테스트 필요
 1. **아이디/비밀번호 찾기** - 마이그레이션 적용 후 테스트
