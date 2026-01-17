@@ -1,30 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(chmod:*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 비밀번호 재설정 기능 완성 + 환경 변수 보안 강화\n\n- Web용 Redirect URL 지원 \\(localhost:3000\\)\n- 비밀번호 재설정 확인 화면 추가\n- .env 기반 환경 변수 시스템 구축\n- 로컬 실행 스크립트 \\(Windows/Linux 모두 지원\\)\n- Supabase Dashboard 설정 가이드 추가\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push:*)",
-      "Bash(wc:*)",
-      "Bash(ls:*)",
-      "Bash(git commit:*)",
-      "Bash(flutter pub run build_runner build:*)",
-      "Bash(flutter pub get:*)",
-      "Bash(flutter create:*)",
-      "Bash(flutter build:*)",
-      "Bash(flutter analyze:*)",
-      "Bash(git fetch:*)",
-      "Bash(cat:*)",
-      "Bash(git checkout:*)",
-      "Bash(git pull:*)",
-      "Bash(gh pr create:*)",
-      "Bash(gh pr merge:*)",
-      "Bash(gh pr view:*)",
-      "Bash(gh run list:*)",
-      "Bash(gh run view:*)",
-      "Bash(gh secret:*)",
-      "Bash(where:*)",
-      "Bash(dart run build_runner build:*)"
+      "Bash(git commit:*)"
     ]
   }
 }
