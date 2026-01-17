@@ -4,6 +4,15 @@
 
 ---
 
+### 인수인계 (Claude → 다음 작업자)
+- 완료: Claude-Gemini 협업 규칙 추가 (CLAUDE.md, GEMINI.md)
+- 완료: bypass mode 설정 (.claude/settings.local.json)
+- 진행중: 없음
+- 주의사항: 없음
+- 다음 할 일: 사용자 요청에 따라 진행
+
+---
+
 ## 프로젝트 현재 상태: ✅ v0.3.5 (Staging 테스트 진행 중)
 
 ### 완료된 핵심 기능
