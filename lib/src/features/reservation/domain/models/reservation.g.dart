@@ -32,6 +32,7 @@ _$ReservationImpl _$$ReservationImplFromJson(Map<String, dynamic> json) =>
       teacherClassNum: (json['teacher_class_num'] as num?)?.toInt(),
       classroomName: json['classroom_name'] as String?,
       classroomRoomType: json['classroom_room_type'] as String?,
+      classroomLocation: json['classroom_location'] as String?,
     );
 
 Map<String, dynamic> _$$ReservationImplToJson(_$ReservationImpl instance) =>
@@ -52,4 +53,5 @@ Map<String, dynamic> _$$ReservationImplToJson(_$ReservationImpl instance) =>
       'teacher_class_num': instance.teacherClassNum,
       'classroom_name': instance.classroomName,
       'classroom_room_type': instance.classroomRoomType,
+      'classroom_location': instance.classroomLocation,
     };

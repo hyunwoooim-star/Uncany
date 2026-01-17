@@ -28,6 +28,7 @@ class Reservation with _$Reservation {
     // 교실 정보 (JOIN용)
     @JsonKey(name: 'classroom_name') String? classroomName,
     @JsonKey(name: 'classroom_room_type') String? classroomRoomType,
+    @JsonKey(name: 'classroom_location') String? classroomLocation,
   }) = _Reservation;
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>

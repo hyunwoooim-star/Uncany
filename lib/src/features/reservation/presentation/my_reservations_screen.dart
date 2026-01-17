@@ -4,12 +4,16 @@ import 'package:intl/intl.dart';
 
 import '../data/providers/reservation_repository_provider.dart';
 import '../domain/models/reservation.dart';
-import '../../classroom/data/providers/classroom_repository_provider.dart';
-import '../../classroom/domain/models/classroom.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+
+/// 내 예약 Provider (classroom JOIN 포함)
+final myReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((ref) async {
+  final repository = ref.watch(reservationRepositoryProvider);
+  return await repository.getMyReservations();
+});
 
 /// 내 예약 내역 화면
 ///
@@ -34,10 +38,6 @@ enum _ReservationFilter {
 class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = true;
-  List<Reservation> _allReservations = [];
-  Map<String, Classroom> _classroomCache = {};
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -46,7 +46,6 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
-    _loadReservations();
   }
 
   @override
@@ -55,56 +54,18 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
     super.dispose();
   }
 
-  Future<void> _loadReservations() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final reservationRepo = ref.read(reservationRepositoryProvider);
-      final classroomRepo = ref.read(classroomRepositoryProvider);
-
-      // 모든 예약 조회
-      final reservations = await reservationRepo.getMyReservations();
-
-      // 교실 정보 캐시
-      final classroomIds =
-          reservations.map((r) => r.classroomId).toSet();
-      final classroomCache = <String, Classroom>{};
-
-      for (final id in classroomIds) {
-        final classroom = await classroomRepo.getClassroom(id);
-        if (classroom != null) {
-          classroomCache[id] = classroom;
-        }
-      }
-
-      setState(() {
-        _allReservations = reservations;
-        _classroomCache = classroomCache;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = ErrorMessages.fromError(e);
-        _isLoading = false;
-      });
-    }
-  }
-
-  List<Reservation> _getFilteredReservations() {
+  List<Reservation> _getFilteredReservations(List<Reservation> allReservations) {
     final filter = _ReservationFilter.values[_tabController.index];
 
     switch (filter) {
       case _ReservationFilter.all:
-        return _allReservations;
+        return allReservations;
       case _ReservationFilter.upcoming:
-        return _allReservations
+        return allReservations
             .where((r) => r.isUpcoming || r.isOngoing)
             .toList();
       case _ReservationFilter.completed:
-        return _allReservations.where((r) => r.isCompleted).toList();
+        return allReservations.where((r) => r.isCompleted).toList();
     }
   }
 
@@ -140,7 +101,8 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
               backgroundColor: Colors.orange,
             ),
           );
-          _loadReservations();
+          // Provider 무효화로 자동 새로고침
+          ref.invalidate(myReservationsProvider);
         }
       } catch (e) {
         if (mounted) {
@@ -157,7 +119,7 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final filteredReservations = _getFilteredReservations();
+    final reservationsAsync = ref.watch(myReservationsProvider);
 
     return Scaffold(
       backgroundColor: TossColors.background,
@@ -175,83 +137,87 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
               .toList(),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline,
-                          size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(_errorMessage!,
-                          style: const TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 16),
-                      TossButton(
-                        onPressed: _loadReservations,
-                        child: const Text('다시 시도'),
-                      ),
-                    ],
-                  ),
-                )
-              : filteredReservations.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.event_note_outlined,
-                            size: 64,
-                            color: TossColors.textSub.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _tabController.index == 0
-                                ? '예약 내역이 없습니다'
-                                : _tabController.index == 1
-                                    ? '예정된 예약이 없습니다'
-                                    : '완료된 예약이 없습니다',
-                            style: TextStyle(
-                              color: TossColors.textSub,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadReservations,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredReservations.length,
-                        itemBuilder: (context, index) {
-                          final reservation = filteredReservations[index];
-                          final classroom =
-                              _classroomCache[reservation.classroomId];
+      body: reservationsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                ErrorMessages.fromError(error),
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              TossButton(
+                onPressed: () => ref.invalidate(myReservationsProvider),
+                child: const Text('다시 시도'),
+              ),
+            ],
+          ),
+        ),
+        data: (allReservations) {
+          final filteredReservations = _getFilteredReservations(allReservations);
 
-                          return _ReservationCard(
-                            reservation: reservation,
-                            classroom: classroom,
-                            onCancel: reservation.isUpcoming
-                                ? () => _cancelReservation(reservation)
-                                : null,
-                          );
-                        },
-                      ),
+          if (filteredReservations.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.event_note_outlined,
+                    size: 64,
+                    color: TossColors.textSub.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _tabController.index == 0
+                        ? '예약 내역이 없습니다'
+                        : _tabController.index == 1
+                            ? '예정된 예약이 없습니다'
+                            : '완료된 예약이 없습니다',
+                    style: TextStyle(
+                      color: TossColors.textSub,
+                      fontSize: 16,
                     ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(myReservationsProvider);
+            },
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredReservations.length,
+              itemBuilder: (context, index) {
+                final reservation = filteredReservations[index];
+
+                return _ReservationCard(
+                  reservation: reservation,
+                  onCancel: reservation.isUpcoming
+                      ? () => _cancelReservation(reservation)
+                      : null,
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
 class _ReservationCard extends StatelessWidget {
   final Reservation reservation;
-  final Classroom? classroom;
   final VoidCallback? onCancel;
 
   const _ReservationCard({
     required this.reservation,
-    required this.classroom,
     this.onCancel,
   });
 
@@ -279,6 +245,9 @@ class _ReservationCard extends StatelessWidget {
       statusIcon = Icons.check_circle_outline;
     }
 
+    // 교실명 (JOIN 데이터 사용)
+    final classroomName = reservation.classroomName ?? '알 수 없는 교실';
+
     return TossCard(
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -289,7 +258,7 @@ class _ReservationCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  classroom?.name ?? '알 수 없는 교실',
+                  classroomName,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -325,6 +294,21 @@ class _ReservationCard extends StatelessWidget {
               ),
             ],
           ),
+
+          // 교실 위치 표시
+          if (reservation.classroomLocation != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.location_on, size: 14, color: TossColors.textSub),
+                const SizedBox(width: 4),
+                Text(
+                  reservation.classroomLocation!,
+                  style: TextStyle(fontSize: 13, color: TossColors.textSub),
+                ),
+              ],
+            ),
+          ],
 
           const SizedBox(height: 12),
 

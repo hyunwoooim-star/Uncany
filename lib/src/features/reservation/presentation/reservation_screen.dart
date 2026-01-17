@@ -13,6 +13,8 @@ import 'package:uncany/src/features/reservation/data/repositories/reservation_re
 import 'package:uncany/src/features/reservation/domain/models/reservation.dart';
 import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
+import 'home_screen.dart' show todayReservationsProvider;
+import 'my_reservations_screen.dart' show myReservationsProvider;
 
 /// 예약 화면 (v0.2)
 ///
@@ -176,6 +178,10 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
             backgroundColor: TossColors.primary,
           ),
         );
+
+        // 모든 예약 관련 Provider 무효화 (동기화)
+        ref.invalidate(todayReservationsProvider);
+        ref.invalidate(myReservationsProvider);
 
         // 예약 목록 새로고침
         _loadReservations();

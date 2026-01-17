@@ -17,6 +17,7 @@ class ReservationRepository {
   /// 내 예약 목록 조회
   ///
   /// [startDate], [endDate]로 기간 필터링 가능
+  /// classroom 정보 JOIN 포함
   Future<List<Reservation>> getMyReservations({
     DateTime? startDate,
     DateTime? endDate,
@@ -27,9 +28,17 @@ class ReservationRepository {
         throw Exception(ErrorMessages.authRequired);
       }
 
-      dynamic query = _supabase
+      // classroom 정보 JOIN 포함
+      var query = _supabase
           .from('reservations')
-          .select()
+          .select('''
+            *,
+            classrooms:classroom_id (
+              name,
+              room_type,
+              location
+            )
+          ''')
           .eq('teacher_id', session.user.id)
           .isFilter('deleted_at', null);
 
@@ -42,13 +51,18 @@ class ReservationRepository {
       }
 
       // 시작 시간 기준 정렬
-      query = query.order('start_time', ascending: true);
+      final response = await query.order('start_time', ascending: true);
 
-      final response = await query;
-
-      return (response as List)
-          .map((json) => Reservation.fromJson(json as Map<String, dynamic>))
-          .toList();
+      return (response as List).map((item) {
+        final json = item as Map<String, dynamic>;
+        final classroomData = json['classrooms'] as Map<String, dynamic>?;
+        return Reservation.fromJson({
+          ...json,
+          'classroom_name': classroomData?['name'],
+          'classroom_room_type': classroomData?['room_type'],
+          'classroom_location': classroomData?['location'],
+        });
+      }).toList();
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {

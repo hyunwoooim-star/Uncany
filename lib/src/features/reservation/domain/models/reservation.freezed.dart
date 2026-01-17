@@ -52,6 +52,8 @@ mixin _$Reservation {
   String? get classroomName => throw _privateConstructorUsedError;
   @JsonKey(name: 'classroom_room_type')
   String? get classroomRoomType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'classroom_location')
+  String? get classroomLocation => throw _privateConstructorUsedError;
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>(
@@ -102,7 +104,8 @@ abstract class $ReservationCopyWith<$Res> {
       @JsonKey(name: 'teacher_grade') int? teacherGrade,
       @JsonKey(name: 'teacher_class_num') int? teacherClassNum,
       @JsonKey(name: 'classroom_name') String? classroomName,
-      @JsonKey(name: 'classroom_room_type') String? classroomRoomType});
+      @JsonKey(name: 'classroom_room_type') String? classroomRoomType,
+      @JsonKey(name: 'classroom_location') String? classroomLocation});
 }
 
 /// @nodoc
@@ -136,6 +139,7 @@ class _$ReservationCopyWithImpl<$Res, $Val extends Reservation>
     Object? teacherClassNum = freezed,
     Object? classroomName = freezed,
     Object? classroomRoomType = freezed,
+    Object? classroomLocation = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -202,6 +206,10 @@ class _$ReservationCopyWithImpl<$Res, $Val extends Reservation>
           ? _value.classroomRoomType
           : classroomRoomType // ignore: cast_nullable_to_non_nullable
               as String?,
+      classroomLocation: freezed == classroomLocation
+          ? _value.classroomLocation
+          : classroomLocation // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -230,7 +238,8 @@ abstract class _$$ReservationImplCopyWith<$Res>
       @JsonKey(name: 'teacher_grade') int? teacherGrade,
       @JsonKey(name: 'teacher_class_num') int? teacherClassNum,
       @JsonKey(name: 'classroom_name') String? classroomName,
-      @JsonKey(name: 'classroom_room_type') String? classroomRoomType});
+      @JsonKey(name: 'classroom_room_type') String? classroomRoomType,
+      @JsonKey(name: 'classroom_location') String? classroomLocation});
 }
 
 /// @nodoc
@@ -262,6 +271,7 @@ class __$$ReservationImplCopyWithImpl<$Res>
     Object? teacherClassNum = freezed,
     Object? classroomName = freezed,
     Object? classroomRoomType = freezed,
+    Object? classroomLocation = freezed,
   }) {
     return _then(_$ReservationImpl(
       id: null == id
@@ -328,6 +338,10 @@ class __$$ReservationImplCopyWithImpl<$Res>
           ? _value.classroomRoomType
           : classroomRoomType // ignore: cast_nullable_to_non_nullable
               as String?,
+      classroomLocation: freezed == classroomLocation
+          ? _value.classroomLocation
+          : classroomLocation // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -351,7 +365,8 @@ class _$ReservationImpl extends _Reservation {
       @JsonKey(name: 'teacher_grade') this.teacherGrade,
       @JsonKey(name: 'teacher_class_num') this.teacherClassNum,
       @JsonKey(name: 'classroom_name') this.classroomName,
-      @JsonKey(name: 'classroom_room_type') this.classroomRoomType})
+      @JsonKey(name: 'classroom_room_type') this.classroomRoomType,
+      @JsonKey(name: 'classroom_location') this.classroomLocation})
       : _periods = periods,
         super._();
 
@@ -415,10 +430,13 @@ class _$ReservationImpl extends _Reservation {
   @override
   @JsonKey(name: 'classroom_room_type')
   final String? classroomRoomType;
+  @override
+  @JsonKey(name: 'classroom_location')
+  final String? classroomLocation;
 
   @override
   String toString() {
-    return 'Reservation(id: $id, classroomId: $classroomId, teacherId: $teacherId, startTime: $startTime, endTime: $endTime, title: $title, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, periods: $periods, teacherName: $teacherName, teacherGrade: $teacherGrade, teacherClassNum: $teacherClassNum, classroomName: $classroomName, classroomRoomType: $classroomRoomType)';
+    return 'Reservation(id: $id, classroomId: $classroomId, teacherId: $teacherId, startTime: $startTime, endTime: $endTime, title: $title, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, periods: $periods, teacherName: $teacherName, teacherGrade: $teacherGrade, teacherClassNum: $teacherClassNum, classroomName: $classroomName, classroomRoomType: $classroomRoomType, classroomLocation: $classroomLocation)';
   }
 
   @override
@@ -453,7 +471,9 @@ class _$ReservationImpl extends _Reservation {
             (identical(other.classroomName, classroomName) ||
                 other.classroomName == classroomName) &&
             (identical(other.classroomRoomType, classroomRoomType) ||
-                other.classroomRoomType == classroomRoomType));
+                other.classroomRoomType == classroomRoomType) &&
+            (identical(other.classroomLocation, classroomLocation) ||
+                other.classroomLocation == classroomLocation));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -475,7 +495,8 @@ class _$ReservationImpl extends _Reservation {
       teacherGrade,
       teacherClassNum,
       classroomName,
-      classroomRoomType);
+      classroomRoomType,
+      classroomLocation);
 
   /// Create a copy of Reservation
   /// with the given fields replaced by the non-null parameter values.
@@ -538,8 +559,9 @@ abstract class _Reservation extends Reservation {
       @JsonKey(name: 'teacher_grade') final int? teacherGrade,
       @JsonKey(name: 'teacher_class_num') final int? teacherClassNum,
       @JsonKey(name: 'classroom_name') final String? classroomName,
-      @JsonKey(name: 'classroom_room_type')
-      final String? classroomRoomType}) = _$ReservationImpl;
+      @JsonKey(name: 'classroom_room_type') final String? classroomRoomType,
+      @JsonKey(name: 'classroom_location')
+      final String? classroomLocation}) = _$ReservationImpl;
   const _Reservation._() : super._();
 
   factory _Reservation.fromJson(Map<String, dynamic> json) =
@@ -590,6 +612,9 @@ abstract class _Reservation extends Reservation {
   @override
   @JsonKey(name: 'classroom_room_type')
   String? get classroomRoomType;
+  @override
+  @JsonKey(name: 'classroom_location')
+  String? get classroomLocation;
 
   /// Create a copy of Reservation
   /// with the given fields replaced by the non-null parameter values.

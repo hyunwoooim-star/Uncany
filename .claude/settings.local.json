@@ -23,7 +23,8 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(gh secret:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(dart run build_runner build:*)"
     ]
   }
 }
