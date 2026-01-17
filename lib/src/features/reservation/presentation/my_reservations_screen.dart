@@ -70,11 +70,30 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
   }
 
   Future<void> _cancelReservation(Reservation reservation) async {
+    // 취소 가능 여부 재확인
+    if (!reservation.isCancellable) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(reservation.cancellationDisabledReason ?? '취소할 수 없습니다'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    // 남은 시간 표시
+    final minutesLeft = reservation.minutesUntilCancellationDeadline;
+    final timeWarning = minutesLeft < 30
+        ? '\n\n⚠️ 취소 마감까지 $minutesLeft분 남았습니다.'
+        : '';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('예약 취소'),
-        content: const Text('이 예약을 취소하시겠습니까?'),
+        content: Text('이 예약을 취소하시겠습니까?$timeWarning'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -199,7 +218,7 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
 
                 return _ReservationCard(
                   reservation: reservation,
-                  onCancel: reservation.isUpcoming
+                  onCancel: reservation.isCancellable
                       ? () => _cancelReservation(reservation)
                       : null,
                 );
@@ -398,21 +417,51 @@ class _ReservationCard extends StatelessWidget {
             ),
           ],
 
-          // 취소 버튼 (예정된 예약만)
-          if (onCancel != null) ...[
+          // 취소 버튼 또는 취소 불가 안내
+          if (reservation.isUpcoming || reservation.isOngoing) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: onCancel,
-                icon: const Icon(Icons.cancel_outlined, size: 18),
-                label: const Text('예약 취소'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: BorderSide(color: Colors.red.withOpacity(0.5)),
+            if (onCancel != null)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onCancel,
+                  icon: const Icon(Icons.cancel_outlined, size: 18),
+                  label: const Text('예약 취소'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red.withOpacity(0.5)),
+                  ),
+                ),
+              )
+            else if (reservation.cancellationDisabledReason != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.orange.shade700,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        reservation.cancellationDisabledReason!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
           ],
         ],
       ),

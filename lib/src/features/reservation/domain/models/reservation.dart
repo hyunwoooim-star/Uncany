@@ -49,6 +49,35 @@ class Reservation with _$Reservation {
     return now.isBefore(startTime) && isActive;
   }
 
+  /// 예약 취소 가능 여부 (시작 10분 전까지만 가능)
+  bool get isCancellable {
+    if (!isActive) return false;
+    final now = DateTime.now();
+    final cancellationDeadline = startTime.subtract(const Duration(minutes: 10));
+    return now.isBefore(cancellationDeadline);
+  }
+
+  /// 취소 마감까지 남은 시간 (분)
+  int get minutesUntilCancellationDeadline {
+    final now = DateTime.now();
+    final cancellationDeadline = startTime.subtract(const Duration(minutes: 10));
+    return cancellationDeadline.difference(now).inMinutes;
+  }
+
+  /// 취소 불가 사유 메시지
+  String? get cancellationDisabledReason {
+    if (!isActive) return '이미 취소된 예약입니다';
+    if (!isUpcoming && !isOngoing) return '이미 완료된 예약입니다';
+    if (isOngoing) return '진행 중인 예약은 취소할 수 없습니다';
+    if (!isCancellable) {
+      final minutes = minutesUntilCancellationDeadline;
+      if (minutes <= 0) {
+        return '예약 시작 10분 전부터는 취소할 수 없습니다';
+      }
+    }
+    return null;
+  }
+
   /// 예약이 완료되었는지
   bool get isCompleted {
     final now = DateTime.now();
