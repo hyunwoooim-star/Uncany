@@ -20,7 +20,8 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 로그인 시 RPC 함수로 이메일 조회 \\(RLS 우회\\)\n\n- users 테이블 직접 조회 대신 get_email_by_username RPC 함수 사용\n- 비인증 사용자\\(anon\\)도 아이디로 로그인 가능하도록 수정\n- SECURITY DEFINER 함수로 RLS 정책 우회\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: 로그인용 RPC 함수 마이그레이션 추가\n\n- 011_get_email_by_username_rpc.sql 추가\n- get_email_by_username\\(\\) 함수로 아이디 → 이메일 조회\n- anon/authenticated 역할에 EXECUTE 권한 부여\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 한글화된 에러 메시지가 다시 처리되는 문제 수정\n\n- fromError에서 이미 한글화된 메시지 감지 및 그대로 반환\n- rate limit 등 AuthException 에러가 올바르게 표시되도록 수정\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh run list:*)"
     ]
   }
 }

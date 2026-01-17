@@ -124,15 +124,39 @@
   </div>
 
   <script>
-    // Supabase Auth 콜백 처리 (URL 파라미터 → 해시 라우팅으로 변환)
+    // Supabase Auth 콜백 처리
     // 비밀번호 재설정, 이메일 인증 등의 딥링크 지원
+    // Supabase PKCE 흐름: 토큰이 URL fragment(#)로 전달됨
     (function() {
-      var params = new URLSearchParams(window.location.search);
+      var path = window.location.pathname;
       var hash = window.location.hash;
+      var search = window.location.search;
 
-      // type=recovery (비밀번호 재설정) 또는 access_token이 있는 경우
+      // Case 1: Supabase PKCE 리다이렉트 - /auth/reset-password#access_token=...
+      // Supabase가 /auth/reset-password로 리다이렉트하고 토큰은 fragment에 포함
+      if (path.endsWith('/auth/reset-password') && hash && hash.includes('access_token')) {
+        // Fragment에서 파라미터 추출 (#access_token=...&type=recovery...)
+        var hashParams = new URLSearchParams(hash.substring(1));
+        var accessToken = hashParams.get('access_token');
+        var refreshToken = hashParams.get('refresh_token');
+        var type = hashParams.get('type');
+
+        if (accessToken) {
+          // Flutter 앱의 해시 라우팅으로 변환
+          var newUrl = window.location.origin + '/' +
+            '#/auth/reset-password?type=' + (type || 'recovery') +
+            '&access_token=' + encodeURIComponent(accessToken);
+          if (refreshToken) {
+            newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
+          }
+          window.location.replace(newUrl);
+          return;
+        }
+      }
+
+      // Case 2: 쿼리 파라미터로 오는 경우 (이전 방식 호환)
+      var params = new URLSearchParams(search);
       if (params.has('type') || params.has('access_token') || params.has('error')) {
-        // 현재 URL 파라미터를 해시 라우트로 변환
         var type = params.get('type');
         var accessToken = params.get('access_token');
         var refreshToken = params.get('refresh_token');
@@ -141,8 +165,7 @@
 
         // 비밀번호 재설정인 경우
         if (type === 'recovery' && accessToken) {
-          // Flutter 앱의 해시 라우트로 리다이렉트
-          var newUrl = window.location.origin + window.location.pathname +
+          var newUrl = window.location.origin + '/' +
             '#/auth/reset-password?type=recovery&access_token=' + encodeURIComponent(accessToken);
           if (refreshToken) {
             newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
@@ -153,7 +176,7 @@
 
         // 에러가 있는 경우 로그인 페이지로
         if (error) {
-          var errorUrl = window.location.origin + window.location.pathname +
+          var errorUrl = window.location.origin + '/' +
             '#/auth/login?error=' + encodeURIComponent(error);
           if (errorDescription) {
             errorUrl += '&error_description=' + encodeURIComponent(errorDescription);
@@ -162,6 +185,9 @@
           return;
         }
       }
+
+      // Case 3: /auth/reset-password 경로로 직접 접근 (토큰 없이)
+      // Flutter 앱이 로드되면 라우터가 처리하므로 별도 처리 불필요
     })();
   </script>
   <script src="flutter_bootstrap.js" async></script>
