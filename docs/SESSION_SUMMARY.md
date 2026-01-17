@@ -9,12 +9,11 @@
 - 완료: 에러 메시지 한글화 수정 (이미 번역된 메시지 재처리 방지)
 - 완료: 관리자 비밀번호 초기화 기능 확인 (이미 구현됨)
 - 완료: 비밀번호 재설정 이메일 기능 점검
+- **완료: Resend SMTP 설정** ✅ 이메일 발송 정상 작동!
 - 진행중: 없음
 - 주의사항:
-  - **Custom SMTP 미설정**: Supabase에서 이메일 발송 안됨
   - 011 마이그레이션 Supabase에 적용 필요 (`011_get_email_by_username_rpc.sql`)
 - 다음 할 일:
-  - 무료 SMTP 서비스 설정 (Resend 권장)
   - Production 배포 준비
 
 ---
@@ -122,9 +121,13 @@
 - [x] **현황 파악**
   - 관리자용 비밀번호 초기화: 이미 구현됨 (`admin_users_screen.dart`)
   - 사용자용 비밀번호 재설정 이메일: Custom SMTP 미설정으로 미작동
-- [x] **해결 방안**
+- [x] **해결 완료**
   - 관리자가 임시 비밀번호 발급 가능 (기존 기능)
-  - 이메일 발송은 무료 SMTP 서비스 설정 필요 (Resend 권장)
+  - **Resend SMTP 설정 완료** - 이메일 발송 정상 작동!
+    - Host: smtp.resend.com
+    - Port: 465
+    - Sender: onboarding@resend.dev (테스트용)
+  - Staging에서 비밀번호 재설정 이메일 발송 테스트 성공
 
 ### Gemini 피드백 기반 개선 (2026-01-17)
 
