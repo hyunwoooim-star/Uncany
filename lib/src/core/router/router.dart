@@ -27,6 +27,7 @@ import '../../features/classroom/presentation/classroom_form_screen.dart';
 import '../../features/classroom/domain/models/classroom.dart';
 import '../../features/reservation/presentation/my_reservations_screen.dart';
 import '../../features/reservation/presentation/reservation_screen.dart';
+import '../../features/reservation/presentation/timetable_dashboard_screen.dart';
 import '../providers/auth_provider.dart';
 
 part 'router.g.dart';
@@ -247,6 +248,15 @@ GoRouter router(RouterRef ref) {
       ),
 
       // 예약
+      GoRoute(
+        path: '/reservations/timetable',
+        name: 'timetable-dashboard',
+        pageBuilder: (context, state) => buildTossTransitionPage(
+          context: context,
+          state: state,
+          child: const TimetableDashboardScreen(),
+        ),
+      ),
       GoRoute(
         path: '/reservations/my',
         name: 'my-reservations',

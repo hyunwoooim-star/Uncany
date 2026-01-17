@@ -164,6 +164,16 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
 
+              SizedBox(height: spacing * 0.75),
+
+              // 종합 시간표 버튼
+              _CompactActionButton(
+                icon: Icons.grid_view,
+                label: '종합 시간표',
+                color: Colors.orange,
+                onTap: () => context.push('/reservations/timetable'),
+              ),
+
               SizedBox(height: spacing * 1.5),
 
               // 오늘의 예약 섹션
