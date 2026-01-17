@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
@@ -32,6 +33,7 @@ class _TimetableDashboardScreenState
   Map<String, Map<int, Reservation>> _reservationMap = {};
   bool _isLoading = true;
   String? _errorMessage;
+  String? _currentUserId;
 
   // 표시할 교시 범위 (기본 1~6교시)
   final int _startPeriod = 1;
@@ -41,6 +43,7 @@ class _TimetableDashboardScreenState
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
+    _currentUserId = Supabase.instance.client.auth.currentUser?.id;
     _loadData();
   }
 
@@ -403,7 +406,9 @@ class _TimetableDashboardScreenState
   /// 교시 셀
   Widget _buildPeriodCell(int period, Reservation? reservation) {
     final isReserved = reservation != null;
-    final isMyReservation = reservation?.isMyReservation ?? false;
+    final isMyReservation = reservation != null &&
+        _currentUserId != null &&
+        reservation.teacherId == _currentUserId;
 
     Color bgColor;
     Color borderColor;
@@ -455,10 +460,10 @@ class _TimetableDashboardScreenState
             Row(
               children: [
                 const TossSkeleton(width: 80, height: 20),
-                ...List.generate(6, (index) => const Expanded(
+                ...List.generate(6, (index) => Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: TossSkeleton(height: 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: TossSkeleton(width: double.infinity, height: 30),
                   ),
                 )),
               ],
@@ -470,10 +475,10 @@ class _TimetableDashboardScreenState
               child: Row(
                 children: [
                   const TossSkeleton(width: 80, height: 40),
-                  ...List.generate(6, (index) => const Expanded(
+                  ...List.generate(6, (index) => Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: TossSkeleton(height: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: TossSkeleton(width: double.infinity, height: 40),
                     ),
                   )),
                 ],

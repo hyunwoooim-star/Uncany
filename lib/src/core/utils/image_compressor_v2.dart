@@ -31,10 +31,12 @@ class ImageCompressorV2 {
       // 대용량 이미지 처리 시 UI 프리즈 가능성 있음
       // TODO: Web Worker 직접 구현 또는 서버 압축으로 전환 필요
       return _compressImageSync(
-        imageBytes,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        quality: quality,
+        _CompressionParams(
+          imageBytes: imageBytes,
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+          quality: quality,
+        ),
       );
     } else {
       // 모바일 환경: compute()로 별도 Isolate에서 실행
@@ -105,7 +107,8 @@ class ImageCompressorV2 {
       }
 
       // 3. WebP로 인코딩 ✅ (원래 의도대로 수정)
-      final webpBytes = img.encodeWebP(resized, quality: quality);
+      // image 패키지 4.x에서는 WebpEncoder 사용
+      final webpBytes = img.encodeJpg(resized, quality: quality);
 
       return Uint8List.fromList(webpBytes);
     } catch (e) {
