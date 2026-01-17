@@ -123,6 +123,47 @@
     <div class="loading-text">로딩 중...</div>
   </div>
 
+  <script>
+    // Supabase Auth 콜백 처리 (URL 파라미터 → 해시 라우팅으로 변환)
+    // 비밀번호 재설정, 이메일 인증 등의 딥링크 지원
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var hash = window.location.hash;
+
+      // type=recovery (비밀번호 재설정) 또는 access_token이 있는 경우
+      if (params.has('type') || params.has('access_token') || params.has('error')) {
+        // 현재 URL 파라미터를 해시 라우트로 변환
+        var type = params.get('type');
+        var accessToken = params.get('access_token');
+        var refreshToken = params.get('refresh_token');
+        var error = params.get('error');
+        var errorDescription = params.get('error_description');
+
+        // 비밀번호 재설정인 경우
+        if (type === 'recovery' && accessToken) {
+          // Flutter 앱의 해시 라우트로 리다이렉트
+          var newUrl = window.location.origin + window.location.pathname +
+            '#/auth/reset-password?type=recovery&access_token=' + encodeURIComponent(accessToken);
+          if (refreshToken) {
+            newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
+          }
+          window.location.replace(newUrl);
+          return;
+        }
+
+        // 에러가 있는 경우 로그인 페이지로
+        if (error) {
+          var errorUrl = window.location.origin + window.location.pathname +
+            '#/auth/login?error=' + encodeURIComponent(error);
+          if (errorDescription) {
+            errorUrl += '&error_description=' + encodeURIComponent(errorDescription);
+          }
+          window.location.replace(errorUrl);
+          return;
+        }
+      }
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
   <script>
     // Flutter 로드 완료 시 로딩 화면 제거

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/providers/auth_repository_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
@@ -11,7 +12,14 @@ import 'package:uncany/src/core/utils/error_messages.dart';
 ///
 /// 이메일 링크를 통해 접근하며, 새로운 비밀번호를 입력받습니다.
 class ResetPasswordConfirmScreen extends ConsumerStatefulWidget {
-  const ResetPasswordConfirmScreen({super.key});
+  final String? accessToken;
+  final String? refreshToken;
+
+  const ResetPasswordConfirmScreen({
+    super.key,
+    this.accessToken,
+    this.refreshToken,
+  });
 
   @override
   ConsumerState<ResetPasswordConfirmScreen> createState() =>
@@ -25,9 +33,37 @@ class _ResetPasswordConfirmScreenState
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isInitializing = true;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSession();
+  }
+
+  /// URL의 access_token으로 세션 설정
+  Future<void> _initializeSession() async {
+    try {
+      final accessToken = widget.accessToken;
+
+      if (accessToken != null && accessToken.isNotEmpty) {
+        // access_token으로 세션 설정
+        await Supabase.instance.client.auth.setSession(accessToken);
+      }
+
+      setState(() {
+        _isInitializing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isInitializing = false;
+        _errorMessage = '세션 초기화에 실패했습니다. 링크가 만료되었을 수 있습니다.';
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -82,6 +118,21 @@ class _ResetPasswordConfirmScreenState
 
   @override
   Widget build(BuildContext context) {
+    // 초기화 중일 때 로딩 표시
+    if (_isInitializing) {
+      return Scaffold(
+        backgroundColor: TossColors.background,
+        appBar: AppBar(
+          title: const Text('새 비밀번호 설정'),
+          backgroundColor: TossColors.surface,
+          elevation: 0,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(

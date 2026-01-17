@@ -118,7 +118,13 @@ GoRouter router(Ref ref) {
           // URL에 type=recovery가 있으면 확인 화면, 없으면 이메일 입력 화면
           final type = state.uri.queryParameters['type'];
           if (type == 'recovery') {
-            return const ResetPasswordConfirmScreen();
+            // access_token을 ResetPasswordConfirmScreen에 전달
+            final accessToken = state.uri.queryParameters['access_token'];
+            final refreshToken = state.uri.queryParameters['refresh_token'];
+            return ResetPasswordConfirmScreen(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            );
           }
           return const ResetPasswordScreen();
         },
