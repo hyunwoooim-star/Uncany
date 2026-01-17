@@ -48,6 +48,8 @@ class _TimetableDashboardScreenState
   }
 
   /// 데이터 로드 (교실 목록 + 예약 현황)
+  ///
+  /// N+1 쿼리 개선: 교실 목록과 예약 현황을 병렬로 조회
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -59,18 +61,14 @@ class _TimetableDashboardScreenState
       final classroomRepo = ClassroomRepository(supabase);
       final reservationRepo = ReservationRepository(supabase);
 
-      // 교실 목록 조회
-      final classrooms = await classroomRepo.getClassrooms(activeOnly: true);
+      // 교실 목록과 예약 현황을 병렬로 조회 (N+1 → 2개 쿼리)
+      final results = await Future.wait([
+        classroomRepo.getClassrooms(activeOnly: true),
+        reservationRepo.getAllReservationsForDate(_selectedDate),
+      ]);
 
-      // 각 교실별 예약 현황 조회
-      final reservationMap = <String, Map<int, Reservation>>{};
-      for (final classroom in classrooms) {
-        final periodMap = await reservationRepo.getReservedPeriodsMap(
-          classroom.id,
-          _selectedDate,
-        );
-        reservationMap[classroom.id] = periodMap;
-      }
+      final classrooms = results[0] as List<Classroom>;
+      final reservationMap = results[1] as Map<String, Map<int, Reservation>>;
 
       if (mounted) {
         setState(() {

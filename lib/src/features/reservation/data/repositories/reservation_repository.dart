@@ -386,6 +386,65 @@ class ReservationRepository {
     }
   }
 
+  /// 모든 교실의 예약 현황 조회 (특정 날짜)
+  ///
+  /// N+1 쿼리 문제 해결: 한 번의 쿼리로 모든 교실의 예약을 가져옴
+  /// 시간표 대시보드에서 사용
+  Future<Map<String, Map<int, Reservation>>> getAllReservationsForDate(
+    DateTime date,
+  ) async {
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _supabase
+          .from('reservations')
+          .select('''
+            *,
+            users:teacher_id (
+              name,
+              grade,
+              class_num
+            )
+          ''')
+          .isFilter('deleted_at', null)
+          .gte('start_time', startOfDay.toIso8601String())
+          .lt('start_time', endOfDay.toIso8601String())
+          .order('start_time', ascending: true);
+
+      // 교실 ID별 교시 맵 생성
+      final result = <String, Map<int, Reservation>>{};
+
+      for (final item in response as List) {
+        final json = item as Map<String, dynamic>;
+        final userData = json['users'] as Map<String, dynamic>?;
+        final reservation = Reservation.fromJson({
+          ...json,
+          'teacher_name': userData?['name'],
+          'teacher_grade': userData?['grade'],
+          'teacher_class_num': userData?['class_num'],
+        });
+
+        final classroomId = reservation.classroomId;
+        result.putIfAbsent(classroomId, () => {});
+
+        if (reservation.periods != null) {
+          for (final period in reservation.periods!) {
+            result[classroomId]![period] = reservation;
+          }
+        }
+      }
+
+      return result;
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('ReservationRepository.getAllReservationsForDate', e, stack);
+      throw Exception(ErrorMessages.fromError(e));
+    } catch (e, stack) {
+      AppLogger.error('ReservationRepository.getAllReservationsForDate', e, stack);
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
   /// 오늘의 예약 수 조회
   Future<int> getTodayReservationCount() async {
     try {
