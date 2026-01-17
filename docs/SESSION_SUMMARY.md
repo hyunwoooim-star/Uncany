@@ -1,18 +1,21 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-17
+## 마지막 업데이트: 2026-01-18
 
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
-- 완료: Gemini 피드백 수집 및 보고서 작성 (GEMINI_FEEDBACK_REPORT.md)
-- 완료: Production 체크리스트 작성 (PRODUCTION_CHECKLIST.md)
-- 완료: 취소 정책 서버 단 검증 추가 (010_cancellation_policy_enforcement.sql)
-- 완료: debugLogDiagnostics false 설정
-- 완료: PWA manifest.json 개선 (한글화, 토스 색상)
+- 완료: 로그인 RLS 문제 해결 (`get_email_by_username` RPC 함수)
+- 완료: 에러 메시지 한글화 수정 (이미 번역된 메시지 재처리 방지)
+- 완료: 관리자 비밀번호 초기화 기능 확인 (이미 구현됨)
+- 완료: 비밀번호 재설정 이메일 기능 점검
 - 진행중: 없음
-- 주의사항: 010 마이그레이션 Supabase에 적용 필요
-- 다음 할 일: Production 배포 준비
+- 주의사항:
+  - **Custom SMTP 미설정**: Supabase에서 이메일 발송 안됨
+  - 011 마이그레이션 Supabase에 적용 필요 (`011_get_email_by_username_rpc.sql`)
+- 다음 할 일:
+  - 무료 SMTP 서비스 설정 (Resend 권장)
+  - Production 배포 준비
 
 ---
 
@@ -102,6 +105,26 @@
 
 #### Staging 배포 설정
 - [x] **dazzling-swirles 브랜치 Staging 배포 추가** - deploy-web-staging.yml 업데이트
+
+### 2026-01-18 작업
+
+#### 로그인 문제 해결
+- [x] **RLS 우회 RPC 함수** - `get_email_by_username` 함수 추가
+  - 로그인 시 username으로 email 조회가 RLS 정책에 막히는 문제 해결
+  - SECURITY DEFINER로 RLS 우회
+  - 011_get_email_by_username_rpc.sql 마이그레이션 추가
+
+#### 에러 메시지 개선
+- [x] **한글 메시지 재처리 방지** - error_messages.dart 수정
+  - fromAuthError에서 이미 한글화된 메시지가 fromError에서 다시 처리되는 문제 수정
+
+#### 비밀번호 재설정 기능 점검
+- [x] **현황 파악**
+  - 관리자용 비밀번호 초기화: 이미 구현됨 (`admin_users_screen.dart`)
+  - 사용자용 비밀번호 재설정 이메일: Custom SMTP 미설정으로 미작동
+- [x] **해결 방안**
+  - 관리자가 임시 비밀번호 발급 가능 (기존 기능)
+  - 이메일 발송은 무료 SMTP 서비스 설정 필요 (Resend 권장)
 
 ### Gemini 피드백 기반 개선 (2026-01-17)
 
