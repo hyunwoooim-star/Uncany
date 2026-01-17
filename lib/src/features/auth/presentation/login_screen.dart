@@ -102,14 +102,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // 이메일로 직접 입력된 경우
         email = username;
       } else {
-        // 아이디로 입력된 경우 → 이메일 조회
-        final userResponse = await supabase
-            .from('users')
-            .select('email')
-            .eq('username', username)
-            .maybeSingle();
+        // 아이디로 입력된 경우 → RPC 함수로 이메일 조회 (RLS 우회)
+        final response = await supabase
+            .rpc('get_email_by_username', params: {'username_input': username});
 
-        if (userResponse == null) {
+        if (response == null) {
           setState(() {
             _errorMessage = '존재하지 않는 아이디입니다';
             _isLoading = false;
@@ -117,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           return;
         }
 
-        email = userResponse['email'] as String?;
+        email = response as String?;
       }
 
       if (email == null || email.isEmpty) {
