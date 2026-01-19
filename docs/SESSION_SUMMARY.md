@@ -1,15 +1,17 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-17
+## 마지막 업데이트: 2026-01-19
 
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
-- 완료: Claude-Gemini 협업 규칙 추가 (CLAUDE.md, GEMINI.md)
-- 완료: bypass mode 설정 (.claude/settings.local.json)
-- 진행중: 없음
-- 주의사항: 없음
-- 다음 할 일: 사용자 요청에 따라 진행
+- 완료: TossSnackBar 전역 적용 (모든 SnackBar → 토스 스타일)
+- 완료: 시간표 셀에 학년-반 + 교사명 표시 (2줄)
+- 완료: 홈화면 예약 그룹화 (같은 교실+선생님 → 1~6교시)
+- 완료: 교실 카드에 공지사항 내용 표시
+- 진행중: 동시 예약 충돌 방지 대책 분석
+- 주의사항: 배포 후 브라우저 캐시 클리어 필요 (Ctrl+Shift+R)
+- 다음 할 일: Advisory Lock 적용 검토, Realtime 구독 고려
 
 ---
 
@@ -70,6 +72,23 @@
 - [x] **LoginPreferencesService** 서비스 추가 (SharedPreferences 사용)
 - [x] 로그아웃 시 자동 로그인 해제
 - [x] 계정 삭제 시 모든 로그인 설정 초기화
+
+### v0.3.6 업데이트 (2026-01-19)
+
+#### UI/UX 개선
+- [x] **TossSnackBar 전역 적용** - 모든 SnackBar를 토스 스타일로 통일
+  - 둥근 알약 모양 (borderRadius: 50)
+  - 중앙 정렬, 아이콘 포함
+  - success(녹색), error(빨간색), warning(주황색), info(파란색) 타입
+- [x] **시간표 셀 정보 확장** - 학년-반 + 교사명 2줄 표시 (예: "3-2" / "임현우")
+- [x] **홈화면 예약 그룹화** - 같은 교실+선생님 예약 합산 표시 (예: "1~6교시")
+- [x] **교실 카드 공지사항 표시** - 공지 내용을 카드에 직접 표시 (주황색 박스)
+
+#### 분석 완료
+- [x] **데이터 동기화 문제 분석**
+  - Provider 무효화 불완전 문제 식별 (`todayAllReservationsProvider` 누락)
+  - Race condition 취약점 분석 (트리거 FOR UPDATE 락 한계)
+  - Realtime 미활용 문제 식별
 
 ### v0.3.5 업데이트 (2026-01-17)
 
