@@ -9,6 +9,7 @@ import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
+import 'home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
 
 /// 내 예약 Provider (classroom JOIN 포함)
 final myReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((ref) async {
@@ -111,8 +112,10 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
 
         if (mounted) {
           TossSnackBar.warning(context, message: '예약이 취소되었습니다');
-          // Provider 무효화로 자동 새로고침
+          // 모든 예약 관련 Provider 무효화 (동기화)
           ref.invalidate(myReservationsProvider);
+          ref.invalidate(todayReservationsProvider);
+          ref.invalidate(todayAllReservationsProvider);
         }
       } catch (e) {
         if (mounted) {

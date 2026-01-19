@@ -16,7 +16,7 @@ import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
-import 'home_screen.dart' show todayReservationsProvider;
+import 'home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
 import 'my_reservations_screen.dart' show myReservationsProvider;
 
 /// 예약 화면 (v0.2)
@@ -183,6 +183,7 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
 
         // 모든 예약 관련 Provider 무효화 (동기화)
         ref.invalidate(todayReservationsProvider);
+        ref.invalidate(todayAllReservationsProvider);
         ref.invalidate(myReservationsProvider);
 
         // 예약 목록 새로고침
