@@ -410,7 +410,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Material(
               color: _showAllReservations
                   ? TossColors.primary.withOpacity(0.1)
-                  : TossColors.gray100,
+                  : TossColors.background,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: () {
