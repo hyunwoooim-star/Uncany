@@ -196,7 +196,9 @@ class ErrorMessages {
       if (message.contains('email')) {
         return '이미 가입된 이메일입니다';
       }
-      if (message.contains('code')) {
+      // 'duplicate code' 또는 'code already' 같은 패턴만 매칭 (error code 23505 제외)
+      if (message.contains('duplicate') && message.contains('code') ||
+          message.contains('code') && message.contains('already')) {
         return '이미 사용 중인 코드입니다';
       }
       return '이미 존재하는 데이터입니다';

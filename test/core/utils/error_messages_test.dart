@@ -206,6 +206,10 @@ void main() {
           ErrorMessages.fromError('Duplicate code value'),
           '이미 사용 중인 코드입니다',
         );
+        expect(
+          ErrorMessages.fromError('Code already exists'),
+          '이미 사용 중인 코드입니다',
+        );
       });
 
       test('외래 키 관련 에러를 올바르게 변환한다', () {
