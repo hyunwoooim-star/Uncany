@@ -15,11 +15,18 @@ import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
-/// 홈 화면 (v0.2)
+/// 홈 화면 (v0.3)
 ///
-/// 오늘의 예약 요약, 빠른 메뉴
-class HomeScreen extends ConsumerWidget {
+/// 나의 예약 중심 + 전체 예약 현황 접기/펼치기
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _showAllReservations = false;
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
@@ -56,10 +63,11 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final pendingCountAsync = ref.watch(_pendingCountProvider);
-    final todayReservationsAsync = ref.watch(todayAllReservationsProvider);
+    final myReservationsAsync = ref.watch(todayReservationsProvider);
+    final allReservationsAsync = ref.watch(todayAllReservationsProvider);
 
     return Scaffold(
       backgroundColor: TossColors.background,
@@ -88,10 +96,10 @@ class HomeScreen extends ConsumerWidget {
             }
             return _buildMainContent(
               context,
-              ref,
               user,
               pendingCountAsync,
-              todayReservationsAsync,
+              myReservationsAsync,
+              allReservationsAsync,
             );
           },
           loading: () => _buildHomeSkeletonLoading(context),
@@ -117,13 +125,14 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildMainContent(
     BuildContext context,
-    WidgetRef ref,
     User user,
     AsyncValue<int> pendingCountAsync,
-    AsyncValue<List<Reservation>> todayReservationsAsync,
+    AsyncValue<List<Reservation>> myReservationsAsync,
+    AsyncValue<List<Reservation>> allReservationsAsync,
   ) {
     return RefreshIndicator(
       onRefresh: () async {
+        ref.invalidate(todayReservationsProvider);
         ref.invalidate(todayAllReservationsProvider);
         ref.invalidate(_pendingCountProvider);
       },
@@ -140,7 +149,7 @@ class HomeScreen extends ConsumerWidget {
 
               SizedBox(height: spacing * 1.25),
 
-              // 빠른 액션 버튼들 (2열 그리드)
+              // 빠른 액션 버튼들 (교실 예약 + 종합 시간표)
               Row(
                 children: [
                   Expanded(
@@ -154,31 +163,29 @@ class HomeScreen extends ConsumerWidget {
                   SizedBox(width: spacing * 0.75),
                   Expanded(
                     child: _CompactActionButton(
-                      icon: Icons.list_alt,
-                      label: '내 예약',
-                      color: TossColors.success,
-                      onTap: () => context.push('/reservations/my'),
+                      icon: Icons.grid_view,
+                      label: '종합 시간표',
+                      color: Colors.orange,
+                      onTap: () => context.push('/reservations/timetable'),
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: spacing * 0.75),
+              SizedBox(height: spacing * 1.5),
 
-              // 종합 시간표 버튼
-              _CompactActionButton(
-                icon: Icons.grid_view,
-                label: '종합 시간표',
-                color: Colors.orange,
-                onTap: () => context.push('/reservations/timetable'),
+              // 나의 예약 섹션
+              _buildMyReservationsSection(
+                context,
+                myReservationsAsync,
               ),
 
               SizedBox(height: spacing * 1.5),
 
-              // 오늘의 예약 섹션
-              _buildTodayReservationsSection(
+              // 전체 예약 현황 (접기/펼치기)
+              _buildAllReservationsSection(
                 context,
-                todayReservationsAsync,
+                allReservationsAsync,
               ),
 
               // 관리자 메뉴
@@ -325,9 +332,10 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTodayReservationsSection(
+  /// 나의 예약 섹션 (내 예약만)
+  Widget _buildMyReservationsSection(
     BuildContext context,
-    AsyncValue<List<Reservation>> todayReservationsAsync,
+    AsyncValue<List<Reservation>> myReservationsAsync,
   ) {
     final dateFormat = DateFormat('M월 d일 EEEE', 'ko_KR');
     final today = DateTime.now();
@@ -337,7 +345,7 @@ class HomeScreen extends ConsumerWidget {
       children: [
         Row(
           children: [
-            _buildSectionTitle('오늘의 예약'),
+            _buildSectionTitle('나의 예약'),
             const Spacer(),
             Text(
               dateFormat.format(today),
@@ -349,12 +357,12 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         SizedBox(height: responsiveSpacing(context, base: 12)),
-        todayReservationsAsync.when(
+        myReservationsAsync.when(
           data: (reservations) {
             if (reservations.isEmpty) {
-              return _buildEmptyReservations(context);
+              return _buildEmptyMyReservations(context);
             }
-            return _buildReservationsList(context, reservations);
+            return _buildMyReservationsList(context, reservations);
           },
           loading: () => _buildReservationsSkeletonLoading(context),
           error: (_, __) => TossCard(
@@ -372,6 +380,206 @@ class HomeScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// 전체 예약 현황 섹션 (접기/펼치기)
+  Widget _buildAllReservationsSection(
+    BuildContext context,
+    AsyncValue<List<Reservation>> allReservationsAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 헤더 (탭하면 펼치기/접기)
+        InkWell(
+          onTap: () {
+            setState(() {
+              _showAllReservations = !_showAllReservations;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                _buildSectionTitle('오늘의 전체 예약 현황'),
+                const Spacer(),
+                allReservationsAsync.maybeWhen(
+                  data: (reservations) => Text(
+                    '${reservations.length}건',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 13),
+                      color: TossColors.textSub,
+                    ),
+                  ),
+                  orElse: () => const SizedBox.shrink(),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  _showAllReservations
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: TossColors.textSub,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // 내용 (펼쳤을 때만 표시)
+        if (_showAllReservations) ...[
+          SizedBox(height: responsiveSpacing(context, base: 8)),
+          allReservationsAsync.when(
+            data: (reservations) {
+              if (reservations.isEmpty) {
+                return TossCard(
+                  padding: responsiveCardPadding(context),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        '오늘 예약이 없습니다',
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 14),
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return _buildReservationsList(context, reservations);
+            },
+            loading: () => _buildReservationsSkeletonLoading(context),
+            error: (_, __) => TossCard(
+              padding: responsiveCardPadding(context),
+              child: Center(
+                child: Text(
+                  '예약 정보를 불러올 수 없습니다',
+                  style: TextStyle(
+                    fontSize: responsiveFontSize(context, base: 14),
+                    color: TossColors.textSub,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 나의 예약이 없을 때 표시
+  Widget _buildEmptyMyReservations(BuildContext context) {
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        children: [
+          Icon(
+            Icons.event_available,
+            size: responsiveIconSize(context, base: 48),
+            color: TossColors.textSub.withOpacity(0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '오늘 나의 예약이 없습니다',
+            style: TextStyle(
+              fontSize: responsiveFontSize(context, base: 15),
+              color: TossColors.textSub,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/classrooms'),
+            icon: const Icon(Icons.add),
+            label: const Text('교실 예약하기'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: TossColors.primary,
+              side: BorderSide(color: TossColors.primary),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 나의 예약 목록 표시
+  Widget _buildMyReservationsList(
+    BuildContext context,
+    List<Reservation> reservations,
+  ) {
+    // 같은 교실의 예약을 합산
+    final grouped = _groupMyReservations(reservations);
+
+    return TossCard(
+      padding: responsiveCardPadding(context),
+      child: Column(
+        children: [
+          // 예약 개수 요약
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: TossColors.success.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: TossColors.success,
+                  size: responsiveIconSize(context),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '오늘 ${grouped.length}건 예약',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 14),
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.success,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/reservations/my'),
+                  child: Text(
+                    '전체보기',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 13),
+                      color: TossColors.success,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 그룹화된 예약 목록
+          ...grouped.map((g) => _MyReservationItem(group: g)),
+        ],
+      ),
+    );
+  }
+
+  /// 나의 예약 그룹화 (같은 교실만)
+  List<_ReservationGroup> _groupMyReservations(List<Reservation> reservations) {
+    final Map<String, _ReservationGroup> groups = {};
+
+    for (final r in reservations) {
+      final key = r.classroomId;
+      if (groups.containsKey(key)) {
+        groups[key]!.addReservation(r);
+      } else {
+        groups[key] = _ReservationGroup(r);
+      }
+    }
+
+    // 첫 번째 예약의 시작 시간 기준으로 정렬
+    final sorted = groups.values.toList()
+      ..sort((a, b) => a.firstPeriod.compareTo(b.firstPeriod));
+    return sorted;
   }
 
   /// 전체 홈 화면 스켈레톤 로딩
@@ -636,24 +844,39 @@ class _ReservationGroup {
 
   int get firstPeriod => allPeriods.isNotEmpty ? allPeriods.first : 0;
 
-  /// 교시 표시 (연속: 1~6교시, 비연속: 1, 2, 5, 6교시)
+  /// 교시 표시 (연속 범위로 그룹화: "2~3, 6교시")
   String get periodsDisplay {
     if (allPeriods.isEmpty) return '-';
     if (allPeriods.length == 1) return '${allPeriods.first}교시';
 
-    // 연속된 교시인지 확인
-    bool isConsecutive = true;
+    // 연속된 교시들을 범위로 그룹화
+    final ranges = <String>[];
+    int rangeStart = allPeriods.first;
+    int rangeEnd = allPeriods.first;
+
     for (int i = 1; i < allPeriods.length; i++) {
-      if (allPeriods[i] != allPeriods[i - 1] + 1) {
-        isConsecutive = false;
-        break;
+      if (allPeriods[i] == rangeEnd + 1) {
+        // 연속됨 - 범위 확장
+        rangeEnd = allPeriods[i];
+      } else {
+        // 연속 끊김 - 이전 범위 저장 후 새 범위 시작
+        ranges.add(_formatRange(rangeStart, rangeEnd));
+        rangeStart = allPeriods[i];
+        rangeEnd = allPeriods[i];
       }
     }
+    // 마지막 범위 저장
+    ranges.add(_formatRange(rangeStart, rangeEnd));
 
-    if (isConsecutive) {
-      return '${allPeriods.first}~${allPeriods.last}교시';
+    return '${ranges.join(", ")}교시';
+  }
+
+  /// 범위 포맷 (단일: "1", 범위: "2~3")
+  String _formatRange(int start, int end) {
+    if (start == end) {
+      return '$start';
     } else {
-      return '${allPeriods.join(", ")}교시';
+      return '$start~$end';
     }
   }
 
@@ -783,6 +1006,136 @@ class _GroupedReservationItem extends StatelessWidget {
       text = '예정';
       bgColor = TossColors.primary.withOpacity(0.1);
       textColor = TossColors.primary;
+    } else {
+      text = '완료';
+      bgColor = Colors.grey.withOpacity(0.1);
+      textColor = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: responsiveFontSize(context, base: 11),
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  IconData _getRoomTypeIcon(String? roomType) {
+    switch (roomType) {
+      case 'computer':
+        return Icons.computer;
+      case 'music':
+        return Icons.music_note;
+      case 'science':
+        return Icons.science;
+      case 'art':
+        return Icons.palette;
+      case 'library':
+        return Icons.menu_book;
+      case 'gym':
+        return Icons.sports_basketball;
+      case 'auditorium':
+        return Icons.theater_comedy;
+      case 'special':
+        return Icons.star;
+      default:
+        return Icons.meeting_room;
+    }
+  }
+}
+
+/// 나의 예약 아이템 위젯 (교사명 없이 교실만 표시)
+class _MyReservationItem extends StatelessWidget {
+  final _ReservationGroup group;
+
+  const _MyReservationItem({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          // 교시 표시
+          Container(
+            width: responsiveValue(context, mobile: 72.0, desktop: 80.0),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: _getStatusColor().withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              group.periodsDisplay,
+              style: TextStyle(
+                fontSize: responsiveFontSize(context, base: 12),
+                fontWeight: FontWeight.bold,
+                color: _getStatusColor(),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // 교실 정보만 (예약자 정보 생략)
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  _getRoomTypeIcon(group.classroomRoomType),
+                  size: responsiveIconSize(context, base: 18),
+                  color: TossColors.textMain,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    group.classroomName ?? '교실',
+                    style: TextStyle(
+                      fontSize: responsiveFontSize(context, base: 15),
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.textMain,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 상태 표시
+          _buildStatusBadge(context),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor() {
+    if (group.isOngoing) return Colors.green;
+    if (group.isUpcoming) return TossColors.success;
+    return Colors.grey;
+  }
+
+  Widget _buildStatusBadge(BuildContext context) {
+    String text;
+    Color bgColor;
+    Color textColor;
+
+    if (group.isOngoing) {
+      text = '진행중';
+      bgColor = Colors.green.withOpacity(0.1);
+      textColor = Colors.green;
+    } else if (group.isUpcoming) {
+      text = '예정';
+      bgColor = TossColors.success.withOpacity(0.1);
+      textColor = TossColors.success;
     } else {
       text = '완료';
       bgColor = Colors.grey.withOpacity(0.1);
