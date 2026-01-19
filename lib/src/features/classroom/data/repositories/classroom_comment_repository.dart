@@ -24,7 +24,7 @@ class ClassroomCommentRepository {
   }) async {
     try {
       // 사용자 정보를 JOIN으로 가져옴
-      var query = _supabase.from('classroom_comments').select('''
+      var queryBuilder = _supabase.from('classroom_comments').select('''
         *,
         user:users!classroom_comments_user_id_fkey (
           name,
@@ -37,11 +37,12 @@ class ClassroomCommentRepository {
       ''').eq('classroom_id', classroomId);
 
       if (!includeDeleted) {
-        query = query.isFilter('deleted_at', null);
+        queryBuilder = queryBuilder.isFilter('deleted_at', null);
       }
 
       // 공지 → 미해결 문제 → 최신순
-      query = query.order('comment_type', ascending: true) // notice가 먼저
+      var query = queryBuilder
+          .order('comment_type', ascending: true) // notice가 먼저
           .order('is_resolved', ascending: true) // 미해결이 먼저
           .order('created_at', ascending: false);
 
@@ -168,7 +169,7 @@ class ClassroomCommentRepository {
       }
     } on PostgrestException catch (e) {
       // RPC 함수가 없으면 직접 업데이트 시도
-      AppLogger.warning('resolve_classroom_issue RPC 실패: ${e.message}');
+      AppLogger.warning('ClassroomComment', 'resolve_classroom_issue RPC 실패: ${e.message}');
       await _resolveIssueDirect(commentId);
     } catch (e) {
       throw Exception(ErrorMessages.fromError(e));
@@ -199,7 +200,7 @@ class ClassroomCommentRepository {
       return result as int? ?? 0;
     } on PostgrestException catch (e) {
       // RPC 함수가 없으면 직접 카운트
-      AppLogger.warning('get_classroom_unresolved_count RPC 실패: ${e.message}');
+      AppLogger.warning('ClassroomComment', 'get_classroom_unresolved_count RPC 실패: ${e.message}');
       return await _getUnresolvedCountDirect(classroomId);
     } catch (e) {
       return 0;

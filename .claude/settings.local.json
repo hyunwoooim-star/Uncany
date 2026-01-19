@@ -10,7 +10,9 @@
       "Task(*)",
       "WebFetch(*)",
       "WebSearch(*)",
-      "NotebookEdit(*)"
+      "NotebookEdit(*)",
+      "Bash(flutter test:*)",
+      "Bash(dart test:*)"
     ]
   }
 }

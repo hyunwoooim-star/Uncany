@@ -16,7 +16,7 @@ import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
-import 'home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
+import 'home/home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
 import 'my_reservations_screen.dart' show myReservationsProvider;
 import '../data/providers/reservation_realtime_provider.dart' show classroomReservationsStreamProvider;
 

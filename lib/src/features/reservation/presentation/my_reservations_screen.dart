@@ -9,7 +9,7 @@ import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
-import 'home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
+import 'home/home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
 
 /// 내 예약 Provider (classroom JOIN 포함)
 final myReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((ref) async {

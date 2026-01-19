@@ -111,7 +111,7 @@ class ClassroomRepository {
       return result as bool;
     } on PostgrestException catch (e) {
       // RPC 함수가 없으면 직접 쿼리로 확인
-      AppLogger.warning('check_classroom_name_exists RPC 실패, 직접 쿼리 사용: ${e.message}');
+      AppLogger.warning('ClassroomRepository', 'check_classroom_name_exists RPC 실패, 직접 쿼리 사용: ${e.message}');
       return await _checkNameExistsDirect(name, excludeId: excludeId);
     } catch (e) {
       throw Exception(ErrorMessages.fromError(e));

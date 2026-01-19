@@ -21,7 +21,7 @@ import '../../features/classroom/presentation/admin_classroom_screen.dart';
 import '../../features/classroom/presentation/classroom_detail_screen.dart';
 import '../../features/classroom/presentation/classroom_form_screen.dart';
 import '../../features/classroom/presentation/classroom_list_screen.dart';
-import '../../features/reservation/presentation/home_screen.dart';
+import '../../features/reservation/presentation/home/home_screen.dart';
 import '../../features/reservation/presentation/my_reservations_screen.dart';
 import '../../features/reservation/presentation/reservation_screen.dart';
 import '../../features/reservation/presentation/timetable_dashboard_screen.dart';
