@@ -1,16 +1,34 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-19
+## 마지막 업데이트: 2026-01-19 (Session 2)
 
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
 
-#### 완료된 작업 (v0.3.7-rc)
+#### 완료된 작업 (v0.3.8-rc)
+
+**[NEW] 시간표 대시보드 UI 개선**
+- 세로 구분선 추가로 열 가독성 향상
+- 폰트 크기 증가 (11px→13px, 10px→12px)
+- 헤더 배경색 및 스타일 개선
+- 범례 위젯에 아이콘 추가
+
+**[NEW] 교실 소유권 관리 기능** (`011_classroom_ownership_and_unique.sql`)
+- 동명 교실 생성 방지 (UNIQUE 제약: school_id + name)
+- 교실 수정/삭제 권한 제한 (생성자 또는 관리자만)
+- 생성자 정보 표시 (학년-반 이름)
+- `check_classroom_name_exists()` RPC 함수 추가
+
+**[NEW] 교실 게시판/댓글 기능** (`012_classroom_comments.sql`)
+- 댓글 유형: 일반(general), 문제신고(issue), 공지(notice)
+- 문제 해결 워크플로우 (is_resolved, resolved_by)
+- `resolve_classroom_issue()` RPC 함수
+- `get_classroom_unresolved_count()` RPC 함수
+- DraggableScrollableSheet UI 구현
+
+**이전 작업 (v0.3.7-rc)**
 - 완료: **추천인 코드 RLS 정책 + RPC 함수** (`010_fix_referral_codes_rls.sql`)
-  - Gemini 피드백 반영: 유효한 코드 공개 SELECT 정책 추가
-  - Race Condition 방지: `increment_referral_uses` RPC 함수 (FOR UPDATE 락)
-  - DB 레벨 같은 학교 제약: `check_referral_same_school` 트리거
 - 완료: **SignupScreen 추천인 코드 로직 개선** - RPC 함수 호출로 변경
 - 완료: **Provider Invalidation 개선** - `classroomReservationsStreamProvider` 추가
 - 완료: 홈화면 UI 개선 (접기/펼치기 버튼, 용어 변경)
@@ -18,8 +36,8 @@
 - 완료: 동시 예약 충돌 방지 분석 (Advisory Lock + Exclusion Constraint 이미 구현됨)
 
 #### 다음 작업자에게
-- **필수**: `010_fix_referral_codes_rls.sql` Supabase Dashboard에서 실행
-- **문서**: `GEMINI_FINAL_REVIEW.md` - Gemini 최종 검토 요청서
+- **필수**: Supabase에서 011, 012 마이그레이션 적용 완료됨 ✅
+- Freezed 코드 생성 필요 (`dart run build_runner build`)
 - 주의사항: 배포 후 브라우저 캐시 클리어 필요 (Ctrl+Shift+R)
 
 #### 향후 작업 (권장)
@@ -86,6 +104,43 @@
 - [x] **LoginPreferencesService** 서비스 추가 (SharedPreferences 사용)
 - [x] 로그아웃 시 자동 로그인 해제
 - [x] 계정 삭제 시 모든 로그인 설정 초기화
+
+### v0.3.8 업데이트 (2026-01-19) - 교실 기능 강화
+
+#### 시간표 대시보드 UI 개선
+- [x] **세로 구분선 추가** - 열 간 가독성 향상
+- [x] **폰트 크기 증가** - 헤더 11→13px, 셀 10→12px
+- [x] **헤더 스타일 개선** - 배경색, 그림자 추가
+- [x] **범례 아이콘 추가** - 예약 상태별 시각적 구분
+
+#### 교실 소유권 관리 (011_classroom_ownership_and_unique.sql)
+- [x] **동명 교실 방지** - UNIQUE(school_id, name) 제약 추가
+- [x] **수정/삭제 권한 제한** - RLS 정책: 생성자 또는 관리자만
+- [x] **생성자 정보 표시** - classroom_detail_screen에 학년-반 이름 표시
+- [x] **중복 체크 RPC** - `check_classroom_name_exists()` 함수
+
+#### 교실 게시판/댓글 (012_classroom_comments.sql)
+- [x] **댓글 테이블** - classroom_comments (content, comment_type, is_resolved)
+- [x] **댓글 유형** - general(일반), issue(문제신고), notice(공지)
+- [x] **문제 해결 플로우** - resolve_classroom_issue() RPC
+- [x] **미해결 카운트** - get_classroom_unresolved_count() RPC
+- [x] **UI 구현** - ClassroomCommentsSheet (DraggableScrollableSheet)
+- [x] **Freezed 모델** - ClassroomComment, CommentType enum
+
+#### 변경된 파일
+```
+supabase/migrations/011_classroom_ownership_and_unique.sql (NEW)
+supabase/migrations/012_classroom_comments.sql (NEW)
+lib/src/features/classroom/domain/models/classroom.dart (생성자 정보 추가)
+lib/src/features/classroom/domain/models/classroom_comment.dart (NEW)
+lib/src/features/classroom/data/repositories/classroom_repository.dart (JOIN, 중복체크)
+lib/src/features/classroom/data/repositories/classroom_comment_repository.dart (NEW)
+lib/src/features/classroom/data/providers/classroom_repository_provider.dart (댓글 프로바이더)
+lib/src/features/classroom/presentation/classroom_form_screen.dart (중복 이름 체크)
+lib/src/features/classroom/presentation/classroom_detail_screen.dart (생성자 표시, 댓글 FAB)
+lib/src/features/classroom/presentation/widgets/classroom_comments_sheet.dart (NEW)
+lib/src/features/reservation/presentation/timetable_dashboard_screen.dart (UI 개선)
+```
 
 ### v0.3.6 업데이트 (2026-01-19)
 
