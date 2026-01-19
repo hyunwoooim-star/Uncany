@@ -352,10 +352,14 @@ class _TimetableDashboardScreenState
     final reservations = _reservationMap[classroom.id] ?? {};
 
     return InkWell(
-      onTap: () => context.push(
-        '/reservations/${classroom.id}',
-        extra: classroom,
-      ),
+      onTap: () async {
+        await context.push(
+          '/reservations/${classroom.id}',
+          extra: classroom,
+        );
+        // 예약 화면에서 돌아오면 데이터 새로고침
+        if (mounted) _loadData();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
