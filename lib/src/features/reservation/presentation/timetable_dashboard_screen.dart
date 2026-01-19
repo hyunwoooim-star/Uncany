@@ -432,34 +432,52 @@ class _TimetableDashboardScreenState
       textColor = Colors.green.shade600;
     }
 
-    // 학년-반 표시 (예: "3-2")
+    // 전체 정보 표시 (예: "3-2 임현우")
     String? gradeClassLabel;
+    String? teacherLabel;
     if (reservation?.teacherGrade != null && reservation?.teacherClassNum != null) {
       gradeClassLabel = '${reservation!.teacherGrade}-${reservation.teacherClassNum}';
     } else if (reservation?.teacherGrade != null) {
       gradeClassLabel = '${reservation!.teacherGrade}학년';
-    } else if (reservation?.teacherName?.isNotEmpty == true) {
-      // 학년/반 정보 없으면 이름 첫 글자
-      gradeClassLabel = reservation!.teacherName!.substring(0, 1);
+    }
+    if (reservation?.teacherName != null) {
+      teacherLabel = reservation!.teacherName!;
     }
 
     final cell = Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Center(
-        child: isReserved && gradeClassLabel != null
-            ? Text(
-                gradeClassLabel,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+        child: isReserved
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (gradeClassLabel != null)
+                    Text(
+                      gradeClassLabel,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  if (teacherLabel != null)
+                    Text(
+                      teacherLabel,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: textColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
               )
             : Icon(
                 Icons.check,
