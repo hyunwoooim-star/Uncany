@@ -361,7 +361,7 @@ class _TimetableDashboardScreenState
         if (mounted) _loadData();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             // 교실명
@@ -446,22 +446,24 @@ class _TimetableDashboardScreenState
 
     final cell = Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      constraints: const BoxConstraints(minHeight: 44),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Center(
         child: isReserved
             ? Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (gradeClassLabel != null)
                     Text(
                       gradeClassLabel,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
@@ -470,7 +472,7 @@ class _TimetableDashboardScreenState
                     Text(
                       teacherLabel,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: textColor,
                       ),
@@ -481,7 +483,7 @@ class _TimetableDashboardScreenState
               )
             : Icon(
                 Icons.check,
-                size: 16,
+                size: 18,
                 color: textColor,
               ),
       ),
