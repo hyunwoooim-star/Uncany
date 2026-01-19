@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../../reservation/presentation/widgets/time_table_grid.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
+import 'package:uncany/src/shared/widgets/status_badge.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
@@ -729,19 +730,19 @@ class _ReservationCard extends StatelessWidget {
     final startTime = timeFormat.format(reservation.startTime);
     final endTime = timeFormat.format(reservation.endTime);
 
-    // 상태별 색상
-    Color statusColor;
-    String statusText;
-    if (reservation.isOngoing) {
-      statusColor = Colors.green;
-      statusText = '진행 중';
-    } else if (reservation.isUpcoming) {
-      statusColor = TossColors.primary;
-      statusText = '예정';
-    } else {
-      statusColor = Colors.grey;
-      statusText = '완료';
-    }
+    // 상태 텍스트
+    final statusText = reservation.isOngoing
+        ? '진행중'
+        : reservation.isUpcoming
+            ? '예정'
+            : '완료';
+
+    // 시간 배지 색상 (StatusBadge는 상태에 따라 자동 색상 적용)
+    final timeColor = reservation.isOngoing
+        ? Colors.green
+        : reservation.isUpcoming
+            ? TossColors.primary
+            : Colors.grey;
 
     return TossCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -754,7 +755,7 @@ class _ReservationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: timeColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -762,27 +763,13 @@ class _ReservationCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: statusColor,
+                    color: timeColor,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              // 상태 배지
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                  ),
-                ),
-              ),
+              // 상태 배지 (공통 위젯 사용)
+              StatusBadge(status: statusText, fontSize: 12),
               const Spacer(),
               // 기간 표시
               Text(
