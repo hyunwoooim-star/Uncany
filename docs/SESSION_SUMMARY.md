@@ -9,9 +9,11 @@
 - 완료: 시간표 셀에 학년-반 + 교사명 표시 (2줄)
 - 완료: 홈화면 예약 그룹화 (같은 교실+선생님 → 1~6교시)
 - 완료: 교실 카드에 공지사항 내용 표시
-- 진행중: 동시 예약 충돌 방지 대책 분석
+- 완료: 홈화면 UI 개선 (나의 예약 섹션, 전체 예약 접기/펼치기)
+- 완료: 동시 예약 충돌 방지 분석 (Advisory Lock + Exclusion Constraint 이미 구현됨)
+- **발견**: 추천인코드 생성 실패 - RLS 정책 누락 (GEMINI_REPORT.md 참조)
 - 주의사항: 배포 후 브라우저 캐시 클리어 필요 (Ctrl+Shift+R)
-- 다음 할 일: Advisory Lock 적용 검토, Realtime 구독 고려
+- 다음 할 일: referral_codes RLS 마이그레이션 작성, increment_referral_uses RPC 함수 추가
 
 ---
 
@@ -76,6 +78,13 @@
 ### v0.3.6 업데이트 (2026-01-19)
 
 #### UI/UX 개선
+- [x] **홈화면 대폭 개선** (home_screen.dart)
+  - "나의 예약" 섹션 분리 (내 예약만 표시)
+  - "오늘의 전체 예약 현황" 접기/펼치기 기능
+  - 예약 요약 색상: 초록색 → 파란색 (기존 컨셉 유지)
+  - 명확한 "펼치기/접기" 버튼 추가
+- [x] **교시 표시 로직 개선** - 연속 범위 그룹화 ("2, 3, 6교시" → "2~3, 6교시")
+- [x] **내 예약 화면 용어 변경** - "완료" 탭 → "이전예약" 탭
 - [x] **TossSnackBar 전역 적용** - 모든 SnackBar를 토스 스타일로 통일
   - 둥근 알약 모양 (borderRadius: 50)
   - 중앙 정렬, 아이콘 포함
@@ -85,10 +94,18 @@
 - [x] **교실 카드 공지사항 표시** - 공지 내용을 카드에 직접 표시 (주황색 박스)
 
 #### 분석 완료
-- [x] **데이터 동기화 문제 분석**
+- [x] **데이터 동기화 문제 분석 및 해결**
   - Provider 무효화 불완전 문제 식별 (`todayAllReservationsProvider` 누락)
-  - Race condition 취약점 분석 (트리거 FOR UPDATE 락 한계)
+  - Race condition 취약점 분석 → Advisory Lock 이미 구현됨 확인
   - Realtime 미활용 문제 식별
+- [x] **추천인코드 생성 실패 원인 분석**
+  - `referral_codes` 테이블 RLS 활성화되어 있지만 정책(POLICY) 없음
+  - `increment_referral_uses` RPC 함수 누락
+  - 상세 내용: `docs/GEMINI_REPORT.md` 참조
+
+#### 버그 수정
+- [x] **데이터 동기화 수정** (reservation_screen.dart, my_reservations_screen.dart)
+  - 예약 생성/취소 시 모든 Provider 무효화 추가
 
 ### v0.3.5 업데이트 (2026-01-17)
 
