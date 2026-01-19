@@ -171,6 +171,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: spacing * 0.75),
+              // 우리 학교 교사 버튼
+              _CompactActionButton(
+                icon: Icons.people_outline,
+                label: '우리 학교 교사',
+                color: Colors.teal,
+                onTap: () => context.push('/school/members'),
+              ),
 
               SizedBox(height: spacing * 1.5),
 
