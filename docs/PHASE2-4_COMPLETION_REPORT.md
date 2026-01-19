@@ -134,20 +134,69 @@ test('이메일 관련 에러를 올바르게 변환한다', () {
 
 ---
 
-## 다음 단계 권장사항
+---
 
-### 즉시 (완료)
+## Phase 2-B: AsyncNotifier 패턴 도입
+
+### 신규 생성 파일
+`lib/src/features/reservation/presentation/providers/today_reservation_controller.dart`
+
+### Controller 구조
+
+```dart
+@riverpod
+class TodayMyReservationController extends _$TodayMyReservationController {
+  Future<List<Reservation>> build();   // 오늘 내 예약 로드
+  Future<void> refresh();               // 강제 갱신 (Pull-to-refresh)
+  Future<void> cancelReservation(id);   // 예약 취소 (Optimistic UI)
+}
+
+@riverpod
+class TodayAllReservationController extends _$TodayAllReservationController {
+  Future<List<Reservation>> build();   // 오늘 전체 예약 로드
+  Future<void> refresh();               // 강제 갱신
+}
+```
+
+### 패턴 변경
+
+| Before | After |
+|--------|-------|
+| `FutureProvider + ref.invalidate()` | `AsyncNotifier + controller.refresh()` |
+| 상태 변경 시 전체 재빌드 | Optimistic UI 지원 |
+| 로직이 UI에 혼재 | Controller로 분리 |
+
+### StatusBadge 적용
+
+- `today_reservation_list.dart`의 `_buildStatusBadge()` 중복 제거
+- `ReservationGroup`에 `statusText`, `statusColor` getter 추가
+- `StatusBadge` 위젯에 `'예정'` 상태 추가
+
+### 코드 감소
+
+```
+today_reservation_list.dart: 772줄 → 708줄 (64줄 감소, 8.3%)
+```
+
+---
+
+## 완료 체크리스트
+
+### Phase 2-4 (완료)
 - [x] home_screen.dart 컴포넌트 분리
 - [x] Import 경로 업데이트
 - [x] 빌드 에러 수정
 - [x] ErrorMessages 테스트 작성
 
-### 단기 (권장)
-- [ ] AsyncNotifier 패턴 도입 (TodayReservationController)
-- [ ] StatusBadge 공통 위젯 적용 (현재 정의만 있음)
-- [ ] RoomTypeUtils 전체 적용
+### Phase 2-B (완료)
+- [x] TodayMyReservationController 생성
+- [x] TodayAllReservationController 생성
+- [x] home_screen.dart에서 새 Controller 연결
+- [x] StatusBadge 적용
+- [x] flutter analyze 통과
 
-### 중기
+### 향후 권장
+- [ ] RoomTypeUtils 전체 적용 (다른 화면)
 - [ ] 다른 대형 화면 리팩토링 (reservation_screen.dart 등)
 - [ ] 테스트 커버리지 확대 (위젯 테스트 추가)
 
@@ -158,7 +207,9 @@ test('이메일 관련 에러를 올바르게 변환한다', () {
 | 지표 | Before | After | 변화 |
 |------|--------|-------|------|
 | home_screen.dart 줄 수 | 1602 | 257 | -84% |
+| today_reservation_list.dart 줄 수 | 772 | 708 | -8.3% |
 | 컴포넌트 수 | 1 (God Object) | 5 (분리됨) | +400% |
+| AsyncNotifier 사용 | 0개 | 2개 | +2 |
 | 테스트 파일 수 | 2 | 3 | +50% |
 | flutter analyze 에러 | 7 | 0 | -100% |
 
@@ -166,10 +217,8 @@ test('이메일 관련 에러를 올바르게 변환한다', () {
 
 ## 결론
 
-God Object 패턴이었던 `home_screen.dart`를 성공적으로 5개의 위젯으로 분리했습니다.
-- 코드 라인: 1602줄 → 257줄 (84% 감소)
-- 단일 책임 원칙(SRP) 적용
-- 테스트 용이성 향상
-- 유지보수성 대폭 개선
+1. **Phase 2-4**: God Object 패턴 `home_screen.dart`를 5개 컴포넌트로 분리 (84% 감소)
+2. **Phase 2-B**: AsyncNotifier 패턴 도입으로 상태 관리 일관성 확보
+3. StatusBadge 공통 위젯 적용으로 중복 코드 제거
 
-**Phase 2-4 작업 완료.**
+**Phase 2-4 + Phase 2-B 작업 완료.**

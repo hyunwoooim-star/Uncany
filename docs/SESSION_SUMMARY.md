@@ -1,20 +1,31 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-19 (Session 4)
+## 마지막 업데이트: 2026-01-19 (Session 5)
 
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
 
-#### 완료된 작업 (v0.3.9 - Phase 2-4)
+#### 완료된 작업 (v0.3.9 - Phase 2-4 + Phase 2-B)
 
-**[NEW] God Object 리팩토링 완료**
+**[NEW] AsyncNotifier 패턴 도입 (Phase 2-B)**
+- `TodayMyReservationController`: 내 예약 관리 (build, refresh, cancelReservation)
+- `TodayAllReservationController`: 전체 예약 관리 (build, refresh)
+- Optimistic UI 지원 (예약 취소 시 즉시 UI 반영)
+- `home_screen.dart`에서 FutureProvider → AsyncNotifier 전환
+
+**[NEW] StatusBadge 적용**
+- `today_reservation_list.dart`에서 `_buildStatusBadge()` 중복 제거
+- `ReservationGroup`에 `statusText`, `statusColor` getter 추가
+- `today_reservation_list.dart` 772줄 → 708줄 (64줄 감소)
+
+**God Object 리팩토링 (Phase 2-4)**
 - `home_screen.dart` 1602줄 → 257줄 (84% 감소)
 - 5개 컴포넌트로 분리:
   - `home/widgets/home_header.dart` (97줄) - 인사말 카드
   - `home/widgets/quick_action_grid.dart` (123줄) - 빠른 액션
   - `home/widgets/admin_menu_section.dart` (77줄) - 관리자 메뉴
-  - `home/widgets/today_reservation_list.dart` (453줄) - 예약 목록
+  - `home/widgets/today_reservation_list.dart` (708줄) - 예약 목록
 
 **에러 수정**
 - Import 경로 업데이트 (router.dart, my_reservations_screen.dart, reservation_screen.dart)
@@ -25,10 +36,6 @@
 - `test/core/utils/error_messages_test.dart` (260줄)
 - fromAuthError, fromError, isReservationConflictError 등 25개 테스트 케이스
 
-**이전 작업 (v0.3.9 초기)**
-- pubspec.yaml 버전 0.3.9로 업데이트
-- ErrorMessages 적용, RoomTypeUtils 추출, StatusBadge 위젯
-
 **이전 작업 (v0.3.8-rc)**
 - 시간표 대시보드 UI 개선
 - 교실 소유권 관리 기능 (`011_classroom_ownership_and_unique.sql`)
@@ -38,17 +45,17 @@
 - ✅ `flutter analyze` 에러 0개 확인됨
 - ✅ `dart run build_runner build` 성공
 - ✅ God Object 패턴 해소됨
+- ✅ AsyncNotifier 패턴 도입됨
 - Windows shader 컴파일 이슈로 `flutter test` 실행 불가 (WSL/CI에서 테스트 필요)
 
 #### 향후 작업 (권장)
-1. **AsyncNotifier 패턴 도입** - 현재 FutureProvider + setState 혼합 패턴
-2. **StatusBadge 전체 적용** - 공통 위젯 정의됨, 적용 필요
-3. **RoomTypeUtils 전체 적용** - 일부만 적용됨
-4. **테스트 커버리지 확대** - Widget 테스트 추가
+1. **RoomTypeUtils 전체 적용** - 일부만 적용됨
+2. **다른 대형 화면 리팩토링** - reservation_screen.dart 등
+3. **테스트 커버리지 확대** - Widget 테스트 추가
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.9 (Phase 2-4 완료, God Object 해체)
+## 프로젝트 현재 상태: ✅ v0.3.9 (Phase 2-B 완료, AsyncNotifier 도입)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
