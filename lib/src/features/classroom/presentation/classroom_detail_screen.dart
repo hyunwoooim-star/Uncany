@@ -16,6 +16,7 @@ import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'widgets/access_code_dialog.dart';
+import 'widgets/classroom_comments_sheet.dart';
 import 'classroom_form_screen.dart';
 
 /// 교실 상세 화면
@@ -681,17 +682,37 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createReservation,
-        backgroundColor: TossColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          '예약하기',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 게시판 버튼
+          FloatingActionButton(
+            heroTag: 'comments',
+            onPressed: () => showClassroomCommentsSheet(
+              context,
+              classroomId: widget.classroomId,
+              classroomName: _classroom!.name,
+              classroomCreatorId: _classroom?.createdBy,
+            ),
+            backgroundColor: TossColors.surface,
+            child: Icon(Icons.forum_outlined, color: TossColors.primary),
           ),
-        ),
+          const SizedBox(width: 12),
+          // 예약하기 버튼
+          FloatingActionButton.extended(
+            heroTag: 'reservation',
+            onPressed: _createReservation,
+            backgroundColor: TossColors.primary,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              '예약하기',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
