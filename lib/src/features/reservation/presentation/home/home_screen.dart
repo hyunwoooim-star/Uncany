@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/domain/models/user.dart';
 import '../../../auth/data/providers/auth_repository_provider.dart';
 import '../../../auth/data/providers/user_repository_provider.dart';
-import '../../data/providers/reservation_repository_provider.dart';
 import '../../domain/models/reservation.dart';
 import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
@@ -15,6 +14,7 @@ import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
+import '../providers/today_reservation_controller.dart';
 import 'widgets/home_header.dart';
 import 'widgets/quick_action_grid.dart';
 import 'widgets/admin_menu_section.dart';
@@ -71,8 +71,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final pendingCountAsync = ref.watch(pendingCountProvider);
-    final myReservationsAsync = ref.watch(todayReservationsProvider);
-    final allReservationsAsync = ref.watch(todayAllReservationsProvider);
+    // AsyncNotifier 기반 Controller 사용
+    final myReservationsAsync = ref.watch(todayMyReservationControllerProvider);
+    final allReservationsAsync = ref.watch(todayAllReservationControllerProvider);
 
     return Scaffold(
       backgroundColor: TossColors.background,
@@ -137,8 +138,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(todayReservationsProvider);
-        ref.invalidate(todayAllReservationsProvider);
+        // AsyncNotifier의 refresh() 메서드 호출
+        await Future.wait([
+          ref.read(todayMyReservationControllerProvider.notifier).refresh(),
+          ref.read(todayAllReservationControllerProvider.notifier).refresh(),
+        ]);
         ref.invalidate(pendingCountProvider);
       },
       child: ResponsiveBuilder(
@@ -266,16 +270,13 @@ final pendingCountProvider = FutureProvider<int>((ref) async {
   return await repository.getPendingCount();
 });
 
-/// 오늘의 내 예약 목록 Provider
-final todayReservationsProvider =
-    FutureProvider<List<Reservation>>((ref) async {
-  final repository = ref.watch(reservationRepositoryProvider);
-  return await repository.getTodayMyReservations();
-});
+// 예약 관련 Provider는 today_reservation_controller.dart로 이동됨
+// - todayMyReservationControllerProvider (AsyncNotifier)
+// - todayAllReservationControllerProvider (AsyncNotifier)
 
-/// 오늘의 전체 예약 목록 Provider
-final todayAllReservationsProvider =
-    FutureProvider<List<Reservation>>((ref) async {
-  final repository = ref.watch(reservationRepositoryProvider);
-  return await repository.getTodayAllReservations();
-});
+/// 하위 호환성을 위한 별칭 (점진적 마이그레이션용)
+/// @deprecated todayMyReservationControllerProvider 사용 권장
+final todayReservationsProvider = todayMyReservationControllerProvider;
+
+/// @deprecated todayAllReservationControllerProvider 사용 권장
+final todayAllReservationsProvider = todayAllReservationControllerProvider;

@@ -73,6 +73,13 @@ class StatusBadge extends StatelessWidget {
           TossColors.primary.withOpacity(0.1),
           '진행중',
         );
+      case 'upcoming':
+      case '예정':
+        return (
+          TossColors.success,
+          TossColors.success.withOpacity(0.1),
+          '예정',
+        );
       default:
         return (
           TossColors.textSub,

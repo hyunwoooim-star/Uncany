@@ -8,6 +8,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
+import 'package:uncany/src/shared/widgets/status_badge.dart';
 import 'package:uncany/src/shared/utils/room_type_utils.dart';
 
 /// 나의 예약 섹션 위젯
@@ -530,6 +531,20 @@ class ReservationGroup {
   }
 
   bool get isUpcoming => DateTime.now().isBefore(firstReservation.startTime);
+
+  /// 상태 텍스트 (StatusBadge용)
+  String get statusText {
+    if (isOngoing) return '진행중';
+    if (isUpcoming) return '예정';
+    return '완료';
+  }
+
+  /// 상태 색상 (교시 표시용)
+  Color get statusColor {
+    if (isOngoing) return Colors.green;
+    if (isUpcoming) return TossColors.primary;
+    return Colors.grey;
+  }
 }
 
 /// 그룹화된 예약 아이템 (전체 예약용 - 교사명 표시)
@@ -549,7 +564,7 @@ class _GroupedReservationItem extends StatelessWidget {
             width: responsiveValue(context, mobile: 72.0, desktop: 80.0),
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: _getStatusColor().withOpacity(0.1),
+              color: group.statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -557,7 +572,7 @@ class _GroupedReservationItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: responsiveFontSize(context, base: 12),
                 fontWeight: FontWeight.bold,
-                color: _getStatusColor(),
+                color: group.statusColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -615,51 +630,12 @@ class _GroupedReservationItem extends StatelessWidget {
               ],
             ),
           ),
-          // 상태 표시
-          _buildStatusBadge(context),
+          // 상태 표시 (StatusBadge 사용)
+          StatusBadge(
+            status: group.statusText,
+            fontSize: responsiveFontSize(context, base: 11),
+          ),
         ],
-      ),
-    );
-  }
-
-  Color _getStatusColor() {
-    if (group.isOngoing) return Colors.green;
-    if (group.isUpcoming) return TossColors.primary;
-    return Colors.grey;
-  }
-
-  Widget _buildStatusBadge(BuildContext context) {
-    String text;
-    Color bgColor;
-    Color textColor;
-
-    if (group.isOngoing) {
-      text = '진행중';
-      bgColor = Colors.green.withOpacity(0.1);
-      textColor = Colors.green;
-    } else if (group.isUpcoming) {
-      text = '예정';
-      bgColor = TossColors.primary.withOpacity(0.1);
-      textColor = TossColors.primary;
-    } else {
-      text = '완료';
-      bgColor = Colors.grey.withOpacity(0.1);
-      textColor = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: responsiveFontSize(context, base: 11),
-          fontWeight: FontWeight.bold,
-          color: textColor,
-        ),
       ),
     );
   }
@@ -682,7 +658,7 @@ class _MyReservationItem extends StatelessWidget {
             width: responsiveValue(context, mobile: 72.0, desktop: 80.0),
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: _getStatusColor().withOpacity(0.1),
+              color: group.statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -690,7 +666,7 @@ class _MyReservationItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: responsiveFontSize(context, base: 12),
                 fontWeight: FontWeight.bold,
-                color: _getStatusColor(),
+                color: group.statusColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -720,51 +696,12 @@ class _MyReservationItem extends StatelessWidget {
               ],
             ),
           ),
-          // 상태 표시
-          _buildStatusBadge(context),
+          // 상태 표시 (StatusBadge 사용)
+          StatusBadge(
+            status: group.statusText,
+            fontSize: responsiveFontSize(context, base: 11),
+          ),
         ],
-      ),
-    );
-  }
-
-  Color _getStatusColor() {
-    if (group.isOngoing) return Colors.green;
-    if (group.isUpcoming) return TossColors.success;
-    return Colors.grey;
-  }
-
-  Widget _buildStatusBadge(BuildContext context) {
-    String text;
-    Color bgColor;
-    Color textColor;
-
-    if (group.isOngoing) {
-      text = '진행중';
-      bgColor = Colors.green.withOpacity(0.1);
-      textColor = Colors.green;
-    } else if (group.isUpcoming) {
-      text = '예정';
-      bgColor = TossColors.success.withOpacity(0.1);
-      textColor = TossColors.success;
-    } else {
-      text = '완료';
-      bgColor = Colors.grey.withOpacity(0.1);
-      textColor = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: responsiveFontSize(context, base: 11),
-          fontWeight: FontWeight.bold,
-          color: textColor,
-        ),
       ),
     );
   }
