@@ -390,41 +390,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 헤더 (탭하면 펼치기/접기)
-        InkWell(
-          onTap: () {
-            setState(() {
-              _showAllReservations = !_showAllReservations;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                _buildSectionTitle('오늘의 전체 예약 현황'),
-                const Spacer(),
-                allReservationsAsync.maybeWhen(
-                  data: (reservations) => Text(
-                    '${reservations.length}건',
-                    style: TextStyle(
-                      fontSize: responsiveFontSize(context, base: 13),
-                      color: TossColors.textSub,
-                    ),
-                  ),
-                  orElse: () => const SizedBox.shrink(),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  _showAllReservations
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
+        // 헤더 + 펼치기/접기 버튼
+        Row(
+          children: [
+            _buildSectionTitle('오늘의 전체 예약 현황'),
+            const SizedBox(width: 8),
+            allReservationsAsync.maybeWhen(
+              data: (reservations) => Text(
+                '${reservations.length}건',
+                style: TextStyle(
+                  fontSize: responsiveFontSize(context, base: 13),
                   color: TossColors.textSub,
-                  size: 20,
                 ),
-              ],
+              ),
+              orElse: () => const SizedBox.shrink(),
             ),
-          ),
+            const Spacer(),
+            // 명확한 펼치기/접기 버튼
+            Material(
+              color: _showAllReservations
+                  ? TossColors.primary.withOpacity(0.1)
+                  : TossColors.gray100,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _showAllReservations = !_showAllReservations;
+                  });
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _showAllReservations ? '접기' : '펼치기',
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 12),
+                          fontWeight: FontWeight.w500,
+                          color: _showAllReservations
+                              ? TossColors.primary
+                              : TossColors.textSub,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        _showAllReservations
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: _showAllReservations
+                            ? TossColors.primary
+                            : TossColors.textSub,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         // 내용 (펼쳤을 때만 표시)
         if (_showAllReservations) ...[
@@ -520,14 +545,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: TossColors.success.withOpacity(0.1),
+              color: TossColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.check_circle,
-                  color: TossColors.success,
+                  color: TossColors.primary,
                   size: responsiveIconSize(context),
                 ),
                 const SizedBox(width: 12),
@@ -537,7 +562,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: TextStyle(
                       fontSize: responsiveFontSize(context, base: 14),
                       fontWeight: FontWeight.w600,
-                      color: TossColors.success,
+                      color: TossColors.primary,
                     ),
                   ),
                 ),
@@ -547,7 +572,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     '전체보기',
                     style: TextStyle(
                       fontSize: responsiveFontSize(context, base: 13),
-                      color: TossColors.success,
+                      color: TossColors.primary,
                     ),
                   ),
                 ),

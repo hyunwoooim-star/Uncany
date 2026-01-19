@@ -31,7 +31,7 @@ class MyReservationsScreen extends ConsumerStatefulWidget {
 enum _ReservationFilter {
   all('전체'),
   upcoming('예정'),
-  completed('완료');
+  completed('이전예약');
 
   final String label;
   const _ReservationFilter(this.label);
