@@ -14,6 +14,8 @@ import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
+import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/utils/room_type_utils.dart';
 
 /// 홈 화면 (v0.3)
 ///
@@ -56,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       } catch (e) {
         if (context.mounted) {
-          TossSnackBar.error(context, message: '로그아웃 실패: $e');
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -967,7 +969,7 @@ class _GroupedReservationItem extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      _getRoomTypeIcon(group.classroomRoomType),
+                      RoomTypeUtils.getIcon(group.classroomRoomType),
                       size: responsiveIconSize(context, base: 16),
                       color: TossColors.textSub,
                     ),
@@ -1061,29 +1063,6 @@ class _GroupedReservationItem extends StatelessWidget {
       ),
     );
   }
-
-  IconData _getRoomTypeIcon(String? roomType) {
-    switch (roomType) {
-      case 'computer':
-        return Icons.computer;
-      case 'music':
-        return Icons.music_note;
-      case 'science':
-        return Icons.science;
-      case 'art':
-        return Icons.palette;
-      case 'library':
-        return Icons.menu_book;
-      case 'gym':
-        return Icons.sports_basketball;
-      case 'auditorium':
-        return Icons.theater_comedy;
-      case 'special':
-        return Icons.star;
-      default:
-        return Icons.meeting_room;
-    }
-  }
 }
 
 /// 나의 예약 아이템 위젯 (교사명 없이 교실만 표시)
@@ -1123,7 +1102,7 @@ class _MyReservationItem extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  _getRoomTypeIcon(group.classroomRoomType),
+                  RoomTypeUtils.getIcon(group.classroomRoomType),
                   size: responsiveIconSize(context, base: 18),
                   color: TossColors.textMain,
                 ),
@@ -1191,29 +1170,6 @@ class _MyReservationItem extends StatelessWidget {
       ),
     );
   }
-
-  IconData _getRoomTypeIcon(String? roomType) {
-    switch (roomType) {
-      case 'computer':
-        return Icons.computer;
-      case 'music':
-        return Icons.music_note;
-      case 'science':
-        return Icons.science;
-      case 'art':
-        return Icons.palette;
-      case 'library':
-        return Icons.menu_book;
-      case 'gym':
-        return Icons.sports_basketball;
-      case 'auditorium':
-        return Icons.theater_comedy;
-      case 'special':
-        return Icons.star;
-      default:
-        return Icons.meeting_room;
-    }
-  }
 }
 
 /// 오늘의 예약 아이템 위젯
@@ -1259,7 +1215,7 @@ class _TodayReservationItem extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      _getRoomTypeIcon(reservation.classroomRoomType),
+                      RoomTypeUtils.getIcon(reservation.classroomRoomType),
                       size: responsiveIconSize(context, base: 16),
                       color: TossColors.textSub,
                     ),
@@ -1365,29 +1321,6 @@ class _TodayReservationItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getRoomTypeIcon(String? roomType) {
-    switch (roomType) {
-      case 'computer':
-        return Icons.computer;
-      case 'music':
-        return Icons.music_note;
-      case 'science':
-        return Icons.science;
-      case 'art':
-        return Icons.palette;
-      case 'library':
-        return Icons.menu_book;
-      case 'gym':
-        return Icons.sports_basketball;
-      case 'auditorium':
-        return Icons.theater_comedy;
-      case 'special':
-        return Icons.star;
-      default:
-        return Icons.meeting_room;
-    }
   }
 }
 

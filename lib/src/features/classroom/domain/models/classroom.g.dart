@@ -28,6 +28,9 @@ _$ClassroomImpl _$$ClassroomImplFromJson(Map<String, dynamic> json) =>
       roomType: json['room_type'] as String? ?? 'other',
       periodSettings: json['period_settings'] as Map<String, dynamic>?,
       createdBy: json['created_by'] as String?,
+      creatorName: json['creator_name'] as String?,
+      creatorGrade: (json['creator_grade'] as num?)?.toInt(),
+      creatorClassNum: (json['creator_class_num'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$ClassroomImplToJson(_$ClassroomImpl instance) =>
@@ -46,4 +49,7 @@ Map<String, dynamic> _$$ClassroomImplToJson(_$ClassroomImpl instance) =>
       'room_type': instance.roomType,
       'period_settings': instance.periodSettings,
       'created_by': instance.createdBy,
+      'creator_name': instance.creatorName,
+      'creator_grade': instance.creatorGrade,
+      'creator_class_num': instance.creatorClassNum,
     };

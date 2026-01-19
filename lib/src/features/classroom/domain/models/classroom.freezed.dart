@@ -45,7 +45,14 @@ mixin _$Classroom {
   Map<String, dynamic>? get periodSettings =>
       throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
-  String? get createdBy => throw _privateConstructorUsedError;
+  String? get createdBy =>
+      throw _privateConstructorUsedError; // v0.3: 생성자 정보 (JOIN으로 가져옴)
+  @JsonKey(name: 'creator_name')
+  String? get creatorName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'creator_grade')
+  int? get creatorGrade => throw _privateConstructorUsedError;
+  @JsonKey(name: 'creator_class_num')
+  int? get creatorClassNum => throw _privateConstructorUsedError;
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>(
@@ -93,7 +100,10 @@ abstract class $ClassroomCopyWith<$Res> {
       @JsonKey(name: 'school_id') String? schoolId,
       @JsonKey(name: 'room_type') String roomType,
       @JsonKey(name: 'period_settings') Map<String, dynamic>? periodSettings,
-      @JsonKey(name: 'created_by') String? createdBy});
+      @JsonKey(name: 'created_by') String? createdBy,
+      @JsonKey(name: 'creator_name') String? creatorName,
+      @JsonKey(name: 'creator_grade') int? creatorGrade,
+      @JsonKey(name: 'creator_class_num') int? creatorClassNum});
 }
 
 /// @nodoc
@@ -125,6 +135,9 @@ class _$ClassroomCopyWithImpl<$Res, $Val extends Classroom>
     Object? roomType = null,
     Object? periodSettings = freezed,
     Object? createdBy = freezed,
+    Object? creatorName = freezed,
+    Object? creatorGrade = freezed,
+    Object? creatorClassNum = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -183,6 +196,18 @@ class _$ClassroomCopyWithImpl<$Res, $Val extends Classroom>
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
               as String?,
+      creatorName: freezed == creatorName
+          ? _value.creatorName
+          : creatorName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorGrade: freezed == creatorGrade
+          ? _value.creatorGrade
+          : creatorGrade // ignore: cast_nullable_to_non_nullable
+              as int?,
+      creatorClassNum: freezed == creatorClassNum
+          ? _value.creatorClassNum
+          : creatorClassNum // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -209,7 +234,10 @@ abstract class _$$ClassroomImplCopyWith<$Res>
       @JsonKey(name: 'school_id') String? schoolId,
       @JsonKey(name: 'room_type') String roomType,
       @JsonKey(name: 'period_settings') Map<String, dynamic>? periodSettings,
-      @JsonKey(name: 'created_by') String? createdBy});
+      @JsonKey(name: 'created_by') String? createdBy,
+      @JsonKey(name: 'creator_name') String? creatorName,
+      @JsonKey(name: 'creator_grade') int? creatorGrade,
+      @JsonKey(name: 'creator_class_num') int? creatorClassNum});
 }
 
 /// @nodoc
@@ -239,6 +267,9 @@ class __$$ClassroomImplCopyWithImpl<$Res>
     Object? roomType = null,
     Object? periodSettings = freezed,
     Object? createdBy = freezed,
+    Object? creatorName = freezed,
+    Object? creatorGrade = freezed,
+    Object? creatorClassNum = freezed,
   }) {
     return _then(_$ClassroomImpl(
       id: null == id
@@ -297,6 +328,18 @@ class __$$ClassroomImplCopyWithImpl<$Res>
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
               as String?,
+      creatorName: freezed == creatorName
+          ? _value.creatorName
+          : creatorName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorGrade: freezed == creatorGrade
+          ? _value.creatorGrade
+          : creatorGrade // ignore: cast_nullable_to_non_nullable
+              as int?,
+      creatorClassNum: freezed == creatorClassNum
+          ? _value.creatorClassNum
+          : creatorClassNum // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -319,7 +362,10 @@ class _$ClassroomImpl extends _Classroom {
       @JsonKey(name: 'room_type') this.roomType = 'other',
       @JsonKey(name: 'period_settings')
       final Map<String, dynamic>? periodSettings,
-      @JsonKey(name: 'created_by') this.createdBy})
+      @JsonKey(name: 'created_by') this.createdBy,
+      @JsonKey(name: 'creator_name') this.creatorName,
+      @JsonKey(name: 'creator_grade') this.creatorGrade,
+      @JsonKey(name: 'creator_class_num') this.creatorClassNum})
       : _periodSettings = periodSettings,
         super._();
 
@@ -373,10 +419,20 @@ class _$ClassroomImpl extends _Classroom {
   @override
   @JsonKey(name: 'created_by')
   final String? createdBy;
+// v0.3: 생성자 정보 (JOIN으로 가져옴)
+  @override
+  @JsonKey(name: 'creator_name')
+  final String? creatorName;
+  @override
+  @JsonKey(name: 'creator_grade')
+  final int? creatorGrade;
+  @override
+  @JsonKey(name: 'creator_class_num')
+  final int? creatorClassNum;
 
   @override
   String toString() {
-    return 'Classroom(id: $id, name: $name, accessCodeHash: $accessCodeHash, noticeMessage: $noticeMessage, noticeUpdatedAt: $noticeUpdatedAt, capacity: $capacity, location: $location, isActive: $isActive, createdAt: $createdAt, deletedAt: $deletedAt, schoolId: $schoolId, roomType: $roomType, periodSettings: $periodSettings, createdBy: $createdBy)';
+    return 'Classroom(id: $id, name: $name, accessCodeHash: $accessCodeHash, noticeMessage: $noticeMessage, noticeUpdatedAt: $noticeUpdatedAt, capacity: $capacity, location: $location, isActive: $isActive, createdAt: $createdAt, deletedAt: $deletedAt, schoolId: $schoolId, roomType: $roomType, periodSettings: $periodSettings, createdBy: $createdBy, creatorName: $creatorName, creatorGrade: $creatorGrade, creatorClassNum: $creatorClassNum)';
   }
 
   @override
@@ -409,7 +465,13 @@ class _$ClassroomImpl extends _Classroom {
             const DeepCollectionEquality()
                 .equals(other._periodSettings, _periodSettings) &&
             (identical(other.createdBy, createdBy) ||
-                other.createdBy == createdBy));
+                other.createdBy == createdBy) &&
+            (identical(other.creatorName, creatorName) ||
+                other.creatorName == creatorName) &&
+            (identical(other.creatorGrade, creatorGrade) ||
+                other.creatorGrade == creatorGrade) &&
+            (identical(other.creatorClassNum, creatorClassNum) ||
+                other.creatorClassNum == creatorClassNum));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -429,7 +491,10 @@ class _$ClassroomImpl extends _Classroom {
       schoolId,
       roomType,
       const DeepCollectionEquality().hash(_periodSettings),
-      createdBy);
+      createdBy,
+      creatorName,
+      creatorGrade,
+      creatorClassNum);
 
   /// Create a copy of Classroom
   /// with the given fields replaced by the non-null parameter values.
@@ -477,21 +542,25 @@ class _$ClassroomImpl extends _Classroom {
 
 abstract class _Classroom extends Classroom {
   const factory _Classroom(
-      {required final String id,
-      required final String name,
-      @JsonKey(name: 'access_code_hash') final String? accessCodeHash,
-      @JsonKey(name: 'notice_message') final String? noticeMessage,
-      @JsonKey(name: 'notice_updated_at') final DateTime? noticeUpdatedAt,
-      final int? capacity,
-      final String? location,
-      @JsonKey(name: 'is_active') final bool isActive,
-      @JsonKey(name: 'created_at') final DateTime? createdAt,
-      @JsonKey(name: 'deleted_at') final DateTime? deletedAt,
-      @JsonKey(name: 'school_id') final String? schoolId,
-      @JsonKey(name: 'room_type') final String roomType,
-      @JsonKey(name: 'period_settings')
-      final Map<String, dynamic>? periodSettings,
-      @JsonKey(name: 'created_by') final String? createdBy}) = _$ClassroomImpl;
+          {required final String id,
+          required final String name,
+          @JsonKey(name: 'access_code_hash') final String? accessCodeHash,
+          @JsonKey(name: 'notice_message') final String? noticeMessage,
+          @JsonKey(name: 'notice_updated_at') final DateTime? noticeUpdatedAt,
+          final int? capacity,
+          final String? location,
+          @JsonKey(name: 'is_active') final bool isActive,
+          @JsonKey(name: 'created_at') final DateTime? createdAt,
+          @JsonKey(name: 'deleted_at') final DateTime? deletedAt,
+          @JsonKey(name: 'school_id') final String? schoolId,
+          @JsonKey(name: 'room_type') final String roomType,
+          @JsonKey(name: 'period_settings')
+          final Map<String, dynamic>? periodSettings,
+          @JsonKey(name: 'created_by') final String? createdBy,
+          @JsonKey(name: 'creator_name') final String? creatorName,
+          @JsonKey(name: 'creator_grade') final int? creatorGrade,
+          @JsonKey(name: 'creator_class_num') final int? creatorClassNum}) =
+      _$ClassroomImpl;
   const _Classroom._() : super._();
 
   factory _Classroom.fromJson(Map<String, dynamic> json) =
@@ -534,7 +603,16 @@ abstract class _Classroom extends Classroom {
   Map<String, dynamic>? get periodSettings;
   @override
   @JsonKey(name: 'created_by')
-  String? get createdBy;
+  String? get createdBy; // v0.3: 생성자 정보 (JOIN으로 가져옴)
+  @override
+  @JsonKey(name: 'creator_name')
+  String? get creatorName;
+  @override
+  @JsonKey(name: 'creator_grade')
+  int? get creatorGrade;
+  @override
+  @JsonKey(name: 'creator_class_num')
+  int? get creatorClassNum;
 
   /// Create a copy of Classroom
   /// with the given fields replaced by the non-null parameter values.
