@@ -49,6 +49,14 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
 
   Classroom? _classroom;
 
+  /// 선택된 날짜가 과거인지 확인
+  bool get _isPastDate {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    return selected.isBefore(today);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -135,6 +143,9 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
 
   /// 교시 선택/해제
   void _onPeriodTap(int period) {
+    // 과거 날짜는 조회만 가능
+    if (_isPastDate) return;
+
     setState(() {
       if (_selectedPeriods.contains(period)) {
         _selectedPeriods.remove(period);
@@ -462,7 +473,7 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
             ),
           ),
 
-          // 하단 예약 버튼
+          // 하단 예약 버튼 또는 과거 날짜 안내
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -476,55 +487,102 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
               ],
             ),
             child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 선택 요약
-                  if (_selectedPeriods.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+              child: _isPastDate
+                  // 과거 날짜: 조회 전용 안내
+                  ? Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
                       child: Row(
                         children: [
-                          Text(
-                            '선택: ${_getPeriodsText(_selectedPeriods)}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: TossColors.textMain,
-                            ),
+                          Icon(
+                            Icons.history,
+                            color: Colors.orange.shade700,
+                            size: 24,
                           ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedPeriods.clear();
-                              });
-                            },
-                            child: Text(
-                              '초기화',
-                              style: TextStyle(
-                                color: TossColors.textSub,
-                                fontSize: 13,
-                              ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '지난 날짜입니다',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.orange.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '과거 예약 내역을 확인할 수 있습니다',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.orange.shade600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    )
+                  // 오늘/미래 날짜: 예약 버튼
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 선택 요약
+                        if (_selectedPeriods.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '선택: ${_getPeriodsText(_selectedPeriods)}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: TossColors.textMain,
+                                  ),
+                                ),
+                                const Spacer(),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedPeriods.clear();
+                                    });
+                                  },
+                                  child: Text(
+                                    '초기화',
+                                    style: TextStyle(
+                                      color: TossColors.textSub,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                  // 예약 버튼
-                  TossButton(
-                    onPressed: _selectedPeriods.isNotEmpty && !_isSubmitting
-                        ? _createReservation
-                        : null,
-                    isLoading: _isSubmitting,
-                    isDisabled: _selectedPeriods.isEmpty,
-                    child: Text(_selectedPeriods.isEmpty
-                        ? '교시를 선택해주세요'
-                        : '예약하기'),
-                  ),
-                ],
-              ),
+                        // 예약 버튼
+                        TossButton(
+                          onPressed: _selectedPeriods.isNotEmpty && !_isSubmitting
+                              ? _createReservation
+                              : null,
+                          isLoading: _isSubmitting,
+                          isDisabled: _selectedPeriods.isEmpty,
+                          child: Text(_selectedPeriods.isEmpty
+                              ? '교시를 선택해주세요'
+                              : '예약하기'),
+                        ),
+                      ],
+                    ),
             ),
           ),
           ],

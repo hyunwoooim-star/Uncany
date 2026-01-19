@@ -114,23 +114,28 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
         await repository.cancelReservation(reservation.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('예약이 취소되었습니다'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+          // 기존 SnackBar 모두 제거 후 새로 표시 (여러 건 취소 시 중복 방지)
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('예약이 취소되었습니다'),
+                backgroundColor: Colors.orange,
+              ),
+            );
           // Provider 무효화로 자동 새로고침
           ref.invalidate(myReservationsProvider);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(ErrorMessages.fromError(e)),
+                backgroundColor: Colors.red,
+              ),
+            );
         }
       }
     }

@@ -414,25 +414,30 @@ class _TimetableDashboardScreenState
 
     Color bgColor;
     Color borderColor;
-    IconData? icon;
+    Color textColor;
 
     if (isReserved) {
       if (isMyReservation) {
         bgColor = TossColors.primary.withOpacity(0.2);
         borderColor = TossColors.primary;
-        icon = Icons.person;
+        textColor = TossColors.primary;
       } else {
         bgColor = Colors.grey.shade200;
         borderColor = Colors.grey.shade400;
-        icon = Icons.block;
+        textColor = Colors.grey.shade700;
       }
     } else {
       bgColor = Colors.green.withOpacity(0.1);
       borderColor = Colors.green.shade300;
-      icon = Icons.check;
+      textColor = Colors.green.shade600;
     }
 
-    return Container(
+    // 선생님 이름 첫 글자 (예약된 경우)
+    final teacherInitial = reservation?.teacherName?.isNotEmpty == true
+        ? reservation!.teacherName!.substring(0, 1)
+        : null;
+
+    final cell = Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -440,13 +445,143 @@ class _TimetableDashboardScreenState
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: borderColor, width: 1),
       ),
-      child: Icon(
-        icon,
-        size: 16,
-        color: isReserved
-            ? (isMyReservation ? TossColors.primary : Colors.grey.shade600)
-            : Colors.green.shade600,
+      child: Center(
+        child: isReserved && teacherInitial != null
+            ? Text(
+                teacherInitial,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              )
+            : Icon(
+                Icons.check,
+                size: 16,
+                color: textColor,
+              ),
       ),
+    );
+
+    // 예약된 셀은 탭하면 상세 정보 팝업
+    if (isReserved) {
+      return GestureDetector(
+        onTap: () => _showReservationDetail(reservation),
+        child: cell,
+      );
+    }
+
+    return cell;
+  }
+
+  /// 예약 상세 정보 팝업
+  void _showReservationDetail(Reservation reservation) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 헤더
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.event_note,
+                    color: TossColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '예약 정보',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: TossColors.textMain,
+                        ),
+                      ),
+                      Text(
+                        reservation.periodsDisplay ?? '',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // 예약자 정보
+            _buildDetailRow(
+              Icons.person,
+              '예약자',
+              reservation.teacherDisplayName,
+            ),
+            const SizedBox(height: 12),
+            // 수업 내용
+            if (reservation.description?.isNotEmpty == true) ...[
+              _buildDetailRow(
+                Icons.description,
+                '수업 내용',
+                reservation.description!,
+              ),
+              const SizedBox(height: 12),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 상세 정보 행
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: TossColors.textSub),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: TossColors.textSub,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: TossColors.textMain,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
