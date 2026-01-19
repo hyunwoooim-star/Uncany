@@ -1,12 +1,33 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-19 (Session 5)
+## 마지막 업데이트: 2026-01-19 (Session 6)
 
 ---
 
-### 인수인계 (Claude → 다음 작업자)
+### 인수인계 (Claude → Gemini)
 
-#### 완료된 작업 (v0.3.9 - Phase 2-4 + Phase 2-B)
+#### 완료된 작업 (v0.3.9 - Phase 3-A)
+
+**[NEW] RoomTypeUtils 전역 적용**
+- `classroom_list_screen.dart`: `_getRoomTypeIcon()` 제거 → `RoomTypeUtils.getIcon()` 사용
+- `reservation_screen.dart`: `_getRoomTypeIcon()` 제거 → `RoomTypeUtils.getIcon()` 사용
+- `classroom_form_screen.dart`: `_getRoomTypeIcon()` 제거 → `RoomTypeUtils.getIconFromEnum()` 사용
+- `room_type_utils.dart`에 `getIconFromEnum()`, `getColorFromEnum()` 추가
+
+**[NEW] StatusBadge 전역 적용**
+- `classroom_list_screen.dart`: `_buildStatusBadge()` 제거 → `StatusBadge` 위젯 사용
+
+**[NEW] Widget 테스트 추가**
+- `test/features/reservation/presentation/home/widgets/home_header_test.dart`
+  - 사용자 이름 표시, 학년/반 정보 표시, 아이콘 표시, 인사말 테스트
+- `test/features/reservation/presentation/home/widgets/quick_action_grid_test.dart`
+  - 3개 버튼 표시, 아이콘 표시, 네비게이션 테스트, badge 표시 테스트
+
+**[NEW] ErrorMessages 테스트 버그 수정**
+- `'Error code 23505'`가 `'이미 사용 중인 코드입니다'`로 잘못 변환되는 문제 수정
+- 코드 중복 판별 조건 개선: `(duplicate && code) || (code && already)`
+
+#### 이전 작업 (v0.3.9 - Phase 2-4 + Phase 2-B)
 
 **[NEW] AsyncNotifier 패턴 도입 (Phase 2-B)**
 - `TodayMyReservationController`: 내 예약 관리 (build, refresh, cancelReservation)
@@ -46,12 +67,14 @@
 - ✅ `dart run build_runner build` 성공
 - ✅ God Object 패턴 해소됨
 - ✅ AsyncNotifier 패턴 도입됨
-- Windows shader 컴파일 이슈로 `flutter test` 실행 불가 (WSL/CI에서 테스트 필요)
+- ✅ RoomTypeUtils 전역 적용 완료
+- ✅ Widget 테스트 추가됨 (home_header, quick_action_grid)
+- ✅ CI 테스트 80개 전부 통과
 
 #### 향후 작업 (권장)
-1. **RoomTypeUtils 전체 적용** - 일부만 적용됨
-2. **다른 대형 화면 리팩토링** - reservation_screen.dart 등
-3. **테스트 커버리지 확대** - Widget 테스트 추가
+1. **다른 대형 화면 리팩토링** - reservation_screen.dart 등
+2. **테스트 커버리지 확대** - 더 많은 Widget 테스트 추가
+3. **문서 최신화** - ANALYSIS_REPORT_v0.3.9.md 업데이트
 
 ---
 
