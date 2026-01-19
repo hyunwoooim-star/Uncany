@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'classroom.freezed.dart';
 part 'classroom.g.dart';
 
-/// 교실/리소스 모델 - v0.2
+/// 교실/리소스 모델 - v0.3
 @freezed
 class Classroom with _$Classroom {
   const Classroom._();
@@ -24,10 +24,26 @@ class Classroom with _$Classroom {
     @JsonKey(name: 'room_type') @Default('other') String roomType,
     @JsonKey(name: 'period_settings') Map<String, dynamic>? periodSettings,
     @JsonKey(name: 'created_by') String? createdBy,
+    // v0.3: 생성자 정보 (JOIN으로 가져옴)
+    @JsonKey(name: 'creator_name') String? creatorName,
+    @JsonKey(name: 'creator_grade') int? creatorGrade,
+    @JsonKey(name: 'creator_class_num') int? creatorClassNum,
   }) = _Classroom;
 
   factory Classroom.fromJson(Map<String, dynamic> json) =>
       _$ClassroomFromJson(json);
+
+  /// 생성자 표시명 (예: "3-2 김선생")
+  String get creatorDisplayName {
+    if (creatorName == null) return '알 수 없음';
+    if (creatorGrade != null && creatorClassNum != null) {
+      return '$creatorGrade-$creatorClassNum $creatorName';
+    }
+    if (creatorGrade != null) {
+      return '$creatorGrade학년 $creatorName';
+    }
+    return creatorName!;
+  }
 
   /// 교실 유형 라벨 (한글)
   String get roomTypeLabel {

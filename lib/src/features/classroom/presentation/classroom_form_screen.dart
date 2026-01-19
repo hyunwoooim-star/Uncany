@@ -82,6 +82,22 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
       final capacity = int.tryParse(_capacityController.text.trim());
       final location = _locationController.text.trim();
 
+      // 중복 이름 검사
+      final isDuplicate = await repository.isClassroomNameExists(
+        name,
+        excludeId: widget.classroom?.id,
+      );
+
+      if (isDuplicate) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = '이미 같은 이름의 교실이 있습니다. 다른 이름을 입력해주세요.';
+            _isSubmitting = false;
+          });
+        }
+        return;
+      }
+
       if (widget.classroom == null) {
         // 생성
         await repository.createClassroom(
@@ -113,10 +129,19 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _errorMessage = ErrorMessages.fromError(e);
-          _isSubmitting = false;
-        });
+        // DB UNIQUE 제약 위반 시 친화적 메시지
+        final errorStr = e.toString().toLowerCase();
+        if (errorStr.contains('unique') || errorStr.contains('duplicate') || errorStr.contains('classrooms_school_name_unique')) {
+          setState(() {
+            _errorMessage = '이미 같은 이름의 교실이 있습니다. 다른 이름을 입력해주세요.';
+            _isSubmitting = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = ErrorMessages.fromError(e);
+            _isSubmitting = false;
+          });
+        }
       }
     }
   }

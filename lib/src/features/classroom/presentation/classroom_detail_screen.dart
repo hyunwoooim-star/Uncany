@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
@@ -12,7 +13,10 @@ import '../../reservation/presentation/widgets/time_table_grid.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
+import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'widgets/access_code_dialog.dart';
+import 'classroom_form_screen.dart';
 
 /// 교실 상세 화면
 ///
@@ -167,6 +171,164 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
     }
   }
 
+  /// 교실 수정 화면으로 이동
+  Future<void> _editClassroom() async {
+    if (_classroom == null) return;
+
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ClassroomFormScreen(classroom: _classroom),
+      ),
+    );
+
+    // 수정되면 교실 정보 다시 로드
+    if (result == true && mounted) {
+      _loadClassroom();
+    }
+  }
+
+  /// 교실 삭제 확인 다이얼로그
+  Future<void> _confirmDeleteClassroom() async {
+    if (_classroom == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('교실 삭제'),
+        content: Text('\'${_classroom!.name}\' 교실을 삭제하시겠습니까?\n\n삭제 후에도 기존 예약 내역은 유지됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: TossColors.error),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _deleteClassroom();
+    }
+  }
+
+  /// 교실 삭제 실행
+  Future<void> _deleteClassroom() async {
+    try {
+      final repository = ref.read(classroomRepositoryProvider);
+      await repository.deleteClassroom(widget.classroomId);
+
+      if (mounted) {
+        TossSnackBar.success(context, message: '교실이 삭제되었습니다');
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        TossSnackBar.error(context, message: ErrorMessages.fromError(e));
+      }
+    }
+  }
+
+  /// 생성자 정보 팝업
+  void _showCreatorInfo() {
+    if (_classroom == null || _classroom!.creatorName == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _classroom!.creatorName![0],
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '교실 등록자',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: TossColors.textSub,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _classroom!.creatorDisplayName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: TossColors.textMain,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: TossColors.background,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: TossColors.textSub,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '교실 설정 변경이 필요하면 등록자에게 문의해주세요.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: TossColors.textSub,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -219,6 +381,78 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
             },
             tooltip: _isGridView ? '리스트 보기' : '그리드 보기',
           ),
+          // 교실 관리 메뉴
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'edit':
+                  _editClassroom();
+                  break;
+                case 'delete':
+                  _confirmDeleteClassroom();
+                  break;
+              }
+            },
+            itemBuilder: (context) {
+              final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+              final isCreator = _classroom?.createdBy == currentUserId;
+              final currentUserAsync = ref.watch(currentUserProvider);
+              final isAdmin = currentUserAsync.value?.role == 'admin';
+              final canEdit = isCreator || isAdmin || _classroom?.createdBy == null;
+
+              return [
+                PopupMenuItem<String>(
+                  value: 'edit',
+                  enabled: canEdit,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 20,
+                        color: canEdit ? TossColors.textMain : TossColors.textSub,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '교실 수정',
+                        style: TextStyle(
+                          color: canEdit ? TossColors.textMain : TossColors.textSub,
+                        ),
+                      ),
+                      if (!canEdit) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.lock, size: 14, color: TossColors.textSub),
+                      ],
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  enabled: canEdit,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_outline,
+                        size: 20,
+                        color: canEdit ? TossColors.error : TossColors.textSub,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '교실 삭제',
+                        style: TextStyle(
+                          color: canEdit ? TossColors.error : TossColors.textSub,
+                        ),
+                      ),
+                      if (!canEdit) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.lock, size: 14, color: TossColors.textSub),
+                      ],
+                    ],
+                  ),
+                ),
+              ];
+            },
+          ),
         ],
       ),
       body: Column(
@@ -231,39 +465,72 @@ class _ClassroomDetailScreenState extends ConsumerState<ClassroomDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 교실 정보
-                Row(
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
                   children: [
-                    if (_classroom!.capacity != null) ...[
-                      Icon(
-                        Icons.people_outline,
-                        size: 18,
-                        color: TossColors.textSub,
+                    if (_classroom!.capacity != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.people_outline,
+                            size: 18,
+                            color: TossColors.textSub,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${_classroom!.capacity}명',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: TossColors.textSub,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_classroom!.capacity}명',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: TossColors.textSub,
+                    if (_classroom!.location != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 18,
+                            color: TossColors.textSub,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _classroom!.location!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: TossColors.textSub,
+                            ),
+                          ),
+                        ],
+                      ),
+                    // 생성자 정보
+                    if (_classroom!.creatorName != null)
+                      GestureDetector(
+                        onTap: () => _showCreatorInfo(),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 18,
+                              color: TossColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '등록: ${_classroom!.creatorDisplayName}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: TossColors.primary,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                    ],
-                    if (_classroom!.location != null) ...[
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 18,
-                        color: TossColors.textSub,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _classroom!.location!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: TossColors.textSub,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
 

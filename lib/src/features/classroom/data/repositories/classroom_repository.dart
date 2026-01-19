@@ -15,12 +15,20 @@ class ClassroomRepository {
 
   ClassroomRepository(this._supabase);
 
-  /// 교실 목록 조회
+  /// 교실 목록 조회 (생성자 정보 포함)
   ///
   /// [activeOnly]가 true면 deleted_at이 null이고 is_active가 true인 교실만 조회
   Future<List<Classroom>> getClassrooms({bool activeOnly = true}) async {
     try {
-      dynamic query = _supabase.from('classrooms').select();
+      // 생성자 정보를 JOIN으로 가져옴
+      dynamic query = _supabase.from('classrooms').select('''
+        *,
+        creator:users!classrooms_created_by_fkey (
+          name,
+          grade,
+          class_num
+        )
+      ''');
 
       if (activeOnly) {
         query = query
@@ -33,9 +41,18 @@ class ClassroomRepository {
 
       final response = await query;
 
-      return (response as List)
-          .map((json) => Classroom.fromJson(json as Map<String, dynamic>))
-          .toList();
+      return (response as List).map((json) {
+        final data = Map<String, dynamic>.from(json as Map<String, dynamic>);
+        // creator 정보를 플랫하게 변환
+        final creator = data['creator'] as Map<String, dynamic>?;
+        if (creator != null) {
+          data['creator_name'] = creator['name'];
+          data['creator_grade'] = creator['grade'];
+          data['creator_class_num'] = creator['class_num'];
+        }
+        data.remove('creator');
+        return Classroom.fromJson(data);
+      }).toList();
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {
@@ -43,23 +60,96 @@ class ClassroomRepository {
     }
   }
 
-  /// 특정 교실 조회
+  /// 특정 교실 조회 (생성자 정보 포함)
   Future<Classroom?> getClassroom(String id) async {
     try {
       final response = await _supabase
           .from('classrooms')
-          .select()
+          .select('''
+            *,
+            creator:users!classrooms_created_by_fkey (
+              name,
+              grade,
+              class_num
+            )
+          ''')
           .eq('id', id)
           .maybeSingle();
 
       if (response == null) return null;
 
-      return Classroom.fromJson(response);
+      final data = Map<String, dynamic>.from(response);
+      final creator = data['creator'] as Map<String, dynamic>?;
+      if (creator != null) {
+        data['creator_name'] = creator['name'];
+        data['creator_grade'] = creator['grade'];
+        data['creator_class_num'] = creator['class_num'];
+      }
+      data.remove('creator');
+
+      return Classroom.fromJson(data);
     } on PostgrestException catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     } catch (e) {
       throw Exception(ErrorMessages.fromError(e));
     }
+  }
+
+  /// 교실 이름 중복 검사
+  ///
+  /// [name]: 확인할 교실 이름
+  /// [excludeId]: 수정 시 현재 교실 ID (자기 자신 제외)
+  ///
+  /// Returns: 중복되면 true
+  Future<bool> isClassroomNameExists(String name, {String? excludeId}) async {
+    try {
+      final result = await _supabase.rpc('check_classroom_name_exists', params: {
+        'p_school_id': await _getCurrentUserSchoolId(),
+        'p_name': name,
+        'p_exclude_id': excludeId,
+      });
+      return result as bool;
+    } on PostgrestException catch (e) {
+      // RPC 함수가 없으면 직접 쿼리로 확인
+      AppLogger.warning('check_classroom_name_exists RPC 실패, 직접 쿼리 사용: ${e.message}');
+      return await _checkNameExistsDirect(name, excludeId: excludeId);
+    } catch (e) {
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
+  /// 직접 쿼리로 이름 중복 검사 (RPC 실패 시 대체)
+  Future<bool> _checkNameExistsDirect(String name, {String? excludeId}) async {
+    try {
+      var query = _supabase
+          .from('classrooms')
+          .select('id')
+          .eq('name', name)
+          .isFilter('deleted_at', null);
+
+      if (excludeId != null) {
+        query = query.neq('id', excludeId);
+      }
+
+      final result = await query;
+      return (result as List).isNotEmpty;
+    } catch (e) {
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
+
+  /// 현재 사용자의 school_id 조회
+  Future<String?> _getCurrentUserSchoolId() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    final result = await _supabase
+        .from('users')
+        .select('school_id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    return result?['school_id'] as String?;
   }
 
   /// 교실 생성 (모든 선생님 가능)
