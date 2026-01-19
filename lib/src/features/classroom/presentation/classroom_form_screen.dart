@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/providers/classroom_repository_provider.dart';
 import '../domain/models/classroom.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/utils/room_type_utils.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/constants/period_times.dart';
@@ -445,7 +446,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _getRoomTypeIcon(type),
+                  RoomTypeUtils.getIconFromEnum(type),
                   size: 18,
                   color: isSelected ? Colors.white : TossColors.textSub,
                 ),
@@ -464,28 +465,5 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
         );
       }).toList(),
     );
-  }
-
-  IconData _getRoomTypeIcon(RoomType type) {
-    switch (type) {
-      case RoomType.computer:
-        return Icons.computer;
-      case RoomType.music:
-        return Icons.music_note;
-      case RoomType.science:
-        return Icons.science;
-      case RoomType.art:
-        return Icons.palette;
-      case RoomType.library:
-        return Icons.menu_book;
-      case RoomType.gym:
-        return Icons.sports_basketball;
-      case RoomType.auditorium:
-        return Icons.theater_comedy;
-      case RoomType.special:
-        return Icons.star;
-      case RoomType.other:
-        return Icons.room;
-    }
   }
 }

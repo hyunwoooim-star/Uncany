@@ -8,8 +8,10 @@ import '../domain/models/classroom.dart';
 import 'package:uncany/src/features/reservation/data/providers/reservation_repository_provider.dart';
 import 'package:uncany/src/features/reservation/domain/models/reservation.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/utils/room_type_utils.dart';
 import 'package:uncany/src/shared/widgets/month_calendar.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
+import 'package:uncany/src/shared/widgets/status_badge.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 
 /// 교실 예약 메인 화면 (리디자인)
@@ -224,7 +226,7 @@ class _ClassroomListScreenState extends ConsumerState<ClassroomListScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      _getRoomTypeIcon(_selectedClassroom?.roomType),
+                      RoomTypeUtils.getIcon(_selectedClassroom?.roomType),
                       color: TossColors.primary,
                       size: 24,
                     ),
@@ -335,29 +337,6 @@ class _ClassroomListScreenState extends ConsumerState<ClassroomListScreen> {
         ],
       ),
     );
-  }
-
-  IconData _getRoomTypeIcon(String? roomType) {
-    switch (roomType) {
-      case 'computer':
-        return Icons.computer;
-      case 'music':
-        return Icons.music_note;
-      case 'science':
-        return Icons.science;
-      case 'art':
-        return Icons.palette;
-      case 'library':
-        return Icons.menu_book;
-      case 'gym':
-        return Icons.sports_basketball;
-      case 'auditorium':
-        return Icons.theater_comedy;
-      case 'special':
-        return Icons.star;
-      default:
-        return Icons.meeting_room;
-    }
   }
 
   Widget _buildReservationHeader() {
@@ -644,44 +623,15 @@ class _ReservationCard extends StatelessWidget {
               ],
             ),
           ),
-          _buildStatusBadge(),
+          StatusBadge(
+            status: reservation.isOngoing
+                ? '진행중'
+                : reservation.isUpcoming
+                    ? '예정'
+                    : '완료',
+            fontSize: 12,
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    Color bgColor;
-    Color textColor;
-    String text;
-
-    if (reservation.isOngoing) {
-      bgColor = Colors.green.withOpacity(0.1);
-      textColor = Colors.green;
-      text = '진행중';
-    } else if (reservation.isUpcoming) {
-      bgColor = TossColors.primary.withOpacity(0.1);
-      textColor = TossColors.primary;
-      text = '예정';
-    } else {
-      bgColor = Colors.grey.withOpacity(0.1);
-      textColor = Colors.grey;
-      text = '완료';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: textColor,
-        ),
       ),
     );
   }

@@ -191,7 +191,7 @@ class ErrorMessages {
     }
 
     // 중복 관련 (PostgrestException)
-    if (message.contains('duplicate') || message.contains('unique constraint') ||
+    if (message.contains('duplicate') || message.contains('unique') ||
         message.contains('already exists') || message.contains('23505')) {
       if (message.contains('email')) {
         return '이미 가입된 이메일입니다';

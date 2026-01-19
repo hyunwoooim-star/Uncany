@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:uncany/src/shared/theme/toss_colors.dart';
+import 'package:uncany/src/shared/utils/room_type_utils.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/shared/widgets/month_calendar.dart';
@@ -322,7 +323,7 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
-                              _getRoomTypeIcon(_classroom!.roomType),
+                              RoomTypeUtils.getIcon(_classroom!.roomType),
                               color: TossColors.primary,
                               size: 24,
                             ),
@@ -590,28 +591,5 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
   String _getWeekdayText(int weekday) {
     const weekdays = ['', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
     return weekdays[weekday];
-  }
-
-  IconData _getRoomTypeIcon(String roomType) {
-    switch (roomType) {
-      case 'computer':
-        return Icons.computer;
-      case 'music':
-        return Icons.music_note;
-      case 'science':
-        return Icons.science;
-      case 'art':
-        return Icons.palette;
-      case 'library':
-        return Icons.menu_book;
-      case 'gym':
-        return Icons.sports_basketball;
-      case 'auditorium':
-        return Icons.theater_comedy;
-      case 'special':
-        return Icons.star;
-      default:
-        return Icons.room;
-    }
   }
 }
