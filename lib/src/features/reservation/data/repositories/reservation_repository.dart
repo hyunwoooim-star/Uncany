@@ -512,4 +512,56 @@ class ReservationRepository {
       throw Exception(ErrorMessages.fromError(e));
     }
   }
+
+  /// 오늘의 전체 예약 목록 조회 (모든 사용자)
+  ///
+  /// 홈 화면에서 오늘 예약 현황을 보여줄 때 사용
+  Future<List<Reservation>> getTodayAllReservations() async {
+    try {
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _supabase
+          .from('reservations')
+          .select('''
+            *,
+            classrooms:classroom_id (
+              name,
+              room_type,
+              location
+            ),
+            users:teacher_id (
+              name,
+              grade,
+              class_num
+            )
+          ''')
+          .isFilter('deleted_at', null)
+          .gte('start_time', startOfDay.toIso8601String())
+          .lt('start_time', endOfDay.toIso8601String())
+          .order('start_time', ascending: true);
+
+      return (response as List).map((item) {
+        final json = item as Map<String, dynamic>;
+        final classroomData = json['classrooms'] as Map<String, dynamic>?;
+        final userData = json['users'] as Map<String, dynamic>?;
+        return Reservation.fromJson({
+          ...json,
+          'classroom_name': classroomData?['name'],
+          'classroom_room_type': classroomData?['room_type'],
+          'classroom_location': classroomData?['location'],
+          'teacher_name': userData?['name'],
+          'teacher_grade': userData?['grade'],
+          'teacher_class_num': userData?['class_num'],
+        });
+      }).toList();
+    } on PostgrestException catch (e, stack) {
+      AppLogger.error('ReservationRepository.getTodayAllReservations', e, stack);
+      throw Exception(ErrorMessages.fromError(e));
+    } catch (e, stack) {
+      AppLogger.error('ReservationRepository.getTodayAllReservations', e, stack);
+      throw Exception(ErrorMessages.fromError(e));
+    }
+  }
 }

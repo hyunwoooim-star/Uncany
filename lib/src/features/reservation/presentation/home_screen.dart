@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final pendingCountAsync = ref.watch(_pendingCountProvider);
-    final todayReservationsAsync = ref.watch(todayReservationsProvider);
+    final todayReservationsAsync = ref.watch(todayAllReservationsProvider);
 
     return Scaffold(
       backgroundColor: TossColors.background,
@@ -125,7 +125,7 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(todayReservationsProvider);
+        ref.invalidate(todayAllReservationsProvider);
         ref.invalidate(_pendingCountProvider);
       },
       child: ResponsiveBuilder(
@@ -630,7 +630,7 @@ class _TodayReservationItem extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // 교실 정보
+          // 교실 및 예약자 정보
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -656,13 +656,37 @@ class _TodayReservationItem extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 2),
+                // 예약자 정보 표시
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: responsiveIconSize(context, base: 14),
+                      color: TossColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        reservation.teacherDisplayName,
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 12),
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
                 if (reservation.description != null &&
                     reservation.description!.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     reservation.description!,
                     style: TextStyle(
-                      fontSize: responsiveFontSize(context, base: 12),
+                      fontSize: responsiveFontSize(context, base: 11),
                       color: TossColors.textSub,
                     ),
                     maxLines: 1,
@@ -757,6 +781,13 @@ final todayReservationsProvider =
     FutureProvider<List<Reservation>>((ref) async {
   final repository = ref.watch(reservationRepositoryProvider);
   return await repository.getTodayMyReservations();
+});
+
+// 오늘의 전체 예약 목록 Provider (홈 화면에서 모든 예약 표시용)
+final todayAllReservationsProvider =
+    FutureProvider<List<Reservation>>((ref) async {
+  final repository = ref.watch(reservationRepositoryProvider);
+  return await repository.getTodayAllReservations();
 });
 
 class _QuickActionCard extends StatelessWidget {
