@@ -397,10 +397,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         }
       }
 
-      // 4. 추천인 코드 사용 시 처리
+      // 4. 추천인 코드 사용 시 처리 (RPC 함수로 원자적 처리)
       if (_useReferralCode) {
+        await AppLogger.info('SignupScreen', '4단계: 추천인 코드 처리 시작');
         final code = _referralCodeController.text.trim().toUpperCase();
 
+        // 4-1. 코드 조회 (유효성 검증)
         final referralResponse = await supabase
             .from('referral_codes')
             .select()
@@ -408,17 +410,35 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             .eq('is_active', true)
             .maybeSingle();
 
-        if (referralResponse != null) {
-          await supabase
-              .from('referral_codes')
-              .update({'current_uses': referralResponse['current_uses'] + 1})
-              .eq('id', referralResponse['id'] as Object);
-
-          await supabase.from('referral_usage').insert({
-            'referral_code_id': referralResponse['id'],
-            'used_by': userId,
-          });
+        if (referralResponse == null) {
+          throw Exception('유효하지 않은 추천인 코드입니다');
         }
+
+        // 4-2. 같은 학교 검증
+        final referralSchoolName = referralResponse['school_name'] as String?;
+        if (referralSchoolName != _selectedSchool?.name) {
+          throw Exception('같은 학교의 추천인 코드만 사용할 수 있습니다');
+        }
+
+        final codeId = referralResponse['id'] as String;
+
+        // 4-3. 사용 기록 삽입 (중복 방지는 DB UNIQUE 제약으로)
+        await supabase.from('referral_usage').insert({
+          'referral_code_id': codeId,
+          'used_by': userId,
+        });
+
+        // 4-4. RPC 함수로 원자적 카운트 증가 (Race Condition 방지)
+        final rpcResult = await supabase.rpc('increment_referral_uses', params: {
+          'p_code_id': codeId,
+        });
+
+        // RPC 결과 확인
+        if (rpcResult is Map && rpcResult['success'] == false) {
+          throw Exception(rpcResult['error'] ?? '추천인 코드 사용에 실패했습니다');
+        }
+
+        await AppLogger.info('SignupScreen', '4단계 완료: 추천인 코드 처리 성공');
       }
 
       if (mounted) {

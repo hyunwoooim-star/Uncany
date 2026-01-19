@@ -5,19 +5,31 @@
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
-- 완료: TossSnackBar 전역 적용 (모든 SnackBar → 토스 스타일)
-- 완료: 시간표 셀에 학년-반 + 교사명 표시 (2줄)
-- 완료: 홈화면 예약 그룹화 (같은 교실+선생님 → 1~6교시)
-- 완료: 교실 카드에 공지사항 내용 표시
-- 완료: 홈화면 UI 개선 (나의 예약 섹션, 전체 예약 접기/펼치기)
+
+#### 완료된 작업 (v0.3.7-rc)
+- 완료: **추천인 코드 RLS 정책 + RPC 함수** (`010_fix_referral_codes_rls.sql`)
+  - Gemini 피드백 반영: 유효한 코드 공개 SELECT 정책 추가
+  - Race Condition 방지: `increment_referral_uses` RPC 함수 (FOR UPDATE 락)
+  - DB 레벨 같은 학교 제약: `check_referral_same_school` 트리거
+- 완료: **SignupScreen 추천인 코드 로직 개선** - RPC 함수 호출로 변경
+- 완료: **Provider Invalidation 개선** - `classroomReservationsStreamProvider` 추가
+- 완료: 홈화면 UI 개선 (접기/펼치기 버튼, 용어 변경)
+- 완료: TossSnackBar 전역 적용
 - 완료: 동시 예약 충돌 방지 분석 (Advisory Lock + Exclusion Constraint 이미 구현됨)
-- **발견**: 추천인코드 생성 실패 - RLS 정책 누락 (GEMINI_REPORT.md 참조)
+
+#### 다음 작업자에게
+- **필수**: `010_fix_referral_codes_rls.sql` Supabase Dashboard에서 실행
+- **문서**: `GEMINI_FINAL_REVIEW.md` - Gemini 최종 검토 요청서
 - 주의사항: 배포 후 브라우저 캐시 클리어 필요 (Ctrl+Shift+R)
-- 다음 할 일: referral_codes RLS 마이그레이션 작성, increment_referral_uses RPC 함수 추가
+
+#### 향후 작업 (권장)
+- Home Screen 리팩토링 (1595줄 → AsyncNotifier 패턴)
+- Realtime 구독에 school_id 필터 추가
+- Invalidation 상수화 또는 Event Bus 도입
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.5 (Staging 테스트 진행 중)
+## 프로젝트 현재 상태: ✅ v0.3.7-rc (Gemini 최종 검토 대기)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)

@@ -18,6 +18,7 @@ import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'home_screen.dart' show todayReservationsProvider, todayAllReservationsProvider;
 import 'my_reservations_screen.dart' show myReservationsProvider;
+import '../data/providers/reservation_realtime_provider.dart' show classroomReservationsStreamProvider;
 
 /// 예약 화면 (v0.2)
 ///
@@ -185,6 +186,11 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
         ref.invalidate(todayReservationsProvider);
         ref.invalidate(todayAllReservationsProvider);
         ref.invalidate(myReservationsProvider);
+        // Realtime StreamProvider도 무효화 (현재 교실+날짜)
+        ref.invalidate(classroomReservationsStreamProvider((
+          classroomId: widget.classroomId,
+          date: _selectedDate,
+        )));
 
         // 예약 목록 새로고침
         _loadReservations();
