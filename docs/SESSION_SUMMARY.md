@@ -1,53 +1,48 @@
 # Uncany 세션 요약
 
-## 마지막 업데이트: 2026-01-19 (Session 2)
+## 마지막 업데이트: 2026-01-19 (Session 3)
 
 ---
 
 ### 인수인계 (Claude → 다음 작업자)
 
-#### 완료된 작업 (v0.3.8-rc)
+#### 완료된 작업 (v0.3.9)
 
-**[NEW] 시간표 대시보드 UI 개선**
-- 세로 구분선 추가로 열 가독성 향상
-- 폰트 크기 증가 (11px→13px, 10px→12px)
-- 헤더 배경색 및 스타일 개선
-- 범례 위젯에 아이콘 추가
+**[NEW] 코드 품질 개선 (Gemini 피드백 반영)**
+- pubspec.yaml 버전 0.3.9로 업데이트
+- ErrorMessages 적용 (home_screen.dart _logout)
+- RoomTypeUtils 공통 유틸리티 추출 (3중복 제거)
+- StatusBadge 공통 위젯 추출
+- Freezed 코드 생성 완료 (classroom_comment 모델)
+- home_screen.dart 1602줄 → 1535줄 (67줄 감소)
 
-**[NEW] 교실 소유권 관리 기능** (`011_classroom_ownership_and_unique.sql`)
-- 동명 교실 생성 방지 (UNIQUE 제약: school_id + name)
-- 교실 수정/삭제 권한 제한 (생성자 또는 관리자만)
-- 생성자 정보 표시 (학년-반 이름)
-- `check_classroom_name_exists()` RPC 함수 추가
+**분석 보고서 작성**
+- `docs/ANALYSIS_REPORT_v0.3.9.md` - 코드 품질 분석 및 작업 계획
 
-**[NEW] 교실 게시판/댓글 기능** (`012_classroom_comments.sql`)
-- 댓글 유형: 일반(general), 문제신고(issue), 공지(notice)
-- 문제 해결 워크플로우 (is_resolved, resolved_by)
-- `resolve_classroom_issue()` RPC 함수
-- `get_classroom_unresolved_count()` RPC 함수
-- DraggableScrollableSheet UI 구현
+**이전 작업 (v0.3.8-rc)**
+- 시간표 대시보드 UI 개선 (세로 구분선, 폰트 증가, 범례 아이콘)
+- 교실 소유권 관리 기능 (`011_classroom_ownership_and_unique.sql`)
+- 교실 게시판/댓글 기능 (`012_classroom_comments.sql`)
 
 **이전 작업 (v0.3.7-rc)**
-- 완료: **추천인 코드 RLS 정책 + RPC 함수** (`010_fix_referral_codes_rls.sql`)
-- 완료: **SignupScreen 추천인 코드 로직 개선** - RPC 함수 호출로 변경
-- 완료: **Provider Invalidation 개선** - `classroomReservationsStreamProvider` 추가
-- 완료: 홈화면 UI 개선 (접기/펼치기 버튼, 용어 변경)
-- 완료: TossSnackBar 전역 적용
-- 완료: 동시 예약 충돌 방지 분석 (Advisory Lock + Exclusion Constraint 이미 구현됨)
+- 추천인 코드 RLS 정책 + RPC 함수 (`010_fix_referral_codes_rls.sql`)
+- SignupScreen 추천인 코드 로직 개선
+- Provider Invalidation 개선
+- TossSnackBar 전역 적용
 
 #### 다음 작업자에게
-- **필수**: Supabase에서 011, 012 마이그레이션 적용 완료됨 ✅
-- Freezed 코드 생성 필요 (`dart run build_runner build`)
+- ✅ Supabase 마이그레이션 010, 011, 012 적용 완료
+- ✅ Freezed 코드 생성 완료
 - 주의사항: 배포 후 브라우저 캐시 클리어 필요 (Ctrl+Shift+R)
 
-#### 향후 작업 (권장)
-- Home Screen 리팩토링 (1595줄 → AsyncNotifier 패턴)
-- Realtime 구독에 school_id 필터 추가
-- Invalidation 상수화 또는 Event Bus 도입
+#### 향후 작업 (권장 - Gemini 피드백 기반)
+1. **Phase 2**: AsyncNotifier 패턴 도입 (상태 관리 개선)
+2. **Phase 3**: home_screen.dart 추가 리팩토링 (widgets/ 분리)
+3. **Phase 4**: 테스트 커버리지 확대 (Repository Unit Test)
 
 ---
 
-## 프로젝트 현재 상태: ✅ v0.3.7-rc (Gemini 최종 검토 대기)
+## 프로젝트 현재 상태: ✅ v0.3.9 (Gemini 피드백 반영 완료)
 
 ### 완료된 핵심 기능
 - 인증 시스템 (로그인/회원가입/로그아웃/비밀번호 재설정)
