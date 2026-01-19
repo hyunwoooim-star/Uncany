@@ -7,6 +7,7 @@ import 'package:uncany/src/core/providers/auth_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 프로필 수정 화면 (v0.2)
 ///
@@ -76,12 +77,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ref.invalidate(currentUserProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('프로필이 업데이트되었습니다'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        TossSnackBar.success(context, message: '프로필이 업데이트되었습니다');
         context.pop();
       }
     } catch (e) {

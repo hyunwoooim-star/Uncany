@@ -14,6 +14,7 @@ import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/features/school/presentation/widgets/school_search_field.dart';
 import 'package:uncany/src/features/school/data/services/school_api_service.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 회원가입 화면 (v0.2)
 ///
@@ -421,16 +422,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _useReferralCode
-                  ? '회원가입이 완료되었습니다!'
-                  : '회원가입이 완료되었습니다. 관리자 승인 후 이용 가능합니다.',
-            ),
-            backgroundColor: TossColors.primary,
-          ),
-        );
+        TossSnackBar.success(context, message: _useReferralCode ? '회원가입이 완료되었습니다!' : '회원가입 완료. 관리자 승인 후 이용 가능합니다.');
         // 추천인 코드 사용 시 바로 홈, 아니면 승인 대기 화면
         context.go(_useReferralCode ? '/home' : '/pending-approval');
       }

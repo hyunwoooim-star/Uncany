@@ -11,6 +11,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 관리자 사용자 관리 화면
 ///
@@ -214,9 +215,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                           icon: const Icon(Icons.copy),
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: tempPassword));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('비밀번호가 복사되었습니다')),
-                            );
+                            TossSnackBar.success(context, message: '비밀번호가 복사되었습니다');
                           },
                           tooltip: '복사',
                         ),
@@ -236,12 +235,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -278,22 +272,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         await repository.updateUserRole(user.id, newRole);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('역할을 ${newRole.name}으로 변경했습니다'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          TossSnackBar.success(context, message: '역할을 ${newRole.name}으로 변경했습니다');
           _loadUsers();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -328,22 +312,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         await repository.deleteUser(user.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('계정을 비활성화했습니다'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+          TossSnackBar.warning(context, message: '계정을 비활성화했습니다');
           _loadUsers();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -437,22 +411,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         await repository.hardDeleteUser(user.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('계정을 완전히 삭제했습니다'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.warning(context, message: '계정을 완전히 삭제했습니다');
           _loadUsers();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }

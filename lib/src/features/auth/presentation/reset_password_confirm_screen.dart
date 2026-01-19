@@ -6,6 +6,7 @@ import '../data/providers/auth_repository_provider.dart';
 import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 비밀번호 재설정 확인 화면
 ///
@@ -58,14 +59,8 @@ class _ResetPasswordConfirmScreenState
       if (mounted) {
         // 성공 시 로그인 화면으로 이동
         context.go('/auth/login');
-
         // 성공 메시지 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('비밀번호가 성공적으로 변경되었습니다.'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        TossSnackBar.success(context, message: '비밀번호가 변경되었습니다');
       }
     } catch (e) {
       setState(() {

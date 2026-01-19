@@ -7,6 +7,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
 import 'package:uncany/src/core/constants/period_times.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 교실 등록/수정 폼 화면 (v0.2)
 ///
@@ -108,16 +109,7 @@ class _ClassroomFormScreenState extends ConsumerState<ClassroomFormScreen> {
 
       if (mounted) {
         Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.classroom == null
-                  ? '교실이 추가되었습니다'
-                  : '교실이 수정되었습니다',
-            ),
-            backgroundColor: TossColors.primary,
-          ),
-        );
+        TossSnackBar.success(context, message: widget.classroom == null ? '교실이 추가되었습니다' : '교실이 수정되었습니다');
       }
     } catch (e) {
       if (mounted) {

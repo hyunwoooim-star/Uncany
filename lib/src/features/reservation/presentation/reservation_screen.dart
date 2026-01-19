@@ -15,6 +15,7 @@ import 'package:uncany/src/features/reservation/domain/models/reservation.dart';
 import 'package:uncany/src/features/classroom/domain/models/classroom.dart';
 import 'package:uncany/src/core/providers/supabase_provider.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'home_screen.dart' show todayReservationsProvider;
 import 'my_reservations_screen.dart' show myReservationsProvider;
 
@@ -158,12 +159,7 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
   /// 예약 생성
   Future<void> _createReservation() async {
     if (_selectedPeriods.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('교시를 선택해주세요'),
-          backgroundColor: TossColors.error,
-        ),
-      );
+      TossSnackBar.error(context, message: '교시를 선택해주세요');
       return;
     }
 
@@ -183,14 +179,7 @@ class _ReservationScreenState extends ConsumerState<ReservationScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${_getFormattedDate(_selectedDate)} ${_getPeriodsText(_selectedPeriods)} 예약이 완료되었습니다',
-            ),
-            backgroundColor: TossColors.primary,
-          ),
-        );
+        TossSnackBar.success(context, message: '${_getFormattedDate(_selectedDate)} ${_getPeriodsText(_selectedPeriods)} 예약 완료');
 
         // 모든 예약 관련 Provider 무효화 (동기화)
         ref.invalidate(todayReservationsProvider);

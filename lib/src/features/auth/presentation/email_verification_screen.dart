@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uncany/src/features/auth/data/providers/auth_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 이메일 인증 화면
 class EmailVerificationScreen extends ConsumerWidget {
@@ -60,12 +61,7 @@ class EmailVerificationScreen extends ConsumerWidget {
     final email = Supabase.instance.client.auth.currentUser?.email;
     if (email == null) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('로그인 정보를 찾을 수 없습니다.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      TossSnackBar.error(context, message: '로그인 정보를 찾을 수 없습니다.');
       return;
     }
 
@@ -74,20 +70,10 @@ class EmailVerificationScreen extends ConsumerWidget {
       await authRepo.resendVerificationEmail(email);
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('인증 이메일을 재발송했습니다.'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      TossSnackBar.success(context, message: '인증 이메일을 재발송했습니다');
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceAll('Exception: ', '')),
-          backgroundColor: Colors.red,
-        ),
-      );
+      TossSnackBar.error(context, message: e.toString().replaceAll('Exception: ', ''));
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 내 예약 Provider (classroom JOIN 포함)
 final myReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((ref) async {
@@ -73,12 +74,7 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
     // 취소 가능 여부 재확인
     if (!reservation.isCancellable) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(reservation.cancellationDisabledReason ?? '취소할 수 없습니다'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossSnackBar.error(context, message: reservation.cancellationDisabledReason ?? '취소할 수 없습니다');
       }
       return;
     }
@@ -114,25 +110,13 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen>
         await repository.cancelReservation(reservation.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('예약이 취소되었습니다'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 2), // 빠르게 표시
-            ),
-          );
+          TossSnackBar.warning(context, message: '예약이 취소되었습니다');
           // Provider 무효화로 자동 새로고침
           ref.invalidate(myReservationsProvider);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }

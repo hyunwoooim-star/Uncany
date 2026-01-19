@@ -13,6 +13,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/shared/widgets/toss_skeleton.dart';
 import 'package:uncany/src/shared/widgets/responsive_layout.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 홈 화면 (v0.2)
 ///
@@ -48,9 +49,7 @@ class HomeScreen extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('로그아웃 실패: $e')),
-          );
+          TossSnackBar.error(context, message: '로그아웃 실패: $e');
         }
       }
     }
@@ -543,6 +542,9 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context,
     List<Reservation> reservations,
   ) {
+    // 같은 교실 + 선생님의 예약을 합산
+    final grouped = _groupReservations(reservations);
+
     return TossCard(
       padding: responsiveCardPadding(context),
       child: Column(
@@ -564,7 +566,7 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '오늘 ${reservations.length}건의 예약이 있습니다',
+                    '오늘 ${grouped.length}건의 예약이 있습니다',
                     style: TextStyle(
                       fontSize: responsiveFontSize(context, base: 14),
                       fontWeight: FontWeight.w600,
@@ -587,11 +589,244 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          // 예약 목록
-          ...reservations.map((r) => _TodayReservationItem(reservation: r)),
+          // 그룹화된 예약 목록
+          ...grouped.map((g) => _GroupedReservationItem(group: g)),
         ],
       ),
     );
+  }
+
+  /// 같은 교실 + 선생님의 예약을 그룹화
+  List<_ReservationGroup> _groupReservations(List<Reservation> reservations) {
+    final Map<String, _ReservationGroup> groups = {};
+
+    for (final r in reservations) {
+      final key = '${r.classroomId}_${r.teacherId}';
+      if (groups.containsKey(key)) {
+        groups[key]!.addReservation(r);
+      } else {
+        groups[key] = _ReservationGroup(r);
+      }
+    }
+
+    // 첫 번째 예약의 시작 시간 기준으로 정렬
+    final sorted = groups.values.toList()
+      ..sort((a, b) => a.firstPeriod.compareTo(b.firstPeriod));
+    return sorted;
+  }
+}
+
+/// 그룹화된 예약 정보
+class _ReservationGroup {
+  final Reservation firstReservation;
+  final Set<int> _allPeriods = {};
+
+  _ReservationGroup(this.firstReservation) {
+    _allPeriods.addAll(firstReservation.periods ?? []);
+  }
+
+  void addReservation(Reservation r) {
+    _allPeriods.addAll(r.periods ?? []);
+  }
+
+  List<int> get allPeriods {
+    final sorted = _allPeriods.toList()..sort();
+    return sorted;
+  }
+
+  int get firstPeriod => allPeriods.isNotEmpty ? allPeriods.first : 0;
+
+  /// 교시 표시 (연속: 1~6교시, 비연속: 1, 2, 5, 6교시)
+  String get periodsDisplay {
+    if (allPeriods.isEmpty) return '-';
+    if (allPeriods.length == 1) return '${allPeriods.first}교시';
+
+    // 연속된 교시인지 확인
+    bool isConsecutive = true;
+    for (int i = 1; i < allPeriods.length; i++) {
+      if (allPeriods[i] != allPeriods[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+
+    if (isConsecutive) {
+      return '${allPeriods.first}~${allPeriods.last}교시';
+    } else {
+      return '${allPeriods.join(", ")}교시';
+    }
+  }
+
+  String? get classroomName => firstReservation.classroomName;
+  String? get classroomRoomType => firstReservation.classroomRoomType;
+  String get teacherDisplayName => firstReservation.teacherDisplayName;
+  String? get description => firstReservation.description;
+
+  bool get isOngoing {
+    final now = DateTime.now();
+    return now.isAfter(firstReservation.startTime) &&
+        now.isBefore(firstReservation.endTime);
+  }
+
+  bool get isUpcoming => DateTime.now().isBefore(firstReservation.startTime);
+}
+
+/// 그룹화된 예약 아이템 위젯
+class _GroupedReservationItem extends StatelessWidget {
+  final _ReservationGroup group;
+
+  const _GroupedReservationItem({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          // 교시 표시
+          Container(
+            width: responsiveValue(context, mobile: 72.0, desktop: 80.0),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: _getStatusColor().withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              group.periodsDisplay,
+              style: TextStyle(
+                fontSize: responsiveFontSize(context, base: 12),
+                fontWeight: FontWeight.bold,
+                color: _getStatusColor(),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // 교실 및 예약자 정보
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _getRoomTypeIcon(group.classroomRoomType),
+                      size: responsiveIconSize(context, base: 16),
+                      color: TossColors.textSub,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        group.classroomName ?? '교실',
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 14),
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.textMain,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                // 예약자 정보 표시
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: responsiveIconSize(context, base: 14),
+                      color: TossColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        group.teacherDisplayName,
+                        style: TextStyle(
+                          fontSize: responsiveFontSize(context, base: 12),
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // 상태 표시
+          _buildStatusBadge(context),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor() {
+    if (group.isOngoing) return Colors.green;
+    if (group.isUpcoming) return TossColors.primary;
+    return Colors.grey;
+  }
+
+  Widget _buildStatusBadge(BuildContext context) {
+    String text;
+    Color bgColor;
+    Color textColor;
+
+    if (group.isOngoing) {
+      text = '진행중';
+      bgColor = Colors.green.withOpacity(0.1);
+      textColor = Colors.green;
+    } else if (group.isUpcoming) {
+      text = '예정';
+      bgColor = TossColors.primary.withOpacity(0.1);
+      textColor = TossColors.primary;
+    } else {
+      text = '완료';
+      bgColor = Colors.grey.withOpacity(0.1);
+      textColor = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: responsiveFontSize(context, base: 11),
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  IconData _getRoomTypeIcon(String? roomType) {
+    switch (roomType) {
+      case 'computer':
+        return Icons.computer;
+      case 'music':
+        return Icons.music_note;
+      case 'science':
+        return Icons.science;
+      case 'art':
+        return Icons.palette;
+      case 'library':
+        return Icons.menu_book;
+      case 'gym':
+        return Icons.sports_basketball;
+      case 'auditorium':
+        return Icons.theater_comedy;
+      case 'special':
+        return Icons.star;
+      default:
+        return Icons.meeting_room;
+    }
   }
 }
 

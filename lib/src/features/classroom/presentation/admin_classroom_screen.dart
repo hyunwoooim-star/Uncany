@@ -8,6 +8,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 
 /// 관리자 교실 관리 화면
 ///
@@ -111,26 +112,12 @@ class _AdminClassroomScreenState extends ConsumerState<AdminClassroomScreen> {
       await repository.toggleActiveStatus(classroom.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              classroom.isActive
-                  ? '교실을 비활성화했습니다'
-                  : '교실을 활성화했습니다',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        TossSnackBar.warning(context, message: classroom.isActive ? '교실을 비활성화했습니다' : '교실을 활성화했습니다');
         _loadClassrooms();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ErrorMessages.fromError(e)),
-            backgroundColor: Colors.red,
-          ),
-        );
+        TossSnackBar.error(context, message: ErrorMessages.fromError(e));
       }
     }
   }
@@ -164,22 +151,12 @@ class _AdminClassroomScreenState extends ConsumerState<AdminClassroomScreen> {
         await repository.deleteClassroom(classroom.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('교실을 삭제했습니다'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.warning(context, message: '교실을 삭제했습니다');
           _loadClassrooms();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }

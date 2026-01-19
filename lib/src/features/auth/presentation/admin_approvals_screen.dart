@@ -7,6 +7,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'widgets/document_viewer.dart';
 
 /// 관리자 승인 대기 목록 화면
@@ -82,22 +83,12 @@ class _AdminApprovalsScreenState extends ConsumerState<AdminApprovalsScreen>
       await repository.approveUser(user.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${user.name} 선생님을 승인했습니다'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        TossSnackBar.success(context, message: '${user.name} 선생님을 승인했습니다');
         _loadUsers();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ErrorMessages.fromError(e)),
-            backgroundColor: Colors.red,
-          ),
-        );
+        TossSnackBar.error(context, message: ErrorMessages.fromError(e));
       }
     }
   }
@@ -135,9 +126,7 @@ class _AdminApprovalsScreenState extends ConsumerState<AdminApprovalsScreen>
           TextButton(
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('반려 사유를 입력해주세요')),
-                );
+                TossSnackBar.error(context, message: '반려 사유를 입력해주세요');
                 return;
               }
               Navigator.pop(context, true);
@@ -155,22 +144,12 @@ class _AdminApprovalsScreenState extends ConsumerState<AdminApprovalsScreen>
         await repository.rejectUser(user.id, reasonController.text);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${user.name} 선생님의 가입을 반려했습니다'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+          TossSnackBar.warning(context, message: '${user.name} 선생님의 가입을 반려했습니다');
           _loadUsers();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -180,9 +159,7 @@ class _AdminApprovalsScreenState extends ConsumerState<AdminApprovalsScreen>
 
   void _viewDocument(User user) {
     if (user.verificationDocumentUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('재직증명서가 없습니다')),
-      );
+      TossSnackBar.info(context, message: '재직증명서가 없습니다');
       return;
     }
 

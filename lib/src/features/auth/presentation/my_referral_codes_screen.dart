@@ -9,6 +9,7 @@ import 'package:uncany/src/shared/theme/toss_colors.dart';
 import 'package:uncany/src/shared/widgets/toss_button.dart';
 import 'package:uncany/src/shared/widgets/toss_card.dart';
 import 'package:uncany/src/core/utils/error_messages.dart';
+import 'package:uncany/src/shared/widgets/toss_snackbar.dart';
 import 'widgets/create_referral_dialog.dart';
 
 /// 내 추천인 코드 화면
@@ -75,22 +76,12 @@ class _MyReferralCodesScreenState
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('추천인 코드를 생성했습니다'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          TossSnackBar.success(context, message: '추천인 코드를 생성했습니다');
           _loadCodes();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ErrorMessages.fromError(e)),
-              backgroundColor: Colors.red,
-            ),
-          );
+          TossSnackBar.error(context, message: ErrorMessages.fromError(e));
         }
       }
     }
@@ -107,36 +98,19 @@ class _MyReferralCodesScreenState
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              code.isActive ? '코드를 비활성화했습니다' : '코드를 활성화했습니다',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        TossSnackBar.success(context, message: code.isActive ? '코드를 비활성화했습니다' : '코드를 활성화했습니다');
         _loadCodes();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ErrorMessages.fromError(e)),
-            backgroundColor: Colors.red,
-          ),
-        );
+        TossSnackBar.error(context, message: ErrorMessages.fromError(e));
       }
     }
   }
 
   void _copyCode(String code) {
     Clipboard.setData(ClipboardData(text: code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('코드가 복사되었습니다'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    TossSnackBar.success(context, message: '코드가 복사되었습니다');
   }
 
   @override
