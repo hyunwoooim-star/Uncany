@@ -266,23 +266,115 @@ class _TimetableDashboardScreenState
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: TossCard(
-        padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-            // 헤더 (교시)
-            _buildPeriodHeader(),
-            const Divider(height: 1),
-            // 교실별 행
-            ..._classrooms.asMap().entries.map((entry) {
-              final index = entry.key;
-              final classroom = entry.value;
-              return Column(
+      child: Column(
+        children: [
+          // 범례
+          const TimetableLegend(),
+          const SizedBox(height: 12),
+          // 시간표 테이블
+          Container(
+            decoration: BoxDecoration(
+              color: TossColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: TossColors.divider, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Column(
                 children: [
-                  _buildClassroomRow(classroom),
-                  if (index < _classrooms.length - 1)
-                    const Divider(height: 1),
+                  // 헤더 (교시)
+                  _buildPeriodHeader(),
+                  // 교실별 행
+                  ..._classrooms.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final classroom = entry.value;
+                    final isLast = index == _classrooms.length - 1;
+                    return _buildClassroomRow(classroom, isLast: isLast);
+                  }),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 교시 헤더
+  Widget _buildPeriodHeader() {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.primary.withOpacity(0.08),
+        border: Border(
+          bottom: BorderSide(color: TossColors.divider, width: 1.5),
+        ),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            // 교실명 열
+            Container(
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: TossColors.divider, width: 1),
+                ),
+              ),
+              child: Text(
+                '교실',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: TossColors.textMain,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            // 교시 열들
+            ...List.generate(_endPeriod - _startPeriod + 1, (index) {
+              final period = _startPeriod + index;
+              final periodTime = PeriodTimes.getPeriod(period);
+              final isLast = index == _endPeriod - _startPeriod;
+              return Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    border: isLast
+                        ? null
+                        : Border(
+                            right: BorderSide(color: TossColors.divider, width: 1),
+                          ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$period교시',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: TossColors.textMain,
+                        ),
+                      ),
+                      if (periodTime != null)
+                        Text(
+                          periodTime.startTimeString,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: TossColors.textSub,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               );
             }),
           ],
@@ -291,64 +383,8 @@ class _TimetableDashboardScreenState
     );
   }
 
-  /// 교시 헤더
-  Widget _buildPeriodHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      child: Row(
-        children: [
-          // 교실명 열
-          Container(
-            width: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              '교실',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: TossColors.textSub,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // 교시 열들
-          ...List.generate(_endPeriod - _startPeriod + 1, (index) {
-            final period = _startPeriod + index;
-            final periodTime = PeriodTimes.getPeriod(period);
-            return Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    '$period교시',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.textMain,
-                    ),
-                  ),
-                  if (periodTime != null)
-                    Text(
-                      periodTime.startTimeString,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: TossColors.textSub,
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
   /// 교실별 행
-  Widget _buildClassroomRow(Classroom classroom) {
+  Widget _buildClassroomRow(Classroom classroom, {bool isLast = false}) {
     final reservations = _reservationMap[classroom.id] ?? {};
 
     return InkWell(
@@ -361,75 +397,92 @@ class _TimetableDashboardScreenState
         if (mounted) _loadData();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            // 교실명
-            Container(
-              width: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    classroom.name,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: TossColors.textMain,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          border: isLast
+              ? null
+              : Border(
+                  bottom: BorderSide(color: TossColors.divider, width: 1),
+                ),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 교실명
+              Container(
+                width: 90,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                decoration: BoxDecoration(
+                  color: TossColors.background.withOpacity(0.5),
+                  border: Border(
+                    right: BorderSide(color: TossColors.divider, width: 1),
                   ),
-                  Text(
-                    classroom.roomTypeLabel,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: TossColors.textSub,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      classroom.name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.textMain,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      classroom.roomTypeLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: TossColors.textSub,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // 교시별 예약 상태
-            ...List.generate(_endPeriod - _startPeriod + 1, (index) {
-              final period = _startPeriod + index;
-              final reservation = reservations[period];
-              return Expanded(
-                child: _buildPeriodCell(period, reservation),
-              );
-            }),
-          ],
+              // 교시별 예약 상태
+              ...List.generate(_endPeriod - _startPeriod + 1, (index) {
+                final period = _startPeriod + index;
+                final reservation = reservations[period];
+                final isLastCell = index == _endPeriod - _startPeriod;
+                return Expanded(
+                  child: _buildPeriodCell(period, reservation, isLastCell: isLastCell),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// 교시 셀
-  Widget _buildPeriodCell(int period, Reservation? reservation) {
+  Widget _buildPeriodCell(int period, Reservation? reservation, {bool isLastCell = false}) {
     final isReserved = reservation != null;
     final isMyReservation = reservation != null &&
         _currentUserId != null &&
         reservation.teacherId == _currentUserId;
 
     Color bgColor;
-    Color borderColor;
     Color textColor;
+    IconData? statusIcon;
 
     if (isReserved) {
       if (isMyReservation) {
-        bgColor = TossColors.primary.withOpacity(0.2);
-        borderColor = TossColors.primary;
+        bgColor = TossColors.primary.withOpacity(0.15);
         textColor = TossColors.primary;
       } else {
-        bgColor = Colors.grey.shade200;
-        borderColor = Colors.grey.shade400;
-        textColor = Colors.grey.shade700;
+        bgColor = Colors.orange.shade50;
+        textColor = Colors.orange.shade800;
       }
     } else {
-      bgColor = Colors.green.withOpacity(0.1);
-      borderColor = Colors.green.shade300;
-      textColor = Colors.green.shade600;
+      bgColor = Colors.green.withOpacity(0.08);
+      textColor = Colors.green.shade700;
+      statusIcon = Icons.check_circle_outline;
     }
 
     // 전체 정보 표시 (예: "3-2 임현우")
@@ -444,14 +497,15 @@ class _TimetableDashboardScreenState
       teacherLabel = reservation!.teacherName!;
     }
 
-    final cell = Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-      constraints: const BoxConstraints(minHeight: 44),
+    final cellContent = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: borderColor, width: 1),
+        border: isLastCell
+            ? null
+            : Border(
+                right: BorderSide(color: TossColors.divider, width: 1),
+              ),
       ),
       child: Center(
         child: isReserved
@@ -463,27 +517,32 @@ class _TimetableDashboardScreenState
                     Text(
                       gradeClassLabel,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: textColor,
+                        height: 1.2,
                       ),
                     ),
                   if (teacherLabel != null)
-                    Text(
-                      teacherLabel,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: textColor,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        teacherLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: textColor,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               )
             : Icon(
-                Icons.check,
-                size: 18,
+                statusIcon,
+                size: 22,
                 color: textColor,
               ),
       ),
@@ -493,11 +552,11 @@ class _TimetableDashboardScreenState
     if (isReserved) {
       return GestureDetector(
         onTap: () => _showReservationDetail(reservation),
-        child: cell,
+        child: cellContent,
       );
     }
 
-    return cell;
+    return cellContent;
   }
 
   /// 예약 상세 정보 팝업
@@ -701,28 +760,32 @@ class TimetableLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: TossColors.divider),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildLegendItem(
-            color: Colors.green.withOpacity(0.1),
-            borderColor: Colors.green.shade300,
+            color: Colors.green.withOpacity(0.08),
+            icon: Icons.check_circle_outline,
+            iconColor: Colors.green.shade700,
             label: '예약 가능',
           ),
           _buildLegendItem(
-            color: TossColors.primary.withOpacity(0.2),
-            borderColor: TossColors.primary,
+            color: TossColors.primary.withOpacity(0.15),
+            icon: Icons.person,
+            iconColor: TossColors.primary,
             label: '내 예약',
           ),
           _buildLegendItem(
-            color: Colors.grey.shade200,
-            borderColor: Colors.grey.shade400,
-            label: '예약됨',
+            color: Colors.orange.shade50,
+            icon: Icons.event_busy,
+            iconColor: Colors.orange.shade800,
+            label: '다른 예약',
           ),
         ],
       ),
@@ -731,27 +794,29 @@ class TimetableLegend extends StatelessWidget {
 
   Widget _buildLegendItem({
     required Color color,
-    required Color borderColor,
+    required IconData icon,
+    required Color iconColor,
     required String label,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: borderColor, width: 1),
+            borderRadius: BorderRadius.circular(6),
           ),
+          child: Icon(icon, size: 16, color: iconColor),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: TossColors.textSub,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: TossColors.textMain,
           ),
         ),
       ],
