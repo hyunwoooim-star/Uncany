@@ -432,10 +432,16 @@ class _TimetableDashboardScreenState
       textColor = Colors.green.shade600;
     }
 
-    // 선생님 이름 첫 글자 (예약된 경우)
-    final teacherInitial = reservation?.teacherName?.isNotEmpty == true
-        ? reservation!.teacherName!.substring(0, 1)
-        : null;
+    // 학년-반 표시 (예: "3-2")
+    String? gradeClassLabel;
+    if (reservation?.teacherGrade != null && reservation?.teacherClassNum != null) {
+      gradeClassLabel = '${reservation!.teacherGrade}-${reservation.teacherClassNum}';
+    } else if (reservation?.teacherGrade != null) {
+      gradeClassLabel = '${reservation!.teacherGrade}학년';
+    } else if (reservation?.teacherName?.isNotEmpty == true) {
+      // 학년/반 정보 없으면 이름 첫 글자
+      gradeClassLabel = reservation!.teacherName!.substring(0, 1);
+    }
 
     final cell = Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -446,11 +452,11 @@ class _TimetableDashboardScreenState
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Center(
-        child: isReserved && teacherInitial != null
+        child: isReserved && gradeClassLabel != null
             ? Text(
-                teacherInitial,
+                gradeClassLabel,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: textColor,
                 ),
